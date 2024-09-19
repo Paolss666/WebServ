@@ -1,15 +1,7 @@
-#include <vector>
-#include <map>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <limits>
-#include <sys/socket.h>
+# include "webserv.hpp"
 
-// int     main(void)
-// {   
-    
-//     // int srver_fd  =  socket(domain, type, protocol);
-//     return ;
-// }
+int     main(void)
+{   
+	std::cout << "Hello World" << std::endl;
+	return (0);
+}
