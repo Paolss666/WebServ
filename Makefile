@@ -3,15 +3,15 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: npaolett <npaolett@student.42.fr>          +#+  +:+       +#+         #
+#    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/09/19 14:03:53 by npaolett         ###   ########.fr        #
+#    Updated: 2024/09/19 17:00:31 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-NAME = btc
+NAME = webserv
 
 CXX = c++
 CXXFLAGS = -Wall -Wextra -Werror -MMD -Wno-unused -std=c++98
@@ -20,14 +20,18 @@ INC_PATH = ./incl/
 INC = -I $(INC_PATH)
 
 SRCS_PATH = ./src/
-SRC = main.cpp
+SRC := \
+	main.cpp \
+
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
-OBJS_PATH = ./obj/
+OBJS_PATH = ./.build/
 OBJ = $(SRC:.cpp=.o)
 OBJS = $(addprefix $(OBJS_PATH), $(OBJ))
 
 DEPS = $(OBJS:.o=.d)
+
+MAKEFLAGS   += --silent --no-print-directory
 
 all: $(OBJS_PATH) $(NAME)
 
@@ -39,6 +43,7 @@ $(OBJS_PATH)%.o: $(SRCS_PATH)%.cpp
 
 $(NAME) : $(OBJS)
 		$(CXX) $(CXXFLAGS) $(OBJS) -o $@ $(INC)
+		$(info CREATED $(NAME))
 
 -include $(DEPS)
 
