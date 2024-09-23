@@ -22,6 +22,10 @@ INC = -I $(INC_PATH)
 SRCS_PATH = ./src/
 SRC := \
 	main.cpp \
+	ServerConf.cpp \
+	ServeV.cpp \
+	utils.cpp \
+
 
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
@@ -31,7 +35,7 @@ OBJS = $(addprefix $(OBJS_PATH), $(OBJ))
 
 DEPS = $(OBJS:.o=.d)
 
-MAKEFLAGS   += --silent --no-print-directory
+# MAKEFLAGS   += --silent --no-print-directory
 
 all: $(OBJS_PATH) $(NAME)
 
