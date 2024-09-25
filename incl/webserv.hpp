@@ -47,9 +47,8 @@
 // function ------------------------------
 
 void	Check_extension(const std::string & str, const std::string & ext);
-
-
-
+void	Print_map_code_errors(std::map<int, std::string> PagesError);
+void	printVector(const std::vector<std::string>& vec);
 // Error try catch ---------------- //
 
 class ErrorConfFile : public std::exception

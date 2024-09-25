@@ -9,33 +9,36 @@ ServerV::ServerV()
 void ServerV::initServer(const char *fileName)
 {
     std::string	line;
-	bool	empty = true;
+	// bool	empty = true;
+    int     i = 0;
+    
+    std::vector<ServerConf>    Servers;
+
     Check_extension(fileName, ".conf");
 	// isDirectory(filename);
     std::ifstream file(fileName);
-
     if (!file.is_open())
-        throw ErrorConfFile("Not Open");
+        throw ErrorConfFile("Can't open the file");
 	
     while (std::getline(file, line))
 	{
         if (line == "server {")
 		{
             ServerConf virtualServer;	
-
-			// vs.setIndex(i);
-			// virtualServersTemp.push_back(vs);
-			// i++;
+            std::cout << " ======> "<< line << "<============================== \n";
              virtualServer.initWServer(file);
             std::cout << "FILE DONE\n";
+			Servers.push_back(virtualServer);
+            virtualServer.setNbServer(i);
+            std::cout << "nbserver " << i << "\n";
+            i++;
 		}
-		else if (line.empty())
-			continue ;
-		else
-			throw ErrorConfFile("Error in the config file : wrong content");
-        // if (word == "}" && empty == true)
-			// throw ErrorConfFile("Error in the config file");
+		// else if (line != ) 
+			// throw ErrorConfFile("Error in the config file : wrong content");
+        if (line == "}")
+			throw ErrorConfFile("Error in the config file");
     }
+    // std::cout << "valeur index ----> " << i << std::endl;
 }
 
 ServerV::~ServerV()
