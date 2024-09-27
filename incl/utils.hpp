@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:05:27 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/09/27 18:56:43 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,5 +35,8 @@ void	ft_perror(const char * message);
 # define BOLD		"\033[1m"          // Bold
 # define ITALIC		"\033[3m"          // Italic
 # define UNDERLINE	"\033[4m"          // Underline
+
+# define MAX_CONNECTIONS 512
+# define PORT           8080
 
 #endif

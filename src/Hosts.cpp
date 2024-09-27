@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:34 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:43:28 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/09/27 19:05:29 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,27 @@ void Hosts::initServer(const char *fileName) {
 
 void	Hosts::loopServer(void) {
 	for (size_t i = 0; i < hosts.size(); i++) {
-		if ((hosts[i]._Fdsocket = socket(hosts[i]._address.sin_family, SOCK_STREAM, 0)) <= 0)
+		if ((hosts[i]._FdSocket = socket(hosts[i]._address.sin_family, SOCK_STREAM, 0)) <= 0)
 			throw ErrorFdManipulation("Error in the socket creation");
+		if (bind(hosts[i]._FdSocket, (struct sockaddr *)&hosts[i]._address, sizeof(hosts[i]._address)) < 0)
+			throw ErrorFdManipulation("Error in the bind");
+		if (listen(hosts[i]._FdSocket, MAX_CONNECTIONS) < 0)
+			throw ErrorFdManipulation("Error in the listen");
+		if ((hosts[i]._FdEpoll = epoll_create(1) < 0))
+			throw ErrorFdManipulation("Error in the epoll_create");
+		if (epoll_ctl(hosts[i]._FdEpoll, EPOLL_CTL_ADD, hosts[i]._FdSocket, NULL) < 0)
+			throw ErrorFdManipulation("Error in the epoll_ctl");
+	}
+	while (!g_sig) {
+		sleep(1);
+		std::cout << "waiting\n";
 	}
 }
 
 Hosts::~Hosts() {
-    for (size_t i = 0; i < hosts.size(); i++)
-		close (hosts[i]._Fdsocket);
+    for (size_t i = 0; i < hosts.size(); i++) {
+		close(hosts[i]._FdSocket);
+		close(hosts[i]._FdEpoll);
+	}
     return ;
 }

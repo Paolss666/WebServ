@@ -6,11 +6,13 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:12:46 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/09/27 19:05:50 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+
+int	g_sig;
 
 int main(int ac, char **av) {
 	Hosts  server;

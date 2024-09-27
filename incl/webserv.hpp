@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:58:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:12:24 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/09/27 19:02:53 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,8 +42,7 @@
 # include <sys/stat.h>
 # include <sys/wait.h>
 # include <arpa/inet.h>
-
-#define PORT 8080
+# include <sys/epoll.h>
 
 // global variables ------------------------------
 extern int g_sig;

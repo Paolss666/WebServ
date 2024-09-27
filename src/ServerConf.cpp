@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:42:53 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/09/27 18:57:52 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ ServerConf::ServerConf() {
     _ip = "0.0.0.0"; // address far default;
     _NotBind = 0; // check if is bind or not;
 	_maxBodySize = 0;
-	_Fdsocket = 0;
+	_FdSocket = 0;
 	_IndexPages = 0;
 	_nbServer = 0;
 	_maxBodyState = false;
@@ -37,7 +37,7 @@ ServerConf::ServerConf() {
 	_ReturnFlag = false;
 	_PortString = "";
 	_rootPath = "";
-	
+	_FdEpoll = 0;
 }
 
 void	ServerConf::setNbServer(int nb)
