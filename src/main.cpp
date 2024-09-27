@@ -1,5 +1,7 @@
 # include "../incl/webserv.hpp"
-# include "ServerV.hpp"
+# include "../incl/ServerV.hpp"
+# include "../incl/ServerConf.hpp"
+# include "../incl/Location.hpp"
 // # include <iostream>
 
 int main(int ac, char **av)

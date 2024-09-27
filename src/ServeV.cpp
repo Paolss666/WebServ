@@ -33,9 +33,9 @@ void ServerV::initServer(const char *fileName)
             std::cout << "nbserver " << i << "\n";
             i++;
 		}
-		// else if (line != ) 
-			// throw ErrorConfFile("Error in the config file : wrong content");
-        if (line == "}")
+        else if (line.empty())
+            continue;
+        else
 			throw ErrorConfFile("Error in the config file");
     }
     // std::cout << "valeur index ----> " << i << std::endl;

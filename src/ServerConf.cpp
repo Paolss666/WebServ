@@ -1,4 +1,5 @@
-#include "ServerConf.hpp"
+#include "../incl/Location.hpp"
+#include "../incl/ServerConf.hpp"
 
 ServerConf::ServerConf()
 {
@@ -17,6 +18,9 @@ ServerConf::ServerConf()
 	_Autoindex = false;
 	_maxBodyState = false;
 	_errorFlag = false;
+	_ReturnFlag = false;
+	_Default_server = false;
+	_CheckDefaultServer = false;
 	_IndexPages = 0;
 	_nbServer = 0;
 }
@@ -135,9 +139,9 @@ void	ServerConf::p_Root(std::istringstream &iss)
 	if (!(iss >> pathRoot))
 		throw ErrorConfFile("Error conf file: root path don't found;");
 	
-	// std::cout << " path-root found --->  " << pathRoot << std::endl; 
+	std::cout << " path-root found --->  " << pathRoot << std::endl; 
 
-	if ( pathRoot.find("www") == std::string::npos ||pathRoot.find("www/") == std::string::npos)
+	if (pathRoot.compare(0, 3, "www") != 0 && pathRoot.compare(0, 4, "www/") != 0)
 		throw ErrorConfFile("Error conf file: root wrong path;");
 
 	_rootPath = pathRoot;
@@ -273,6 +277,48 @@ void	ServerConf::p_ErrorPages(std::istringstream& iss)
 	_errorFlag = true;
 }
 
+
+int	ServerConf::p_Return(std::string &codeRetrn)
+{
+	size_t	ix = codeRetrn.find_first_not_of("0123456789");
+	std::string	path;
+	if (ix == std::string::npos)
+	{
+		int errorCode = strtol(codeRetrn.c_str(), NULL, 10);
+		if (errorCode < 300 || errorCode > 308)
+			throw ErrorConfFile("Error in the conf file : error_page  x < 100 || x > 599 ");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfFile("Error in the conf file : error_page parseCde");
+}
+
+void	ServerConf::p_CodeRetourn(std::istringstream& iss)
+{
+	std::string 	codeRetrn;
+	std::vector<int>	vectorCode;
+	int					codeRe;
+	if (!(iss >> codeRetrn))
+		throw ErrorConfFile("Error conf file: error_pages");
+	codeRe = p_Return(codeRetrn);
+	vectorCode.push_back(codeRe);
+	while ((iss >> codeRetrn) && codeRetrn.find_first_not_of("0123456789") == std::string::npos)
+	{
+		codeRe = p_Return(codeRetrn);
+		vectorCode.push_back(codeRe);
+	}
+	if (codeRetrn.empty())
+		throw ErrorConfFile("Error conf file : return empty");
+	if (codeRetrn[0] != '/' && codeRetrn.find("..") != std::string::npos)
+		throw ErrorConfFile("Error conf file: return 2");
+	if (iss >> codeRetrn)
+		throw ErrorConfFile("Error conf file: return 3");
+	for (size_t i = 0; i < vectorCode.size(); i++)
+		_CodeRetorn[vectorCode[i]] = codeRetrn;
+	_ReturnFlag = true;
+	Print_map_code_return(_CodeRetorn);
+}
+
 void	ServerConf::p_Index(std::istringstream& iss)
 {
 	std::string		index;
@@ -281,9 +327,6 @@ void	ServerConf::p_Index(std::istringstream& iss)
 	if (!(iss >> index) || index.empty())
 		throw ErrorConfFile("Error conf file: index ");
 	_IndexFile.push_back(index);
-	// std::cout << "before index --> " << index << std::endl;
-	// _IndexPages == true;
-	// std::cout << "idexpages" << _IndexPages << std::endl;
 	_IndexPages = 1;
 	while (iss >> index)
 	{
@@ -296,10 +339,72 @@ void	ServerConf::p_Index(std::istringstream& iss)
 	printVector(_IndexFile);
 }
 
+void	ServerConf::p_DefaultServer(std::istringstream& iss)
+{
+	std::string line;
+	_Default_server = true;
+	if (iss >> line)
+		throw ErrorConfFile("Error conf file: defualt_server");
+	_CheckDefaultServer = true;
+	std::cout << "default_server -> " << _Default_server << std::endl;
+}
+
+void	ServerConf::p_Location(std::istringstream& iss, std::string kw)
+{
+	std::string				Uri;
+	
+	// // Location			Location;
+	if (!(iss >> kw))
+		throw	ErrorConfFile("Error conf file: location");
+
+	// std::cout << "check --> line inside location -> " << line << std::endl;
+
+	//=========== I HAVE TO CHECK IF THIS PATH IS REAL ? =========
+	// struct stat info;
+	// if (stat(line.c_str(), &info) != 0)// cannot access path 
+	// 	throw ErrorConfFile("Error : root : cannot access path or
+	// _Location[line] = newL;
+	std::cout << "check --> location " << kw << std::endl;
+	 // Questo prende il resto della riga, per esempio '{'
+	Uri = kw;
+
+	// Supponiamo che tu voglia raccogliere i contenuti della location fino a '}'
+    // while (std::getline(iss, kw))
+	// {
+    //     if (kw.find('}') != std::string::npos)
+    //         break;  // Interrompiamo quando troviamo '}', fine del blocco location
+
+    // }
+	// std::map<std::string, Location>::iterator it = _Location.begin();
+	// it->first = line;
+	// if (iss >> line)
+	// {
+	// 	if (line == "{")
+	// 		while (iss >> line)
+	// 		{
+	// 			std::cout << "line { inside } " << line << std::endl;
+	// 		}
+	// }
+	// if (line == "{")
+	// {
+	// 	if (iss >> line)
+	// 		std::cout << "--------> " << line << std::endl;
+	// }
+	// std::ifstream file(line);
+		// std::cout << "check --> line after  -> " << line << std::endl;
+	// struct stat info;
+	// if (stat(line.c_str(), &info)!= 0) // cannot acces to the path;
+		// throw ErrorConfFile("Error conf file: location wrong path");
+	// std::fstream file(line);
+	// if (!file.good())
+		// throw ErrorConfFile("Error conf file: location wrong path");
+	// return (LocationTmp);
+}
+
 void    ServerConf::initWServer(std::istream &file)
 {
     std::string	line, kw;
-	// bool	empty = true;
+	bool	empty = true;
 	while (std::getline(file, line))
 	{
 		std::istringstream iss(line);
@@ -319,16 +424,37 @@ void    ServerConf::initWServer(std::istream &file)
 			p_ErrorPages(iss);
 		else if (kw == "index" && !_IndexPages ) // is the file in the root path 
 			p_Index(iss);
-		// else if (kw == "default_server")
-		// 	p_DefaultServer(iss);
-		// std::cerr << "kw vs = " << kw << "\n";
-		// if (kw == "}" && empty == true)
-			// throw ErrorConfFile("Error in the config file : empty server section");
-		// std::cout << kw << " " << std::endl;
-        // if (kw == "location")
+		else if (kw == "return" && !_ReturnFlag)
+			p_CodeRetourn(iss);
+		else if (kw == "default_server" && !_CheckDefaultServer)
+			p_DefaultServer(iss);
+        else if (kw == "location")
+		{
+			// if (!(iss >> kw))
+			// 	throw ErrorConfFile("Error in conf file : location;");
+			// else
+			// 	_Location[kw];
+			Location	location;
+			std::string	prefix;
+			if (!(iss >> kw))
+				throw ErrorConfFile("Error in the conf file : location : wrong content1");
+			if (kw != "{")
+			{
+				prefix = kw;
+				location.setUri(prefix);
+				std::cerr << "prefix " << prefix << "\n";
+				if ((iss >> kw) && kw != "{")
+					throw ErrorConfFile("Error in the conf file : location : wrong content3");
+			}
+			else
+				throw ErrorConfFile("Error in the conf file : location : wrong content3");
+			location.ParseLocation(file);
+		}
+			// p_Location(iss, kw);
 		if (line == "}")
 			break;
-        
+		// else
+			// throw ErrorConfFile("Error in the config file : empty server section");
     }
 }
 

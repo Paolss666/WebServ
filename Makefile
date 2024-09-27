@@ -23,6 +23,7 @@ SRCS_PATH = ./src/
 SRC := \
 	main.cpp \
 	ServerConf.cpp \
+	Location.cpp \
 	ServeV.cpp \
 	utils.cpp \
 
