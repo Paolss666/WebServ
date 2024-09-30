@@ -1,8 +1,18 @@
-#include "../incl/Location.hpp"
-#include "../incl/ServerConf.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   ServerConf.cpp                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
+/*   Updated: 2024/09/27 18:57:52 by bdelamea         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-ServerConf::ServerConf()
-{
+#include "../incl/webserv.hpp"
+
+ServerConf::ServerConf() {
     memset(&_address, 0, sizeof _address);
 	_address.sin_family = AF_INET; // IPv4
 	_address.sin_port = htons(PORT);// port par defaut 8080
@@ -10,24 +20,29 @@ ServerConf::ServerConf()
     _port = 8080; // port par default;
     _ip = "0.0.0.0"; // address far default;
     _NotBind = 0; // check if is bind or not;
-    _StateListen = true;
-	_isServerName = false;
-	_DefaultPort = true;
-    _IpDefault = true;
-	_rootFlag = true;
-	_Autoindex = false;
-	_maxBodyState = false;
-	_errorFlag = false;
-	_ReturnFlag = false;
-	_Default_server = false;
-	_CheckDefaultServer = false;
+	_maxBodySize = 0;
+	_FdSocket = 0;
 	_IndexPages = 0;
 	_nbServer = 0;
+	_maxBodyState = false;
+    _StateListen = true;
+	_DefaultPort = true;
+    _IpDefault = true;
+	_isServerName = false;
+	_rootFlag = true;
+	_Autoindex = false;
+	_errorFlag = false;
+	_Default_server = false;
+	_CheckDefaultServer = false;
+	_ReturnFlag = false;
+	_PortString = "";
+	_rootPath = "";
+	_FdEpoll = 0;
 }
 
 void	ServerConf::setNbServer(int nb)
 {
-	this->_nbServer = nb;
+	_nbServer = ++nb;
 }
 
 void    ServerConf::p_IpAddrs(void)
@@ -107,13 +122,13 @@ void    ServerConf::p_Listen(std::istringstream& iss)
 
 void ServerConf::printServerNames() const
 {
-	for (size_t i = 0; i < _ServerNames.size(); ++i)
+	for (size_t i = 0; i < _name.size(); ++i)
 	{
-        std::cout << i + 1 << ". " << _ServerNames[i] << std::endl;  // Stampa con un indice
+        std::cout << i + 1 << ". " << _name[i] << std::endl;  // Stampa con un indice
     }
 }
 
-void	ServerConf::p_ServerNames(std::istringstream &iss)
+void	ServerConf::p_name(std::istringstream &iss)
 {
 	std::string serverNames;
 	
@@ -126,9 +141,9 @@ void	ServerConf::p_ServerNames(std::istringstream &iss)
 	if (iss >> serverNames)
 		throw ErrorConfFile("Error conf file: serve_name not found;");
 
-	_ServerNames = serverNames;
+	_name = serverNames;
 
-	std::cout << "server name -> " << _ServerNames << std::endl;
+	std::cout << "server name -> " << _name << std::endl;
 	_isServerName = true;
 }
 
@@ -165,7 +180,7 @@ Funzionamento di autoindex
 autoindex on: Se abilitato (on), il server mostrerà una lista dei file e delle sottocartelle presenti nella directory richiesta, se non è disponibile un file di indice.
 autoindex off: Se disabilitato (off), il server restituirà un errore (tipicamente un 403 Forbidden) se non trova un file di indice nella directory richiesta. */
 
-void	ServerConf::p_AutoIndex(std::istringstream &iss)
+void	ServerConf::p_AutoIndex(std::istringstream & iss)
 {
 	std::string autoIndex;
 
@@ -293,7 +308,7 @@ int	ServerConf::p_Return(std::string &codeRetrn)
 		throw ErrorConfFile("Error in the conf file : error_page parseCde");
 }
 
-void	ServerConf::p_CodeRetourn(std::istringstream& iss)
+void	ServerConf::p_CodeReturn(std::istringstream& iss)
 {
 	std::string 	codeRetrn;
 	std::vector<int>	vectorCode;
@@ -314,9 +329,9 @@ void	ServerConf::p_CodeRetourn(std::istringstream& iss)
 	if (iss >> codeRetrn)
 		throw ErrorConfFile("Error conf file: return 3");
 	for (size_t i = 0; i < vectorCode.size(); i++)
-		_CodeRetorn[vectorCode[i]] = codeRetrn;
+		_CodeReturn[vectorCode[i]] = codeRetrn;
 	_ReturnFlag = true;
-	Print_map_code_return(_CodeRetorn);
+	Print_map_code_return(_CodeReturn);
 }
 
 void	ServerConf::p_Index(std::istringstream& iss)
@@ -416,7 +431,7 @@ void    ServerConf::initWServer(std::istream &file)
         else if (kw == "listen" && _StateListen )
 			p_Listen(iss);
 		else if (kw == "server_name" && !_isServerName)
-			p_ServerNames(iss);
+			p_name(iss);
 		else if (kw == "root" && _rootFlag)
 			p_Root(iss);
 		else if (kw == "autoindex")
@@ -428,7 +443,7 @@ void    ServerConf::initWServer(std::istream &file)
 		else if (kw == "index" && !_IndexPages ) // is the file in the root path 
 			p_Index(iss);
 		else if (kw == "return" && !_ReturnFlag)
-			p_CodeRetourn(iss);
+			p_CodeReturn(iss);
 		else if (kw == "default_server" && !_CheckDefaultServer)
 			p_DefaultServer(iss);
         else if (kw == "location")

@@ -1,29 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Hosts.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 19:05:50 by bdelamea         ###   ########.fr       */
+/*   Created: 2024/09/27 17:51:48 by bdelamea          #+#    #+#             */
+/*   Updated: 2024/09/27 18:02:47 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../incl/webserv.hpp"
+#ifndef HOSTS_HPP
+# define HOSTS_HPP
 
-int	g_sig;
+# include "webserv.hpp"
 
-int main(int ac, char **av) {
-	Hosts  server;
-	try {
-		if (ac < 2)
-			return (std::cerr << "ERREUR\n", 1);
-		server.initServer(av[1]);
-		server.loopServer();
-	}
-	catch(std::exception & c) {
-		std::cerr << c.what() << std::endl;
-		return 1;
-	}
-}
+class Hosts {
+	public:
+		Hosts(void);
+		~Hosts(void);
+
+		std::vector<ServerConf>	hosts;
+
+		void					initServer(const char * fileName);
+		void					loopServer(void);
+};
+
+#endif

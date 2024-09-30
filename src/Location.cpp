@@ -1,4 +1,17 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Location.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
+/*   Updated: 2024/09/27 18:07:31 by bdelamea         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
+
+#include "../incl/webserv.hpp"
 #include "../incl/Location.hpp"
 
 Location::Location(void)
@@ -10,6 +23,7 @@ Location::Location(void)
     _ErPages = false;
     _AutoFlag = false;
     _AutoIndex = false;
+    _MetFlag   = false;
     return;
 }
 
