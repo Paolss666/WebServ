@@ -1,1 +1,24 @@
-"im inside the index.html and it exist !!!!!!!"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page with POST Button</title>
+</head>
+<body>
+
+    <h1>HTML Page with POST Button</h1>
+
+    <!-- Form that uses the POST method -->
+    <form action="/submit" method="POST">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+</body>
+</html>

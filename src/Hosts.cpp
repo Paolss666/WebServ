@@ -56,15 +56,15 @@ void	Hosts::loopServer(void) {
     	event.data.fd = hosts[i]._FdSocket;
 		if (epoll_ctl(hosts[i]._FdEpoll, EPOLL_CTL_ADD, hosts[i]._FdSocket, &event) < 0)
 		{	
-			int err = errno;
-        	std::string error_message = "Error in epoll_ctl: ";
-        	error_message += strerror(err); 
-        	std::cerr << error_message << std::endl;
+			// int err = errno;
+        	// std::string error_message = "Error in epoll_ctl: ";
+        	// error_message += strerror(err); 
+        	// std::cerr << error_message << std::endl;
 			throw ErrorFdManipulation("Error in the epoll_ctl");
 		}
 	}
 	while (!g_sig) {
-		sleep(1);
+		sleep(100);
 		std::cout << "waiting\n";
 	}
 }
