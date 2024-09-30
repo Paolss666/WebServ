@@ -6,6 +6,10 @@ Location::Location(void)
     _MetFlag = false;
     _indexFlag = false;
     _CgiFlag = false;
+    _ReturnFlag = false;
+    _ErPages = false;
+    _AutoFlag = false;
+    _AutoIndex = false;
     return;
 }
 
@@ -22,7 +26,7 @@ std::string     Location::getUri(void)
     return(this->_Uri);
 }
 
-void        Location::p_Methos(std::istringstream& iss)
+void        Location::InLoc_Methos(std::istringstream& iss)
 {
     std::string line;
     if (!(iss >> line))
@@ -38,7 +42,7 @@ void        Location::p_Methos(std::istringstream& iss)
     _MetFlag = true;
 }
 
-void        Location::p_Index(std::istringstream& iss)
+void        Location::InLoc_Index(std::istringstream& iss)
 {
     std::string     indx;
 
@@ -62,7 +66,7 @@ void        Location::p_Index(std::istringstream& iss)
 }
 
 
-void        Location::p_Cgi(std::istringstream& iss)
+void        Location::InLoc_Cgi(std::istringstream& iss)
 {
     std::string 	cgiPath;
 
@@ -85,6 +89,104 @@ void        Location::p_Cgi(std::istringstream& iss)
 	_CgiFlag = true;
 }
 
+int	Location::InLoc_p_Return(std::string &codeRetrn)
+{
+	size_t	ix = codeRetrn.find_first_not_of("0123456789");
+	std::string	path;
+	if (ix == std::string::npos)
+	{
+		int errorCode = strtol(codeRetrn.c_str(), NULL, 10);
+		if (errorCode < 300 || errorCode > 308)
+			throw ErrorConfFile("Error in the conf file : error_page  x < 100 || x > 599 ");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfFile("Error in the conf file : error_page parseCde");
+}
+
+void        Location::InLoc_Return(std::istringstream& iss)
+{
+    std::string            rtrn;
+    if (!(iss >> rtrn))
+        throw ErrorConfFile("Error conf file: location: return");
+    int                    codeErr;
+    std::vector<int>       V_Code;
+    codeErr = InLoc_p_Return(rtrn);
+    V_Code.push_back(codeErr);
+    while ((iss >> rtrn) && rtrn.find_first_not_of("0123456789") == std::string::npos)
+	{
+		codeErr = InLoc_p_Return(rtrn);
+		V_Code.push_back(codeErr);
+	}
+	if (rtrn.empty())
+		throw ErrorConfFile("Error conf file : return empty");
+	if (rtrn[0] != '/' && rtrn.find("..") != std::string::npos)
+		throw ErrorConfFile("Error conf file: return 2");
+	if (iss >> rtrn)
+		throw ErrorConfFile("Error conf file: return 3");
+	for (size_t i = 0; i < V_Code.size(); i++)
+		_Retourn[V_Code[i]] = rtrn;
+	_ReturnFlag = true;
+    Print_map_code_return(_Retourn);
+}
+
+int	Location::InLoc_p_errorCodes(std::string &pgError)
+{
+	size_t	ix = pgError.find_first_not_of("0123456789");
+	std::string	path;
+	if (ix == std::string::npos)
+	{
+		int errorCode = strtol(pgError.c_str(), NULL, 10);
+		if (errorCode < 100 || errorCode > 599)
+			throw ErrorConfFile("Error in the conf file : error_page  x < 100 || x > 599 ");
+		return (errorCode);
+	}
+	else
+		throw ErrorConfFile("Error in the conf file : error_page parseCde");
+}
+
+void        Location::InLoc_ErPages(std::istringstream& iss)
+{
+    std::string pgError;;
+	std::vector<int> erroCodeVector;
+	int				eCode;
+
+	if (!(iss >> pgError))
+		throw ErrorConfFile("Error conf file: error_pages");
+	eCode = InLoc_p_errorCodes(pgError);
+	erroCodeVector.push_back(eCode);
+	while ((iss >> pgError) && pgError.find_first_not_of("0123456789") == std::string::npos)
+	{
+		eCode =  InLoc_p_errorCodes(pgError);
+		erroCodeVector.push_back(eCode);
+	}
+	if (pgError.empty())
+		throw ErrorConfFile("Error conf file: error_pages 1");
+	if (pgError[0] != '/' && pgError.find("..") != std::string::npos)
+		throw ErrorConfFile("Error conf file: error_pages 2");
+	if (iss >> pgError)
+		throw ErrorConfFile("Error conf file: error_pages format /html");
+	for (size_t i = 0; i < erroCodeVector.size(); i++)
+		_PageError[erroCodeVector[i]] = pgError;
+	Print_map_code_errors(_PageError);
+	_ErPages = true;
+}
+
+void        Location::InLoc_AutoIndex(std::istringstream& iss)
+{
+    std::string autoIndex;
+
+	if (iss >> autoIndex)
+	{
+		if (autoIndex == "on")
+			_AutoIndex = true;
+		else
+			_AutoIndex = false;
+	}
+	std::cout << "autoindex = " << _AutoIndex << std::endl;
+    _AutoFlag = true;
+}
+
 void        Location::ParseLocation(std::istream &file)
 {
     std::string line;
@@ -92,19 +194,29 @@ void        Location::ParseLocation(std::istream &file)
     {
 		std::istringstream iss(line);
 		std::string	keyword;
-        if (iss >> keyword)
-        {
-            std::cout << "-------------LOCATION-----------------\n";
-            if (keyword == "}")
-                break;
-            else if (keyword == "methods" && !_MetFlag)
-                p_Methos(iss);
-            else if (keyword == "index" && !_indexFlag)
-                p_Index(iss);
-            else if (keyword == "cgi" && !_CgiFlag)
-                p_Cgi(iss);
-            // std::cout << keyword << "<--- keyword\n";
-        }
+        
+        if (line.empty() || line == "\t\t")//
+		    continue ;
+        if (!(iss >> keyword))
+            throw ErrorConfFile("Error in conf file: Location");
+    
+        std::cout << "-------------LOCATION-----------------\n";
+        if (keyword == "methods" && !_MetFlag)
+            InLoc_Methos(iss);
+        else if (keyword == "index" && !_indexFlag)
+            InLoc_Index(iss);
+        else if (keyword == "cgi" && !_CgiFlag)
+            InLoc_Cgi(iss);
+        else if (keyword == "return" && !_ReturnFlag)
+            InLoc_Return(iss);
+        else if (keyword == "error_page" && !_ErPages)
+            InLoc_ErPages(iss);
+        else if (keyword == "autoindex" && !_AutoFlag)
+            InLoc_AutoIndex(iss);
+        else if (keyword == "}")
+            break;
+        else
+            throw ErrorConfFile("Error in conf file: Location 2");
     }
     return;
 }

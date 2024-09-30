@@ -14,6 +14,7 @@
 class Location
 {
     private:
+      
       std::string                 _Uri;
       std::string                 _ServerName;
       std::string                 _Root;
@@ -22,16 +23,27 @@ class Location
       std::map<int, std::string>  _PageError;
       std::vector<std::string>    _Methods;
 	    std::vector<std::string>	    _Indx;
+      bool                        _AutoIndex;
+
       bool                        _MetFlag;
       bool                        _indexFlag;
       bool                        _CgiFlag;
+      bool                        _ReturnFlag;
+      bool                        _ErPages;
+      bool                        _AutoFlag;
 
     public:
         Location(/* args */);
         ~Location();
-        void            p_Methos(std::istringstream& iss);
-        void            p_Index(std::istringstream& iss);
-        void            p_Cgi(std::istringstream& iss);
+        void            InLoc_Methos(std::istringstream& iss);
+        void            InLoc_Index(std::istringstream& iss);
+        void            InLoc_Cgi(std::istringstream& iss);
+        void            InLoc_Return(std::istringstream& iss);
+        int             InLoc_p_Return(std::string &codeRetrn);
+        void            InLoc_ErPages(std::istringstream& iss);
+        int             InLoc_p_errorCodes(std::string &pgError);
+        void            InLoc_AutoIndex(std::istringstream& iss);
+
         void            setUri(std::string uri);
         std::string     getUri(void);
         void            ParseLocation(std::istream &file);

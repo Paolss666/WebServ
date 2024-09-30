@@ -299,7 +299,7 @@ void	ServerConf::p_CodeRetourn(std::istringstream& iss)
 	std::vector<int>	vectorCode;
 	int					codeRe;
 	if (!(iss >> codeRetrn))
-		throw ErrorConfFile("Error conf file: error_pages");
+		throw ErrorConfFile("Error conf file: return");
 	codeRe = p_Return(codeRetrn);
 	vectorCode.push_back(codeRe);
 	while ((iss >> codeRetrn) && codeRetrn.find_first_not_of("0123456789") == std::string::npos)
@@ -405,11 +405,14 @@ void    ServerConf::initWServer(std::istream &file)
 {
     std::string	line, kw;
 	bool	empty = true;
+	int		i = 0;
 	while (std::getline(file, line))
 	{
 		std::istringstream iss(line);
+		if (line.empty() || line == "\t\t")
+			continue;
 		if (!(iss >> kw))
-			continue ;
+			continue;
         else if (kw == "listen" && _StateListen )
 			p_Listen(iss);
 		else if (kw == "server_name" && !_isServerName)
@@ -430,10 +433,6 @@ void    ServerConf::initWServer(std::istream &file)
 			p_DefaultServer(iss);
         else if (kw == "location")
 		{
-			// if (!(iss >> kw))
-			// 	throw ErrorConfFile("Error in conf file : location;");
-			// else
-			// 	_Location[kw];
 			Location	location;
 			std::string	prefix;
 			if (!(iss >> kw))
@@ -442,19 +441,21 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				prefix = kw;
 				location.setUri(prefix);
-				std::cerr << "prefix " << prefix << "\n";
+				std::cerr << "prefix " << location.getUri() << "\n";
 				if ((iss >> kw) && kw != "{")
 					throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			}
 			else
 				throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			location.ParseLocation(file);
+			_Location[location.getUri()] = location;
+			i++;
+			std::cout << "number of location for server -> " << i << std::endl;
 		}
-			// p_Location(iss, kw);
-		if (line == "}")
+		else if (line == "}")
 			break;
-		// else
-			// throw ErrorConfFile("Error in the config file : empty server section");
+		else
+			throw ErrorConfFile("Error in the config file : empty server section");
     }
 }
 
