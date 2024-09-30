@@ -65,6 +65,8 @@ class ServerConf {
 		void						p_Location(std::istringstream& iss, std::string kw);
 		int							p_errorCodes(std::string & pgError);
 		int							p_Return(std::string & codeRetrn);
+		void						setFdEpoll(int FdEpoll);
+		int							getFdEpoll(void);
 };
 
 #endif

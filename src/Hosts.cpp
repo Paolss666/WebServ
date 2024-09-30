@@ -42,17 +42,26 @@ void Hosts::initServer(const char *fileName) {
 }
 
 void	Hosts::loopServer(void) {
-	for (size_t i = 0; i < hosts.size(); i++) {
+	for (size_t i = 0; i < hosts.size(); ++i) {
 		if ((hosts[i]._FdSocket = socket(hosts[i]._address.sin_family, SOCK_STREAM, 0)) <= 0)
 			throw ErrorFdManipulation("Error in the socket creation");
 		if (bind(hosts[i]._FdSocket, (struct sockaddr *)&hosts[i]._address, sizeof(hosts[i]._address)) < 0)
 			throw ErrorFdManipulation("Error in the bind");
 		if (listen(hosts[i]._FdSocket, MAX_CONNECTIONS) < 0)
 			throw ErrorFdManipulation("Error in the listen");
-		if ((hosts[i]._FdEpoll = epoll_create(1) < 0))
+		if ((hosts[i]._FdEpoll = epoll_create(1)) < 0)
 			throw ErrorFdManipulation("Error in the epoll_create");
-		if (epoll_ctl(hosts[i]._FdEpoll, EPOLL_CTL_ADD, hosts[i]._FdSocket, NULL) < 0)
+		struct epoll_event event;
+    	event.events = EPOLLIN;  // Monitor for incoming connections (readable events)
+    	event.data.fd = hosts[i]._FdSocket;
+		if (epoll_ctl(hosts[i]._FdEpoll, EPOLL_CTL_ADD, hosts[i]._FdSocket, &event) < 0)
+		{	
+			int err = errno;
+        	std::string error_message = "Error in epoll_ctl: ";
+        	error_message += strerror(err); 
+        	std::cerr << error_message << std::endl;
 			throw ErrorFdManipulation("Error in the epoll_ctl");
+		}
 	}
 	while (!g_sig) {
 		sleep(1);

@@ -474,6 +474,17 @@ void    ServerConf::initWServer(std::istream &file)
     }
 }
 
+void			ServerConf::setFdEpoll(int FdEpoll)
+{
+	this->_FdEpoll = FdEpoll;
+	return;
+}
+
+int	ServerConf::getFdEpoll(void)
+{
+	return (this->_FdEpoll);
+}
+
 ServerConf::~ServerConf()
 {
     return;
