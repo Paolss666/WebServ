@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.hpp"
+#include "../incl/webserv.hpp"
 
 ServerConf::ServerConf() {
     memset(&_address, 0, sizeof _address);
