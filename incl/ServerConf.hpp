@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:57:40 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/01 16:53:18 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,33 +20,36 @@ class ServerConf {
 		ServerConf(void);
 		~ServerConf(void);
 
-		struct sockaddr_in			_address;
-		std::map<int, std::string>	_PageError;
-		std::map<int, std::string>	_CodeReturn;
-		std::vector<std::string>	_IndexFile;
-		int							_FdSocket;
-		int							_FdEpoll;
-		int							_NotBind;
-		int							_port;
-		int							_IndexPages;
-		int							_nbServer;
-		size_t						_maxBodySize;
-		std::string					_PortString;
-		std::string					_ip;
-		std::string					_name;
-		std::string					_rootPath;
-        std::map<std::string, Location> _Location;
-		bool						_maxBodyState;
-		bool						_DefaultPort;
-		bool						_StateListen;
-		bool						_IpDefault;
-		bool						_isServerName;
-		bool						_rootFlag;
-		bool						_Autoindex;
-		bool						_errorFlag;
-		bool						_Default_server;
-		bool						_CheckDefaultServer;
-		bool						_ReturnFlag;
+		struct sockaddr_in				_address;
+		std::map<int, std::string>		_PageError;
+		std::map<int, std::string>		_CodeReturn;
+		std::vector<std::string>		_IndexFile;
+		int								fdSetSock;
+		int								fdEpoll;
+		int								fdAcceptSock;
+		int								nfds;
+		int								address_len;
+		int								_NotBind;
+		int								_port;
+		int								_IndexPages;
+		int								_nbServer;
+		size_t							_maxBodySize;
+		std::string						_PortString;
+		std::string						_ip;
+		std::string						_name;
+		std::string						_rootPath;
+        std::map<std::string, Location>	_Location;
+		bool							_maxBodyState;
+		bool							_DefaultPort;
+		bool							_StateListen;
+		bool							_IpDefault;
+		bool							_isServerName;
+		bool							_rootFlag;
+		bool							_Autoindex;
+		bool							_errorFlag;
+		bool							_Default_server;
+		bool							_CheckDefaultServer;
+		bool							_ReturnFlag;
 
 		// P means parsing;
 		void						printServerNames(void)const;

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:09:43 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/01 18:47:52 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,4 +36,22 @@ void printVector(const std::vector<std::string>& vec) {
 	for (size_t i = 0; i!= vec.size(); ++i) {
 		std::cout << " - " << vec[i] << std::endl;
 	}
+}
+
+void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
+
+void sig_handler(int signal) {
+	std::time_t currentTime = std::time(0);
+	struct std::tm* localTime = std::localtime(&currentTime);
+	char timeBuffer[80];
+	std::strftime(timeBuffer, sizeof(timeBuffer), "%d/%m/%Y %H:%M:%S", localTime);
+	std::cerr << "\rServer interrupted at time: " << timeBuffer << std::endl;
+	if (signal == SIGINT)
+		g_sig = 1;
+}
+
+void	ft_close(int fd) {
+	if (fd >= 0)
+		close(fd);
+	fd = -1;
 }

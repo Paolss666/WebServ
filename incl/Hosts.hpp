@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 17:51:48 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:02:47 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/01 17:48:34 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,10 @@ class Hosts {
 		Hosts(void);
 		~Hosts(void);
 
-		std::vector<ServerConf>	hosts;
+		std::vector<ServerConf>				hosts;
+		std::vector<struct epoll_event>		events;
 
-		void					initServer(const char * fileName);
+		void					ft_conf_init(const char * fileName);
 		void					loopServer(void);
 };
 

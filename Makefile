@@ -6,7 +6,7 @@
 #    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/09/27 18:09:21 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/01 16:14:28 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@
 NAME = webserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -MMD -Wno-unused -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -MMD -Wno-unused -std=c++98 -g
 
 INC_PATH = ./incl/
 INC = -I $(INC_PATH)
@@ -36,7 +36,7 @@ OBJS = $(addprefix $(OBJS_PATH), $(OBJ))
 
 DEPS = $(OBJS:.o=.d)
 
-# MAKEFLAGS   += --silent --no-print-directory
+MAKEFLAGS   += --silent --no-print-directory
 
 all: $(OBJS_PATH) $(NAME)
 

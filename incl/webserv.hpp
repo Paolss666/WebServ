@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:58:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 19:02:53 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/01 18:20:57 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@
 # include <ctime>
 # include <cstring>
 # include <csignal>
+# include <iomanip>
 // webserv specific
 # include <netdb.h>
 # include <sys/select.h>
@@ -48,10 +49,10 @@
 extern int g_sig;
 
 // hpp files ------------------------------
+# include "utils.hpp"
 # include "errors.hpp"
 # include "Location.hpp"
 # include "ServerConf.hpp"
 # include "Hosts.hpp"
-# include "utils.hpp"
 
 #endif
