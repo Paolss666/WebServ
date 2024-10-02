@@ -364,57 +364,6 @@ void	ServerConf::p_DefaultServer(std::istringstream& iss)
 	std::cout << "default_server -> " << _Default_server << std::endl;
 }
 
-void	ServerConf::p_Location(std::istringstream& iss, std::string kw)
-{
-	std::string				Uri;
-	
-	// // Location			Location;
-	if (!(iss >> kw))
-		throw	ErrorConfFile("Error conf file: location");
-
-	// std::cout << "check --> line inside location -> " << line << std::endl;
-
-	//=========== I HAVE TO CHECK IF THIS PATH IS REAL ? =========
-	// struct stat info;
-	// if (stat(line.c_str(), &info) != 0)// cannot access path 
-	// 	throw ErrorConfFile("Error : root : cannot access path or
-	// _Location[line] = newL;
-	std::cout << "check --> location " << kw << std::endl;
-	 // Questo prende il resto della riga, per esempio '{'
-	Uri = kw;
-
-	// Supponiamo che tu voglia raccogliere i contenuti della location fino a '}'
-    // while (std::getline(iss, kw))
-	// {
-    //     if (kw.find('}') != std::string::npos)
-    //         break;  // Interrompiamo quando troviamo '}', fine del blocco location
-
-    // }
-	// std::map<std::string, Location>::iterator it = _Location.begin();
-	// it->first = line;
-	// if (iss >> line)
-	// {
-	// 	if (line == "{")
-	// 		while (iss >> line)
-	// 		{
-	// 			std::cout << "line { inside } " << line << std::endl;
-	// 		}
-	// }
-	// if (line == "{")
-	// {
-	// 	if (iss >> line)
-	// 		std::cout << "--------> " << line << std::endl;
-	// }
-	// std::ifstream file(line);
-		// std::cout << "check --> line after  -> " << line << std::endl;
-	// struct stat info;
-	// if (stat(line.c_str(), &info)!= 0) // cannot acces to the path;
-		// throw ErrorConfFile("Error conf file: location wrong path");
-	// std::fstream file(line);
-	// if (!file.good())
-		// throw ErrorConfFile("Error conf file: location wrong path");
-	// return (LocationTmp);
-}
 
 void    ServerConf::initWServer(std::istream &file)
 {
@@ -479,6 +428,7 @@ void    ServerConf::initWServer(std::istream &file)
 		else
 			throw ErrorConfFile("Error in the config file : server section");
     }
+	
 }
 
 void			ServerConf::setFdEpoll(int FdEpoll)
@@ -491,6 +441,42 @@ int	ServerConf::getFdEpoll(void)
 {
 	return (this->_FdEpoll);
 }
+
+std::map<int, std::string> ServerConf::getPagesError()
+{
+	return (this->_PageError);
+}
+
+std::map<int, std::string> ServerConf::getCodesReturn()
+{
+	return (this->_CodeReturn);
+}
+
+std::string& 		ServerConf::getIp()
+{
+	return (this->_ip);
+}
+
+int					ServerConf::getPort()
+{
+	return (this->_port);
+}
+
+std::string&			ServerConf::getNameServer()
+{
+	return(this->_name);
+}
+
+int					ServerConf::getNumberServer()
+{
+	return (this->_nbServer);
+}
+
+std::vector<std::string> 	ServerConf::getIndexFiles(void)
+{
+	return (this->_IndexFile);
+}
+
 
 ServerConf::~ServerConf()
 {

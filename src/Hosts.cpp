@@ -29,8 +29,8 @@ void Hosts::initServer(const char *fileName) {
             std::cout << " ======> "<< line << "<============================== \n";
              virtualServer.initWServer(file);
             std::cout << "FILE DONE\n";
-			hosts.push_back(virtualServer);
             virtualServer.setNbServer(i);
+			hosts.push_back(virtualServer);
             std::cout << "nbserver " << i << "\n";
             i++;
 		}
@@ -39,6 +39,15 @@ void Hosts::initServer(const char *fileName) {
         else
 			throw ErrorConfFile("Error in the config file");
     }
+	for (size_t i = 0; i < hosts.size() - 1; i++)
+	{
+		if (hosts[i].getIp() == hosts[i + 1].getIp() && hosts[i].getPort() == hosts[i + 1].getPort())
+			throw ErrorConfFile("Error conf file: server : same Ip/Port");
+		// if (hosts[i].getNameServer() == hosts[i + 1].getNameServer())
+		// 	throw ErrorConfFile("Error conf file: server : same server_name");
+	}
+
+	
 }
 
 void	Hosts::loopServer(void) {
@@ -55,13 +64,7 @@ void	Hosts::loopServer(void) {
     	event.events = EPOLLIN;  // Monitor for incoming connections (readable events)
     	event.data.fd = hosts[i]._FdSocket;
 		if (epoll_ctl(hosts[i]._FdEpoll, EPOLL_CTL_ADD, hosts[i]._FdSocket, &event) < 0)
-		{	
-			// int err = errno;
-        	// std::string error_message = "Error in epoll_ctl: ";
-        	// error_message += strerror(err); 
-        	// std::cerr << error_message << std::endl;
 			throw ErrorFdManipulation("Error in the epoll_ctl");
-		}
 	}
 	while (!g_sig) {
 		sleep(100);

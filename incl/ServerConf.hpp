@@ -36,6 +36,8 @@ class ServerConf {
 		std::string					_name;
 		std::string					_rootPath;
         std::map<std::string, Location> _Location;
+
+		//	FLAG      ---------------//
 		bool						_maxBodyState;
 		bool						_DefaultPort;
 		bool						_StateListen;
@@ -62,11 +64,22 @@ class ServerConf {
 		void						p_Index(std::istringstream & iss);
 		void						p_DefaultServer(std::istringstream & iss);
 		void						p_CodeReturn(std::istringstream & iss);
-		void						p_Location(std::istringstream& iss, std::string kw);
+		// void						p_Location(std::istringstream& iss, std::string kw);
 		int							p_errorCodes(std::string & pgError);
 		int							p_Return(std::string & codeRetrn);
+		
+		//SETEUR -------------------//	
 		void						setFdEpoll(int FdEpoll);
+		
+		//GETEUR ------------------//
 		int							getFdEpoll(void);
+		std::map<int, std::string>	getPagesError(void);
+		std::map<int, std::string>	getCodesReturn(void);
+		std::string&				getIp(void);
+		int							getPort(void);
+		std::string&				getNameServer(void);
+		int							getNumberServer(void);
+		std::vector<std::string>	getIndexFiles(void);
 };
 
 #endif
