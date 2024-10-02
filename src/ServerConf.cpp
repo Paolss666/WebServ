@@ -29,7 +29,7 @@ ServerConf::ServerConf() {
 	_DefaultPort = true;
     _IpDefault = true;
 	_isServerName = false;
-	_rootFlag = true;
+	_rootFlag = 0;
 	_Autoindex = false;
 	_errorFlag = false;
 	_Default_server = false;
@@ -168,7 +168,7 @@ void	ServerConf::p_Root(std::istringstream &iss)
 	
 	std::cout << " root found --->  " << _rootPath << std::endl; 
 
-	_rootFlag = false;
+	_rootFlag = 1;
 }
 
 /*
@@ -432,7 +432,7 @@ void    ServerConf::initWServer(std::istream &file)
 			p_Listen(iss);
 		else if (kw == "server_name" && !_isServerName)
 			p_name(iss);
-		else if (kw == "root" && _rootFlag)
+		else if (kw == "root" && !_rootFlag)
 			p_Root(iss);
 		else if (kw == "autoindex")
 			p_AutoIndex(iss);
@@ -468,9 +468,16 @@ void    ServerConf::initWServer(std::istream &file)
 			std::cout << "number of location for server -> " << i << std::endl;
 		}
 		else if (line == "}")
+		{
+			if (!_rootFlag || _StateListen || !_isServerName)
+			{
+				std::cout << "_rootFlag -> " << _rootFlag << "_StateListen -> " << _StateListen << std::endl;
+				throw ErrorConfFile("Error in the config file : miss basic line");
+			}
 			break;
+		}
 		else
-			throw ErrorConfFile("Error in the config file : empty server section");
+			throw ErrorConfFile("Error in the config file : server section");
     }
 }
 

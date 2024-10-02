@@ -41,7 +41,7 @@ class ServerConf {
 		bool						_StateListen;
 		bool						_IpDefault;
 		bool						_isServerName;
-		bool						_rootFlag;
+		int							_rootFlag;
 		bool						_Autoindex;
 		bool						_errorFlag;
 		bool						_Default_server;
