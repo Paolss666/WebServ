@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/01 18:47:02 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/02 11:45:29 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,5 +41,9 @@ void	ft_close(int fd);
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
 # define PORT				8080
+# define NOT_STARTED		0
+# define METHOD				1
+# define HEADERS			2
+# define BODY				3
 
 #endif

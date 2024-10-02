@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/01 16:53:18 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/02 11:34:11 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ class ServerConf {
 		std::map<int, std::string>		_PageError;
 		std::map<int, std::string>		_CodeReturn;
 		std::vector<std::string>		_IndexFile;
+		std::map<int, Request>			requests;
 		int								fdSetSock;
 		int								fdEpoll;
 		int								fdAcceptSock;

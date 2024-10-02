@@ -6,11 +6,11 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/01 15:34:53 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/02 08:12:04 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../incl/webserv.hpp"
+#include "webserv.hpp"
 
 ServerConf::ServerConf() {
     memset(&_address, 0, sizeof _address);
@@ -82,7 +82,7 @@ void    ServerConf::p_IpAddrs(void)
 	}
 	if (iss >> more)
 		throw ErrorConfFile("Error in the conf file : listen : wrong (ip)3");
-	// std::cerr << "res ipAddrs = " << res << "\n";
+	// ft_perror(("res ipAddrs = " << res).c_str());
 	_address.sin_addr.s_addr = htonl(res);
 	_IpDefault = false;
     return ;
@@ -460,7 +460,7 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				prefix = kw;
 				location.setUri(prefix);
-				std::cerr << "prefix " << location.getUri() << "\n";
+				ft_perror(("prefix " + location.getUri()).c_str());
 				if ((iss >> kw) && kw != "{")
 					throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			}

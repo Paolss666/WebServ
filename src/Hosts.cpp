@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:34 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/01 18:48:07 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/02 11:42:12 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,13 +96,83 @@ void	ft_server_init(std::vector<ServerConf> & hosts, std::vector<epoll_event> & 
 	}
 }
 
-void	Hosts::loopServer(void) {
+void	ft_new_connection(ServerConf & host, std::vector<epoll_event> & events , std::ostringstream & oss) {
+	std::cout << "New connection detected" << std::endl;
+	
+	// Accept the connection
+	hosts[i].fdAcceptSock = accept(hosts[i].fdSetSock, (struct sockaddr *)&hosts[i]._address, (socklen_t*)&hosts[i].address_len);
+	if (hosts[i].fdAcceptSock < 0) {
+		ft_close(hosts[i].fdSetSock);
+		oss << "Error in the accept for server " << i << "and socket " << hosts[i].fdSetSock << ": " << strerror(errno);
+		throw ErrorFdManipulation(oss.str());
+	}
+
+	// Make the connection non-blocking
+	if (fcntl(hosts[i].fdAcceptSock, F_SETFL, fcntl(hosts[i].fdAcceptSock, F_GETFL) | O_NONBLOCK) < 0) {
+		ft_close(hosts[i].fdSetSock);
+		ft_close(hosts[i].fdAcceptSock);
+		oss << "Error in the fcntl for server " << i << "and socket " << hosts[i].fdAcceptSock << ": " << strerror(errno);
+		throw ErrorFdManipulation(oss.str());
+	}
+
+	// Add new connection to epoll
+	struct epoll_event new_event;
+	new_event.events = EPOLLIN;
+	new_event.data.fd = hosts[i].fdAcceptSock;
+	if (epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_ADD, hosts[i].fdAcceptSock, &new_event) < 0)
+		throw ErrorFdManipulation("Error in the epoll_ctl: " + static_cast<std::string>(strerror(errno)));
+	events.push_back(new_event);
+}
+
+void	ft_parse_request(ServerConf & host, epoll_event & event) {
 	char	buffer[1024] = { 0 };
-	int		nfds;
 	int		valread;
 
+	// Read data from client
+	valread = read(event.data.fd, buffer, 1024);
+	
+	// Error in the read
+	if (valread < 0) {
+		ft_close(event.data.fd);
+		epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_DEL, event.data.fd, NULL);
+		throw ErrorFdManipulation("Error in the read");
+	}
+	
+	// Connection ft_closed by client
+	// else if (valread == 0) {
+	// 	ft_close(event.data.fd);
+	// 	epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_DEL, event.data.fd, NULL);
+	// 	std::cout << "Client disconnected, fd: " << this->events[j].data.fd << std::endl;
+	// }
+	
+	// End of file
+	else if (valread == 0)
+		hosts.requests[event.data.fd].parse();
+
+	// Parse the request
+	else {
+		std::string raw(buffer);
+		Request request(raw);
+		if (hosts.requests.find(event.data.fd) != hosts.requests.end())
+			hosts.requests[event.data.fd].append(request);
+		else
+			hosts.requests.insert(std::pair<int, Request>(event.data.fd, request));
+	}
+}
+
+void	ft_act_on_request(ServerConf & host, epoll_event & event) {
+	// Send data to client & ft_close connection
+	send(this->events[j].data.fd, "Hello, client!", 14, 0);
+	ft_close(this->events[j].data.fd);
+}
+
+void	Hosts::loopServer(void) {
+	int		nfds;
+
+	// Initiate the servers
 	ft_server_init(this->hosts, this->events);
 
+	// Print the details of the hosts and epoll watchlist
 	std::cout << "Detail of hosts and epoll watchlist:" << std::endl;
 	for (size_t i = 0; i < hosts.size(); ++i)
 		std::cout << "Server " << i << " is running on port " << hosts[i]._port << ", ip " << hosts[i]._ip << ", name " << hosts[i]._name << ", file descriptor: " << this->events[i].data.fd << ", epoll fd: " << hosts[i].fdEpoll << ", event: " << this->events[i].events << std::endl;
@@ -123,60 +193,17 @@ void	Hosts::loopServer(void) {
 			for (int j = 0; j < nfds; ++j) {
 				std::ostringstream oss;
 
-				if (this->events[j].events & EPOLLIN) {
-					
+				if (this->events[j].events == EPOLLIN) {
 					// New connection
-					if (this->events[j].data.fd == hosts[i].fdSetSock) {
-						std::cout << "New connection detected" << std::endl;
-
-						// Accept the connection
-						if ((hosts[i].fdAcceptSock = accept(hosts[i].fdSetSock, (struct sockaddr *)&hosts[i]._address, (socklen_t*)&hosts[i].address_len)) < 0) {
-							ft_close(hosts[i].fdSetSock);
-							oss << "Error in the accept for server " << i << "and socket " << hosts[i].fdSetSock << ": " << strerror(errno);
-							throw ErrorFdManipulation(oss.str());
-						}
-
-						// Make the connection non-blocking
-						if (fcntl(hosts[i].fdAcceptSock, F_SETFL, fcntl(hosts[i].fdAcceptSock, F_GETFL) | O_NONBLOCK) < 0) {
-							ft_close(hosts[i].fdSetSock);
-							ft_close(hosts[i].fdAcceptSock);
-							oss << "Error in the fcntl for server " << i << "and socket " << hosts[i].fdAcceptSock << ": " << strerror(errno);
-							throw ErrorFdManipulation(oss.str());
-						}
-
-						// Add new connection to epoll
-						struct epoll_event new_event;
-						new_event.events = EPOLLIN;
-						new_event.data.fd = hosts[i].fdAcceptSock;
-						if (epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_ADD, hosts[i].fdAcceptSock, &new_event) < 0)
-							throw ErrorFdManipulation("Error in the epoll_ctl: " + static_cast<std::string>(strerror(errno)));
-						this->events.push_back(new_event);
-					}
+					if (this->events[j].data.fd == hosts[i].fdSetSock)
+						ft_new_connection(hosts[i], this->events, oss);
+					
 					// Existing connection
 					else {
-						std::cout << "Existing connection detected" << std::endl;
-						
-						// Read data from client
-						valread = read(this->events[j].data.fd, buffer, 1024);
-						if (valread < 0) {
-
-							// Error in the read
-							ft_close(this->events[j].data.fd);
-							throw ErrorFdManipulation("Error in the read");
-
-						} else if (valread == 0) {
-
-							// Connection ft_closed by client
-							ft_close(this->events[j].data.fd);
-							std::cout << "Client disconnected, fd: " << this->events[j].data.fd << std::endl;
-						}
-
-						std::cout << "Message received: " << buffer << std::endl;
-
-						// Send data to client & ft_close connection
-						send(this->events[j].data.fd, "Hello, client!", 14, 0);
-						ft_close(this->events[j].data.fd);
+						ft_parse_request(hosts[i], this->events[j]);
+						ft_act_on_request(hosts[i], this->events[j]);
 					}
+
 				} else if (this->events[j].events == EPOLLOUT) {
 					std::cout << "EPOLLOUT event detected" << std::endl;
 				} else {

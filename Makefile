@@ -6,7 +6,7 @@
 #    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/10/01 16:14:28 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/02 09:43:54 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,12 +21,13 @@ INC = -I $(INC_PATH)
 
 SRCS_PATH = ./src/
 SRC := \
-	main.cpp \
-	ServerConf.cpp \
-	Location.cpp \
-	Hosts.cpp \
-	utils.cpp \
 	errors.cpp \
+	Hosts.cpp \
+	Location.cpp \
+	main.cpp \
+	Request.cpp \
+	ServerConf.cpp \
+	utils.cpp \
 
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
