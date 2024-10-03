@@ -364,6 +364,14 @@ void	ServerConf::p_DefaultServer(std::istringstream& iss)
 	std::cout << "default_server -> " << _Default_server << std::endl;
 }
 
+void	ServerConf::setDefaultErrorPages(void)
+{
+	_PageError[404]  = "www/error_pages/404_notfound.html";
+	_PageError[403]  = "www/error_pages/403_forbidden.html";
+	_PageError[400]  = "www/error_pages/400_badrequest.html";
+	_PageError[496]  = "www/error_pages/496_ssl_required.html";
+	_PageError[500]  = "www/error_pages/500_internal_server.html";
+}
 
 void    ServerConf::initWServer(std::istream &file)
 {
@@ -422,6 +430,12 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				std::cout << "_rootFlag -> " << _rootFlag << "_StateListen -> " << _StateListen << std::endl;
 				throw ErrorConfFile("Error in the config file : miss basic line");
+			}
+			if (!_errorFlag)
+			{
+				std::cout << "set default pages error" << std::endl;
+ 				setDefaultErrorPages();
+				Print_map_code_errors(_PageError);
 			}
 			break;
 		}

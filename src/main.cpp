@@ -17,9 +17,10 @@ int	g_sig;
 int main(int ac, char **av) {
 	Hosts  server;
 	try {
-		if (ac < 2)
-			return (std::cerr << "ERREUR\n", 1);
-		server.initServer(av[1]);
+		if (ac != 2)
+			server.initServer("conf/basicgood.conf");
+		else
+			server.initServer(av[1]);
 		server.loopServer();
 	}
 	catch(std::exception & c) {
