@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 08:12:04 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 11:51:51 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ void    ServerConf::p_Listen(std::istringstream& iss)
         throw ErrorConfFile("Error in the conf file");
 
     size_t inx = line.find(":");
-    size_t p = line.find(".");
+    // size_t p = line.find(".");
 
     _ip = line.substr(0, inx);
     p_IpAddrs();
@@ -423,7 +423,7 @@ void	ServerConf::p_Location(std::istringstream& iss, std::string kw)
 void    ServerConf::initWServer(std::istream &file)
 {
     std::string	line, kw;
-	bool	empty = true;
+	// bool	empty = true;
 	int		i = 0;
 	while (std::getline(file, line))
 	{

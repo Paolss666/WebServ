@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 11:45:29 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 12:01:16 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ void	Print_map_code_return(std::map<int, std::string> errorPages);
 void	ft_perror(const char * message);
 void	sig_handler(int signal);
 void	ft_close(int fd);
+void	print_with_hex(const std::string & str);
 
 // macros ------------------------------
 # define RESET		"\033[0m"	// Reset to default color
@@ -45,5 +46,6 @@ void	ft_close(int fd);
 # define METHOD				1
 # define HEADERS			2
 # define BODY				3
+# define BUFFER_SIZE		1024
 
 #endif

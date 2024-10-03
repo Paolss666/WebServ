@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 12:02:50 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 11:13:42 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,12 @@
 
 class Request {
 	public:
-		Request(std::string raw);
+		Request(void);
+		Request(std::string const & raw);
 		~Request(void);
 
 		void								parse(void);
+		void								append(std::string const & data);
 
 		std::string							raw;
 		std::map<std::string, std::string>	request_line;

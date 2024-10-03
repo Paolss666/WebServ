@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
+#    By: benoit <benoit@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/10/02 09:43:54 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/03 11:45:42 by benoit           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@
 NAME = webserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -MMD -Wno-unused -std=c++98 -g
+CXXFLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -g
 
 INC_PATH = ./incl/
 INC = -I $(INC_PATH)

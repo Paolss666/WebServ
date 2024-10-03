@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hosts.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:34 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 11:42:12 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 11:50:19 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,74 +96,76 @@ void	ft_server_init(std::vector<ServerConf> & hosts, std::vector<epoll_event> & 
 	}
 }
 
-void	ft_new_connection(ServerConf & host, std::vector<epoll_event> & events , std::ostringstream & oss) {
+void	ft_new_connection(ServerConf & host, std::vector<epoll_event> & events , int nb_host) {
+	std::ostringstream oss;
 	std::cout << "New connection detected" << std::endl;
 	
 	// Accept the connection
-	hosts[i].fdAcceptSock = accept(hosts[i].fdSetSock, (struct sockaddr *)&hosts[i]._address, (socklen_t*)&hosts[i].address_len);
-	if (hosts[i].fdAcceptSock < 0) {
-		ft_close(hosts[i].fdSetSock);
-		oss << "Error in the accept for server " << i << "and socket " << hosts[i].fdSetSock << ": " << strerror(errno);
+	host.fdAcceptSock = accept(host.fdSetSock, (struct sockaddr *)&host._address, (socklen_t*)&host.address_len);
+	if (host.fdAcceptSock < 0) {
+		ft_close(host.fdSetSock);
+		oss << "Error in the accept for server " << nb_host << "and socket " << host.fdSetSock << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str());
 	}
 
 	// Make the connection non-blocking
-	if (fcntl(hosts[i].fdAcceptSock, F_SETFL, fcntl(hosts[i].fdAcceptSock, F_GETFL) | O_NONBLOCK) < 0) {
-		ft_close(hosts[i].fdSetSock);
-		ft_close(hosts[i].fdAcceptSock);
-		oss << "Error in the fcntl for server " << i << "and socket " << hosts[i].fdAcceptSock << ": " << strerror(errno);
+	if (fcntl(host.fdAcceptSock, F_SETFL, fcntl(host.fdAcceptSock, F_GETFL) | O_NONBLOCK) < 0) {
+		ft_close(host.fdSetSock);
+		ft_close(host.fdAcceptSock);
+		oss << "Error in the fcntl for server " << nb_host << "and socket " << host.fdAcceptSock << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str());
 	}
 
 	// Add new connection to epoll
 	struct epoll_event new_event;
 	new_event.events = EPOLLIN;
-	new_event.data.fd = hosts[i].fdAcceptSock;
-	if (epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_ADD, hosts[i].fdAcceptSock, &new_event) < 0)
+	new_event.data.fd = host.fdAcceptSock;
+	if (epoll_ctl(host.fdEpoll, EPOLL_CTL_ADD, host.fdAcceptSock, &new_event) < 0)
 		throw ErrorFdManipulation("Error in the epoll_ctl: " + static_cast<std::string>(strerror(errno)));
 	events.push_back(new_event);
 }
 
 void	ft_parse_request(ServerConf & host, epoll_event & event) {
-	char	buffer[1024] = { 0 };
+	char	buffer[BUFFER_SIZE] = { 0 };
 	int		valread;
 
+	std::cout << "Message received" << std::endl;
+
 	// Read data from client
-	valread = read(event.data.fd, buffer, 1024);
+	valread = read(event.data.fd, buffer, BUFFER_SIZE);
+	std::cout << "valread: " << valread << std::endl;
 	
 	// Error in the read
 	if (valread < 0) {
 		ft_close(event.data.fd);
-		epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_DEL, event.data.fd, NULL);
+		epoll_ctl(host.fdEpoll, EPOLL_CTL_DEL, event.data.fd, NULL);
 		throw ErrorFdManipulation("Error in the read");
 	}
-	
-	// Connection ft_closed by client
-	// else if (valread == 0) {
-	// 	ft_close(event.data.fd);
-	// 	epoll_ctl(hosts[i].fdEpoll, EPOLL_CTL_DEL, event.data.fd, NULL);
-	// 	std::cout << "Client disconnected, fd: " << this->events[j].data.fd << std::endl;
-	// }
-	
-	// End of file
-	else if (valread == 0)
-		hosts.requests[event.data.fd].parse();
 
 	// Parse the request
 	else {
 		std::string raw(buffer);
-		Request request(raw);
-		if (hosts.requests.find(event.data.fd) != hosts.requests.end())
-			hosts.requests[event.data.fd].append(request);
-		else
-			hosts.requests.insert(std::pair<int, Request>(event.data.fd, request));
+		if (host.requests.find(event.data.fd) != host.requests.end())
+			host.requests[event.data.fd].append(raw);
+		else {
+			Request tmp(raw);
+			host.requests.insert(std::pair<int, Request>(event.data.fd, tmp));
+		}
+	}
+	if (valread == 0 || valread <= BUFFER_SIZE) {
+		try {
+			host.requests[event.data.fd].parse();
+		} catch (std::exception & e) {
+			ft_perror(e.what());
+		}
 	}
 }
 
 void	ft_act_on_request(ServerConf & host, epoll_event & event) {
 	// Send data to client & ft_close connection
-	send(this->events[j].data.fd, "Hello, client!", 14, 0);
-	ft_close(this->events[j].data.fd);
+	send(event.data.fd, "Hello, client!", 14, 0);
+	if (host.requests.find(event.data.fd) != host.requests.end())
+		std::cout << std::endl;
 }
 
 void	Hosts::loopServer(void) {
@@ -175,7 +177,14 @@ void	Hosts::loopServer(void) {
 	// Print the details of the hosts and epoll watchlist
 	std::cout << "Detail of hosts and epoll watchlist:" << std::endl;
 	for (size_t i = 0; i < hosts.size(); ++i)
-		std::cout << "Server " << i << " is running on port " << hosts[i]._port << ", ip " << hosts[i]._ip << ", name " << hosts[i]._name << ", file descriptor: " << this->events[i].data.fd << ", epoll fd: " << hosts[i].fdEpoll << ", event: " << this->events[i].events << std::endl;
+		std::cout << CYAN << std::setw(8) << "Server " << WHITE << std::setw(2) << i 
+			<< CYAN << " | Port: " << WHITE << std::setw(1) << hosts[i]._port 
+			<< CYAN << " | IP: " << WHITE << std::setw(9) << hosts[i]._ip 
+			<< CYAN << " | Name: " << WHITE << std::setw(10) << hosts[i]._name 
+			<< CYAN << " | Fd: " << WHITE << std::setw(1) << this->events[i].data.fd 
+			<< CYAN << " | Epoll_fd: " << WHITE << std::setw(1) << hosts[i].fdEpoll 
+			<< CYAN << " | Events: " << WHITE << std::setw(2) << this->events[i].events 
+			<< RESET << std::endl;
 
 	std::cout << CYAN BOLD "\n----------------- Server is running -----------------\n" RESET << std::endl;
 	while (!g_sig) {
@@ -191,12 +200,11 @@ void	Hosts::loopServer(void) {
 
 			// Handle events
 			for (int j = 0; j < nfds; ++j) {
-				std::ostringstream oss;
 
 				if (this->events[j].events == EPOLLIN) {
 					// New connection
 					if (this->events[j].data.fd == hosts[i].fdSetSock)
-						ft_new_connection(hosts[i], this->events, oss);
+						ft_new_connection(hosts[i], this->events, i);
 					
 					// Existing connection
 					else {
