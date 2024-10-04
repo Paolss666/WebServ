@@ -12,89 +12,131 @@
 
 #include "webserv.hpp"
 
-Request::Request(void): p_step(NOT_STARTED) { return ; }
+// include "webserv.hpp"
 
-Request::Request(std::string const & raw): raw(raw), p_step(NOT_STARTED) { return ; }
+Request::Request(void): b_keepalive(false), b_content_length(false), p_step(NOT_STARTED) { return ; }
+
+Request::Request(std::string const & raw): raw(raw), b_keepalive(false), b_content_length(false), p_step(NOT_STARTED) { return ; }
 
 Request::~Request(void) { return ; }
 
 void	Request::append(std::string const & data) { this->raw.append(data); }
 
-std::map<std::string, std::string>	ft_get_method(std::istringstream & iss_line) {
-	std::string							line, method, uri, protocol;
-	std::map<std::string, std::string>	res;
-
-	// Get the method, uri and protocol
-	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
-		throw ErrorRequest("Error in the request: method not well formatted");
-	
-	std::cout << "Raw: ";
-	print_with_hex(iss_line.str());
-	std::cout << std::endl;
-
-	std::cout << "Method: ";
-	print_with_hex(method);
-	std::cout << std::endl;
-
-	std::cout << "URI: ";
-	print_with_hex(uri);
-	std::cout << std::endl;
-
-	std::cout << "Protocol: ";
-	print_with_hex(protocol);
-	std::cout << " of length " << protocol.length() << std::endl;
+void	Request::ft_check_request_line(void) {
 
 	// Check the method
-	if (method != "GET" && method != "POST" && method != "DELETE")
+	if (!(request_line["method"] == "GET" || request_line["method"] == "POST" || request_line["method"] == "DELETE"))
 		throw ErrorRequest("Error in the request: method not supported");
 	
 	// Check the protocol
-	if (protocol != "HTTP/1.1\r")
+	if (request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("Error in the request: protocol not supported");
-	
-	// Save the method
-    res["method"] = method;
-    res["uri"] = uri;
-	return res;
+
+	// Check the uri
+	if (request_line["uri"].empty())
+		throw ErrorRequest("Error in the request: uri not found");
 }
 
-void	Request::parse(void) {
+void	Request::ft_check_headers(ServerConf & host) {
+
+	// Check host
+	if (!host._name.empty() && (headers.find("Host") == headers.end() || headers["Host"] != host._name))
+		throw ErrorRequest("Error in the request: host error");
+
+	// Check content for POST
+	if (request_line["method"] == "POST") {
+		if (headers.find("Content-Length") == headers.end() || headers.find("Content-Type") == headers.end())
+			throw ErrorRequest("Error in the request: content-length not found");
+		if (headers["Content-Length"].empty() || headers["Content-Length"].find_first_not_of("0123456789") != std::string::npos)
+			throw ErrorRequest("Error in the request: content-length mismatch");
+		if (headers["Content-Type"].empty())
+			throw ErrorRequest("Error in the request: content-type not found");
+	}
+
+	// Check keep alive
+	if (headers.find("Connection") != headers.end() && headers["Connection"] == "keep-alive"
+		&& host.nb_keepalive < host.max_keepalive) {
+			if (b_keepalive)
+				host.nb_keepalive++;
+			b_keepalive = true;
+	}
+	return ;
+}
+
+void	Request::ft_check_body(void) { return ; }
+
+void	Request::parse(ServerConf & host) {
 	std::istringstream					iss(this->raw);
-	std::string							line, key, value;
+	std::string							line, buffer, method, uri, protocol, key, value;
+	char								ch;
+	long								len, max_content_len;
 	
-	std::cout << CYAN BOLD "Raw request received -----------\n" RESET << raw << CYAN BOLD "End of raw -----------\n" RESET << std::endl;
-	
-	// Parse the method
+	// Parse the request line
 	if (p_step == NOT_STARTED) {
 		
-		// Get the first line
+		// Get the first line and parse it
 		p_step =  METHOD;
-		if (!(std::getline(iss, line, '\n') && line.find('\r')))
-			throw ErrorRequest("Error in the request: method not found");
+		while (std::getline(iss, line, '\n') && line == "\r");
 		std::istringstream	iss_line(line);
-		request_line = ft_get_method(iss_line);
+		if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
+			throw ErrorRequest("Error in the request: method not well formatted");
+
+		// Save the method
+		request_line["method"] = method;
+		request_line["uri"] = uri;
+		request_line["protocol"] = protocol;
 	}
 	
 	// Parse the headers
-	else if (p_step == METHOD) {
+	if (p_step == METHOD) {
 		p_step = HEADERS;
-		while (!std::getline(iss, line, '\n') && line != "\r") {
-			std::istringstream	iss_line(line);
-
-			if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value, ':')))
+		while (std::getline(iss, line, '\n') && line != "\r") {
+			if (line[line.size() - 1] == '\r') {
+				buffer.append(line);
+			} else {
+				buffer = line;
+				continue ;
+			}
+			
+			std::istringstream	iss_line(line.erase(buffer.size() - 1));
+			
+			if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
 				throw ErrorRequest("Error in the request: header not well formatted");
+			
+			if (key == "Content-Length" && !b_content_length)
+				b_content_length = true;
+			else if (key == "Content-Length" && b_content_length)
+				throw ErrorRequest("Error in the request: multiple content-length headers");
+			
 			headers[key] = value;
+			buffer.clear();
 		}
-		if (line != "\r")
+		if (headers.empty())
 			throw ErrorRequest("Error in the request: end of headers not found");
 	}
 	
 	// Parse the body
-	else if (p_step == HEADERS) {
+	if (p_step == HEADERS && headers.find("Content-Length") != headers.end()) {
 		p_step = BODY;
-		while (!std::getline(iss, line, '\n'))
-			body += line;
+		
+		if (request_line["method"] == "POST") {
+			max_content_len = long(std::atof(headers["Content-Length"].c_str()));
+			len = 0;	
+			while (iss.get(ch)) {
+				len++;
+				if (len > max_content_len)
+					throw ErrorRequest("Error in the request: body too long");
+				body.append(1, ch);
+			}
+			if (len != max_content_len)
+				throw ErrorRequest("Error in the request: body not complete");	
+		}
 	}
+
+	// Check the request
+	ft_check_request_line();
+	ft_check_headers(host);
+	ft_check_body();
 
 	// Display the request
 	std::cout << CYAN << "Method: " << WHITE << request_line["method"] << std::endl;
@@ -102,6 +144,6 @@ void	Request::parse(void) {
 	std::cout << CYAN << "Protocol: " << WHITE << "HTTP/1.1" << std::endl;
 	std::cout << CYAN << "Headers:" << WHITE << std::endl;
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
-		std::cout << CYAN << it->first << ": " << WHITE << it->second << std::endl;
+		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
 	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
