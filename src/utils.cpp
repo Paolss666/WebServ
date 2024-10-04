@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:09:43 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 12:00:00 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,4 +36,32 @@ void printVector(const std::vector<std::string>& vec) {
 	for (size_t i = 0; i!= vec.size(); ++i) {
 		std::cout << " - " << vec[i] << std::endl;
 	}
+}
+
+void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
+
+void sig_handler(int signal) {
+	std::time_t currentTime = std::time(0);
+	struct std::tm* localTime = std::localtime(&currentTime);
+	char timeBuffer[80];
+	std::strftime(timeBuffer, sizeof(timeBuffer), "%d/%m/%Y %H:%M:%S", localTime);
+	std::cerr << "\rServer interrupted at time: " << timeBuffer << std::endl;
+	if (signal == SIGINT)
+		g_sig = 1;
+}
+
+void	ft_close(int fd) {
+	if (fd >= 0)
+		close(fd);
+	fd = -1;
+}
+
+void	print_with_hex(const std::string & str) {
+	for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {
+		if (isprint(*it))
+			std::cout << *it;
+		else
+			std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)(unsigned char)*it;
+	}
+	std::cout << std::dec; // Reset to decimal format
 }

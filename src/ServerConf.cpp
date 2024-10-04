@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:57:52 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/03 11:51:51 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../incl/webserv.hpp"
+#include "webserv.hpp"
 
 ServerConf::ServerConf() {
     memset(&_address, 0, sizeof _address);
@@ -21,7 +21,10 @@ ServerConf::ServerConf() {
     _ip = "0.0.0.0"; // address far default;
     _NotBind = 0; // check if is bind or not;
 	_maxBodySize = 0;
-	_FdSocket = 0;
+	_address_len = sizeof(_address);
+	_fdSetSock = -1;
+	_fdEpoll = -1;
+	_fdAcceptSock = -1;
 	_IndexPages = 0;
 	_nbServer = 0;
 	_maxBodyState = false;
@@ -37,7 +40,41 @@ ServerConf::ServerConf() {
 	_ReturnFlag = false;
 	_PortString = "";
 	_rootPath = "";
-	_FdEpoll = 0;
+	_fdEpoll = 0;
+}
+
+ServerConf::ServerConf(ServerConf const &src) {
+	
+	_address = src._address;
+	_PageError = src._PageError;
+	_CodeReturn = src._CodeReturn;
+	_IndexFile = src._IndexFile;
+	_fdSetSock = src._fdSetSock;
+	_fdEpoll = src._fdEpoll;
+	_fdAcceptSock = src._fdAcceptSock;
+	_address_len = src._address_len;
+	_NotBind = src._NotBind;
+	_port = src._port;
+	_IndexPages = src._IndexPages;
+	_nbServer = src._nbServer;
+	_maxBodySize = src._maxBodySize;
+	_PortString = src._PortString;
+	_ip = src._ip;
+	_name = src._name;
+	_rootPath = src._rootPath;
+    _Location = src._Location;
+	_maxBodyState = src._maxBodyState;
+	_DefaultPort = src._DefaultPort;
+	_StateListen = src._StateListen;
+	_IpDefault = src._IpDefault;
+	_isServerName = src._isServerName;
+	_rootFlag = src._rootFlag;
+	_Autoindex = src._Autoindex;
+	_errorFlag = src._errorFlag;
+	_Default_server = src._Default_server;
+	_CheckDefaultServer = src._CheckDefaultServer;
+	_ReturnFlag = src._ReturnFlag;
+	
 }
 
 void	ServerConf::setNbServer(int nb)
@@ -78,7 +115,7 @@ void    ServerConf::p_IpAddrs(void)
 	}
 	if (iss >> more)
 		throw ErrorConfFile("Error in the conf file : listen : wrong (ip)3");
-	// std::cerr << "res ipAddrs = " << res << "\n";
+	// ft_perror(("res ipAddrs = " << res).c_str());
 	_address.sin_addr.s_addr = htonl(res);
 	_IpDefault = false;
     return ;
@@ -91,7 +128,7 @@ void    ServerConf::p_Listen(std::istringstream& iss)
         throw ErrorConfFile("Error in the conf file");
 
     size_t inx = line.find(":");
-    size_t p = line.find(".");
+    // size_t p = line.find(".");
 
     _ip = line.substr(0, inx);
     p_IpAddrs();
@@ -376,7 +413,7 @@ void	ServerConf::setDefaultErrorPages(void)
 void    ServerConf::initWServer(std::istream &file)
 {
     std::string	line, kw;
-	bool	empty = true;
+	// bool	empty = true;
 	int		i = 0;
 	while (std::getline(file, line))
 	{
@@ -413,7 +450,7 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				prefix = kw;
 				location.setUri(prefix);
-				std::cerr << "prefix " << location.getUri() << "\n";
+				ft_perror(("prefix " + location.getUri()).c_str());
 				if ((iss >> kw) && kw != "{")
 					throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			}
@@ -445,15 +482,15 @@ void    ServerConf::initWServer(std::istream &file)
 	
 }
 
-void			ServerConf::setFdEpoll(int FdEpoll)
+void			ServerConf::set_fdEpoll(int _fdEpoll)
 {
-	this->_FdEpoll = FdEpoll;
+	this->_fdEpoll = _fdEpoll;
 	return;
 }
 
-int	ServerConf::getFdEpoll(void)
+int	ServerConf::get_fdEpoll(void)
 {
-	return (this->_FdEpoll);
+	return (this->_fdEpoll);
 }
 
 std::map<int, std::string> ServerConf::getPagesError()

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
+#    By: benoit <benoit@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/09/27 18:09:21 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/03 11:45:42 by benoit           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,19 +14,20 @@
 NAME = webserv
 
 CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -MMD -Wno-unused -std=c++98
+CXXFLAGS = -Wall -Wextra -Werror -MMD -std=c++98 -g
 
 INC_PATH = ./incl/
 INC = -I $(INC_PATH)
 
 SRCS_PATH = ./src/
 SRC := \
-	main.cpp \
-	ServerConf.cpp \
-	Location.cpp \
-	Hosts.cpp \
-	utils.cpp \
 	errors.cpp \
+	Hosts.cpp \
+	Location.cpp \
+	main.cpp \
+	Request.cpp \
+	ServerConf.cpp \
+	utils.cpp \
 
 SRCS = $(addprefix $(SRCS_PATH), $(SRC))
 
@@ -36,7 +37,7 @@ OBJS = $(addprefix $(OBJS_PATH), $(OBJ))
 
 DEPS = $(OBJS:.o=.d)
 
-# MAKEFLAGS   += --silent --no-print-directory
+MAKEFLAGS   += --silent --no-print-directory
 
 all: $(OBJS_PATH) $(NAME)
 

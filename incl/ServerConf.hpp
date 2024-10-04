@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:57:40 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/02 11:34:11 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,40 +15,55 @@
 
 #include "webserv.hpp"
 
+
+// class Hosts {
+// 	public:
+// 		Hosts(void);
+// 		~Hosts(void);
+
+// 		std::vector<ServerConf>				hosts;
+// 		std::vector<struct epoll_event>		events;
+
+// 		void					ft_conf_init(const char * fileName);
+// // void    ft_server_init(std::vector<ServerConf> & hosts, std::vector<epoll_event> & events);
+// 		void					loopServer(void);
+// };
+
 class ServerConf {
 	public:
 		ServerConf(void);
+		ServerConf(ServerConf const &src);
 		~ServerConf(void);
 
-		struct sockaddr_in			_address;
-		std::map<int, std::string>	_PageError;
-		std::map<int, std::string>	_CodeReturn;
-		std::vector<std::string>	_IndexFile;
-		int							_FdSocket;
-		int							_FdEpoll;
-		int							_NotBind;
-		int							_port;
-		int							_IndexPages;
-		int							_nbServer;
-		size_t						_maxBodySize;
-		std::string					_PortString;
-		std::string					_ip;
-		std::string					_name;
-		std::string					_rootPath;
-        std::map<std::string, Location> _Location;
-
-		//	FLAG      ---------------//
-		bool						_maxBodyState;
-		bool						_DefaultPort;
-		bool						_StateListen;
-		bool						_IpDefault;
-		bool						_isServerName;
-		int							_rootFlag;
-		bool						_Autoindex;
-		bool						_errorFlag;
-		bool						_Default_server;
-		bool						_CheckDefaultServer;
-		bool						_ReturnFlag;
+		struct sockaddr_in				_address;
+		std::map<int, std::string>		_PageError;
+		std::map<int, std::string>		_CodeReturn;
+		std::vector<std::string>		_IndexFile;
+		int								_fdSetSock;
+		int								_fdEpoll;
+		int								_fdAcceptSock;
+		int								_address_len;
+		int								_NotBind;
+		int								_port;
+		int								_IndexPages;
+		int								_nbServer;
+		size_t							_maxBodySize;
+		std::string						_PortString;
+		std::string						_ip;
+		std::string						_name;
+		std::string						_rootPath;
+        std::map<std::string, Location>	_Location;
+		bool							_maxBodyState;
+		bool							_DefaultPort;
+		bool							_StateListen;
+		bool							_IpDefault;
+		bool							_isServerName;
+		bool							_rootFlag;
+		bool							_Autoindex;
+		bool							_errorFlag;
+		bool							_Default_server;
+		bool							_CheckDefaultServer;
+		bool							_ReturnFlag;
 
 		// P means parsing;
 		void						printServerNames(void)const;
@@ -69,10 +84,10 @@ class ServerConf {
 		int							p_Return(std::string & codeRetrn);
 		
 		//SETEUR -------------------//	
-		void						setFdEpoll(int FdEpoll);
+		void						set_fdEpoll(int _fdEpoll);
 		void						setDefaultErrorPages(void);
 		//GETEUR ------------------//
-		int							getFdEpoll(void);
+		int							get_fdEpoll(void);
 		std::map<int, std::string>	getPagesError(void);
 		std::map<int, std::string>	getCodesReturn(void);
 		std::string&				getIp(void);
