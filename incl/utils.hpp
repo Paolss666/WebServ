@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/03 12:01:16 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/05 20:16:38 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,7 @@ void	print_with_hex(const std::string & str);
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
 # define PORT				8080
-# define NOT_STARTED		0
-# define METHOD				1
-# define HEADERS			2
-# define BODY				3
-# define BUFFER_SIZE		1024
+# define BUFFER_SIZE		124
+# define MAX_BODY_SIZE		5368709120	// 5 GB
 
 #endif

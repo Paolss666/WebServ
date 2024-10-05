@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/03 11:13:42 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/05 20:16:29 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 # include "webserv.hpp"
 
-class ServerConf;
+class Host;
 
 class Request {
 	public:
@@ -23,10 +23,10 @@ class Request {
 		Request(std::string const & raw);
 		~Request(void);
 
-		void								parse(ServerConf & host);
+		void								parse(Host & host);
 		void								append(std::string const & data);
 		void								ft_check_request_line(void);
-		void								ft_check_headers(ServerConf & host);
+		void								ft_check_headers(Host & host);
 		void								ft_check_body(void);
 
 		std::string							raw;
@@ -35,7 +35,6 @@ class Request {
 		std::string							body;
 		bool								b_keepalive;
 		bool								b_content_length;
-		int									p_step;
 };
 
 #endif

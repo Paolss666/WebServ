@@ -3,16 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/09/27 18:07:31 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/05 17:20:09 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "../incl/webserv.hpp"
-#include "../incl/Location.hpp"
+#include "webserv.hpp"
 
 Location::Location(void)
 {

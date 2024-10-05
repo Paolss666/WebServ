@@ -1,5 +1,0 @@
-GET index.html /HTTP/1.1
-Host: 127.0.0.1:8181
-Content-lenght:3
-
-Lol

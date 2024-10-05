@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/03 12:03:24 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/05 20:47:33 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 // include "webserv.hpp"
 
-Request::Request(void): b_keepalive(false), b_content_length(false), p_step(NOT_STARTED) { return ; }
+Request::Request(void): b_keepalive(false), b_content_length(false) { return ; }
 
-Request::Request(std::string const & raw): raw(raw), b_keepalive(false), b_content_length(false), p_step(NOT_STARTED) { return ; }
+Request::Request(std::string const & raw): raw(raw), b_keepalive(false), b_content_length(false) { return ; }
 
 Request::~Request(void) { return ; }
 
@@ -37,7 +37,7 @@ void	Request::ft_check_request_line(void) {
 		throw ErrorRequest("Error in the request: uri not found");
 }
 
-void	Request::ft_check_headers(ServerConf & host) {
+void	Request::ft_check_headers(Host & host) {
 
 	// Check host
 	if (!host._name.empty() && (headers.find("Host") == headers.end() || headers["Host"] != host._name))
@@ -55,9 +55,9 @@ void	Request::ft_check_headers(ServerConf & host) {
 
 	// Check keep alive
 	if (headers.find("Connection") != headers.end() && headers["Connection"] == "keep-alive"
-		&& host.nb_keepalive < host.max_keepalive) {
+		&& host._nb_keepalive < host._max_keepalive) {
 			if (b_keepalive)
-				host.nb_keepalive++;
+				host._nb_keepalive++;
 			b_keepalive = true;
 	}
 	return ;
@@ -65,66 +65,58 @@ void	Request::ft_check_headers(ServerConf & host) {
 
 void	Request::ft_check_body(void) { return ; }
 
-void	Request::parse(ServerConf & host) {
+void	Request::parse(Host & host) {
 	std::istringstream					iss(this->raw);
 	std::string							line, buffer, method, uri, protocol, key, value;
 	char								ch;
 	long								len, max_content_len;
-	
-	// Parse the request line
-	if (p_step == NOT_STARTED) {
-		
-		// Get the first line and parse it
-		p_step =  METHOD;
-		while (std::getline(iss, line, '\n') && line == "\r");
-		std::istringstream	iss_line(line);
-		if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
-			throw ErrorRequest("Error in the request: method not well formatted");
 
-		// Save the method
-		request_line["method"] = method;
-		request_line["uri"] = uri;
-		request_line["protocol"] = protocol;
-	}
+	while (std::getline(iss, line, '\n') && line == "\r");
+
+	// Parse the request line
+	// Get the first line and parse it
+	std::istringstream	iss_line(line);
+	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
+		throw ErrorRequest("Error in the request: method not well formatted");
+
+	// Save the method
+	request_line["method"] = method;
+	request_line["uri"] = uri;
+	request_line["protocol"] = protocol;
 	
 	// Parse the headers
-	if (p_step == METHOD) {
-		p_step = HEADERS;
-		while (std::getline(iss, line, '\n') && line != "\r") {
-			if (line[line.size() - 1] == '\r') {
-				buffer.append(line);
-			} else {
-				buffer = line;
-				continue ;
-			}
-			
-			std::istringstream	iss_line(line.erase(buffer.size() - 1));
-			
-			if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
-				throw ErrorRequest("Error in the request: header not well formatted");
-			
-			if (key == "Content-Length" && !b_content_length)
-				b_content_length = true;
-			else if (key == "Content-Length" && b_content_length)
-				throw ErrorRequest("Error in the request: multiple content-length headers");
-			
-			headers[key] = value;
-			buffer.clear();
+	while (std::getline(iss, line, '\n') && line != "\r") {
+		if (line[line.size() - 1] == '\r') {
+			buffer.append(line);
+		} else {
+			buffer = line;
+			continue ;
 		}
-		if (headers.empty())
-			throw ErrorRequest("Error in the request: end of headers not found");
-	}
-	
-	// Parse the body
-	if (p_step == HEADERS && headers.find("Content-Length") != headers.end()) {
-		p_step = BODY;
 		
+		std::istringstream	iss_line(line.erase(buffer.size() - 1));
+		
+		if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
+			throw ErrorRequest("Error in the request: header not well formatted");
+		
+		if (key == "Content-Length" && !b_content_length)
+			b_content_length = true;
+		else if (key == "Content-Length" && b_content_length)
+			throw ErrorRequest("Error in the request: multiple content-length headers");
+		
+		headers[key] = value;
+		buffer.clear();
+	}
+	if (headers.empty())
+		throw ErrorRequest("Error in the request: end of headers not found");
+
+	// Parse the body
+	if (headers.find("Content-Length") != headers.end()) {
 		if (request_line["method"] == "POST") {
 			max_content_len = long(std::atof(headers["Content-Length"].c_str()));
-			len = 0;	
+			len = 0;
 			while (iss.get(ch)) {
 				len++;
-				if (len > max_content_len)
+				if (len > max_content_len || len > long(host._maxBodySize))
 					throw ErrorRequest("Error in the request: body too long");
 				body.append(1, ch);
 			}
@@ -146,4 +138,5 @@ void	Request::parse(ServerConf & host) {
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
 	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
+
 }

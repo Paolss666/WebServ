@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 11:34:11 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/05 17:19:25 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,30 +15,18 @@
 
 #include "webserv.hpp"
 
-
-// class Hosts {
-// 	public:
-// 		Hosts(void);
-// 		~Hosts(void);
-
-// 		std::vector<ServerConf>				hosts;
-// 		std::vector<struct epoll_event>		events;
-
-// 		void					ft_conf_init(const char * fileName);
-// // void    ft_server_init(std::vector<ServerConf> & hosts, std::vector<epoll_event> & events);
-// 		void					loopServer(void);
-// };
-
 class ServerConf {
 	public:
 		ServerConf(void);
-		ServerConf(ServerConf const &src);
+		ServerConf(ServerConf const & src);
 		~ServerConf(void);
 
 		struct sockaddr_in				_address;
 		std::map<int, std::string>		_PageError;
 		std::map<int, std::string>		_CodeReturn;
 		std::vector<std::string>		_IndexFile;
+		int								_nb_keepalive;
+		int								_max_keepalive;
 		int								_fdSetSock;
 		int								_fdEpoll;
 		int								_fdAcceptSock;

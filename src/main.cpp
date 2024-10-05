@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 08:09:44 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/05 17:20:42 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../incl/webserv.hpp"
+#include "webserv.hpp"
 
 int	g_sig;
 
@@ -41,12 +41,9 @@ std::vector<ServerConf>	ft_conf_init(const char *fileName) {
 			throw ErrorConfFile("Error in the config file");
     }
 	for (size_t i = 0; i < server.size() - 1; i++)
-	{
 		if (server[i].getIp() == server[i + 1].getIp() && server[i].getPort() == server[i + 1].getPort())
 			throw ErrorConfFile("Error conf file: server : same Ip/Port");
-		// if (server[i].getNameServer() == server[i + 1].getNameServer())
-		// 	throw ErrorConfFile("Error conf file: server : same server_name");
-	}
+
 	return server;
 }
 
@@ -76,8 +73,6 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 	for (size_t i = 0; i < server.size(); i++)
 		hosts[i].close_everything();
 }
-
-
 
 int main(int ac, char **av) {
 	// server  server;

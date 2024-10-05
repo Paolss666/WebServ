@@ -6,13 +6,13 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/03 11:51:51 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/05 18:16:35 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-ServerConf::ServerConf() {
+ServerConf::ServerConf(void) {
     memset(&_address, 0, sizeof _address);
 	_address.sin_family = AF_INET; // IPv4
 	_address.sin_port = htons(PORT);// port par defaut 8080
@@ -20,11 +20,13 @@ ServerConf::ServerConf() {
     _port = 8080; // port par default;
     _ip = "0.0.0.0"; // address far default;
     _NotBind = 0; // check if is bind or not;
-	_maxBodySize = 0;
+	_maxBodySize = MAX_BODY_SIZE;
 	_address_len = sizeof(_address);
 	_fdSetSock = -1;
 	_fdEpoll = -1;
 	_fdAcceptSock = -1;
+	_nb_keepalive = 0;
+	_max_keepalive = 0;
 	_IndexPages = 0;
 	_nbServer = 0;
 	_maxBodyState = false;
@@ -43,8 +45,7 @@ ServerConf::ServerConf() {
 	_fdEpoll = 0;
 }
 
-ServerConf::ServerConf(ServerConf const &src) {
-	
+ServerConf::ServerConf(ServerConf const & src) {
 	_address = src._address;
 	_PageError = src._PageError;
 	_CodeReturn = src._CodeReturn;
@@ -52,6 +53,8 @@ ServerConf::ServerConf(ServerConf const &src) {
 	_fdSetSock = src._fdSetSock;
 	_fdEpoll = src._fdEpoll;
 	_fdAcceptSock = src._fdAcceptSock;
+	_nb_keepalive = src._nb_keepalive;
+	_max_keepalive = src._max_keepalive;
 	_address_len = src._address_len;
 	_NotBind = src._NotBind;
 	_port = src._port;
@@ -74,13 +77,9 @@ ServerConf::ServerConf(ServerConf const &src) {
 	_Default_server = src._Default_server;
 	_CheckDefaultServer = src._CheckDefaultServer;
 	_ReturnFlag = src._ReturnFlag;
-	
 }
 
-void	ServerConf::setNbServer(int nb)
-{
-	_nbServer = ++nb;
-}
+void	ServerConf::setNbServer(int nb) { _nbServer = ++nb; }
 
 void    ServerConf::p_IpAddrs(void)
 {
@@ -157,12 +156,9 @@ void    ServerConf::p_Listen(std::istringstream& iss)
     _StateListen = false;
 }   
 
-void ServerConf::printServerNames() const
-{
+void ServerConf::printServerNames(void) const {
 	for (size_t i = 0; i < _name.size(); ++i)
-	{
         std::cout << i + 1 << ". " << _name[i] << std::endl;  // Stampa con un indice
-    }
 }
 
 void	ServerConf::p_name(std::istringstream &iss)
