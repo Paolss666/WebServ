@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: benoit <benoit@student.42.fr>              +#+  +:+       +#+         #
+#    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/10/03 11:45:42 by benoit           ###   ########.fr        #
+#    Updated: 2024/10/06 18:36:22 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,6 +26,7 @@ SRC := \
 	Location.cpp \
 	main.cpp \
 	Request.cpp \
+	Response.cpp \
 	ServerConf.cpp \
 	utils.cpp \
 

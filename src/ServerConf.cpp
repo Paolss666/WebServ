@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/05 18:16:35 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/06 18:26:00 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,14 @@ ServerConf::ServerConf(void) {
 	_address.sin_addr.s_addr = htonl(INADDR_ANY);// address par default(00000)
     _port = 8080; // port par default;
     _ip = "0.0.0.0"; // address far default;
+	_raw_ip = _ip;
     _NotBind = 0; // check if is bind or not;
 	_maxBodySize = MAX_BODY_SIZE;
 	_address_len = sizeof(_address);
 	_fdSetSock = -1;
 	_fdEpoll = -1;
 	_fdAcceptSock = -1;
-	_nb_keepalive = 0;
+	_n_b_keepalive = 0;
 	_max_keepalive = 0;
 	_IndexPages = 0;
 	_nbServer = 0;
@@ -53,7 +54,7 @@ ServerConf::ServerConf(ServerConf const & src) {
 	_fdSetSock = src._fdSetSock;
 	_fdEpoll = src._fdEpoll;
 	_fdAcceptSock = src._fdAcceptSock;
-	_nb_keepalive = src._nb_keepalive;
+	_n_b_keepalive = src._n_b_keepalive;
 	_max_keepalive = src._max_keepalive;
 	_address_len = src._address_len;
 	_NotBind = src._NotBind;
@@ -63,6 +64,7 @@ ServerConf::ServerConf(ServerConf const & src) {
 	_maxBodySize = src._maxBodySize;
 	_PortString = src._PortString;
 	_ip = src._ip;
+	_raw_ip = src._raw_ip;
 	_name = src._name;
 	_rootPath = src._rootPath;
     _Location = src._Location;
@@ -94,6 +96,7 @@ void    ServerConf::p_IpAddrs(void)
     if (_ip.find_first_not_of("0123456789.") != std::string::npos)
         throw ErrorConfFile("Error in conf file: ip");
     int	replace = 0;
+	_raw_ip = _ip;
 	for (int i = 0; _ip[i]; i++)
 		if (_ip[i] == '.')
 			_ip.replace(i, 1, 1, ' '), replace++;

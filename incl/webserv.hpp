@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:58:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/02 10:21:00 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/06 18:28:10 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ extern int g_sig;
 # include "errors.hpp"
 # include "Location.hpp"
 # include "Request.hpp"
+# include "Response.hpp"
 # include "ServerConf.hpp"
 # include "Hosts.hpp"
 

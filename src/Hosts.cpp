@@ -76,7 +76,7 @@ Host::~Host() { return ; }
 
 void	Host::new_connection(void) {
 	std::ostringstream oss;
-	std::cout << "New connection detected" << std::endl;
+	std::cout << YELLOW "New connection detected" RESET << std::endl;
 	
 	// Accept the connection
 	_fdAcceptSock = accept(_fdSetSock, (struct sockaddr *)&_address, (socklen_t*)&_address_len);
@@ -139,16 +139,8 @@ void	Host::parse_request(int fd) {
 }
 
 
-void	Host::build_response(int fd) {
-	std::ifstream	file("../www/index.html");
-
-	// if (!file.good())
-	// 	throw
+void	Host::send_response(int fd) {
 	send(_events[fd].data.fd, "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!\n", 53, 0);
-	
-	// Line under to be removed
-	if (_requests.find(_events[fd].data.fd) == _requests.end())
-		return ;
 }
 
 void	Host::act_on_request(int fd) {
@@ -156,7 +148,8 @@ void	Host::act_on_request(int fd) {
 	std::cout << CYAN "Acting on request" RESET << std::endl;
 
 	// Send data to client
-	build_response(fd);
+	Response response(_requests[_events[fd].data.fd]);
+	send_response(fd);
 	
 	// Close the connection if needed
 	epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
