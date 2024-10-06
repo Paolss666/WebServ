@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/05 20:16:38 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/06 16:35:25 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ void	ft_perror(const char * message);
 void	sig_handler(int signal);
 void	ft_close(int fd);
 void	print_with_hex(const std::string & str);
+void	print_request(std::map<std::string, std::string> request_line, std::map<std::string, std::string> headers, std::string body);
 
 // macros ------------------------------
 # define RESET		"\033[0m"	// Reset to default color

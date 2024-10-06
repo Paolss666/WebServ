@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/05 20:47:33 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/06 16:49:55 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,15 +71,13 @@ void	Request::parse(Host & host) {
 	char								ch;
 	long								len, max_content_len;
 
+	// Skip the empty lines
 	while (std::getline(iss, line, '\n') && line == "\r");
 
 	// Parse the request line
-	// Get the first line and parse it
 	std::istringstream	iss_line(line);
 	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
 		throw ErrorRequest("Error in the request: method not well formatted");
-
-	// Save the method
 	request_line["method"] = method;
 	request_line["uri"] = uri;
 	request_line["protocol"] = protocol;
@@ -131,12 +129,5 @@ void	Request::parse(Host & host) {
 	ft_check_body();
 
 	// Display the request
-	std::cout << CYAN << "Method: " << WHITE << request_line["method"] << std::endl;
-	std::cout << CYAN << "URI: " << WHITE << request_line["uri"] << std::endl;
-	std::cout << CYAN << "Protocol: " << WHITE << "HTTP/1.1" << std::endl;
-	std::cout << CYAN << "Headers:" << WHITE << std::endl;
-	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
-		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
-	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
-
+	print_request(request_line, headers, body);
 }

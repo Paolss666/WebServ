@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/03 12:00:00 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/06 16:52:07 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,4 +64,14 @@ void	print_with_hex(const std::string & str) {
 			std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)(unsigned char)*it;
 	}
 	std::cout << std::dec; // Reset to decimal format
+}
+
+void	print_request(std::map<std::string, std::string> request_line, std::map<std::string, std::string> headers, std::string body) {
+	std::cout << CYAN << "Method: " << WHITE << request_line["method"] << std::endl;
+	std::cout << CYAN << "URI: " << WHITE << request_line["uri"] << std::endl;
+	std::cout << CYAN << "Protocol: " << WHITE << "HTTP/1.1" << std::endl;
+	std::cout << CYAN << "Headers:" << WHITE << std::endl;
+	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
+		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
+	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
