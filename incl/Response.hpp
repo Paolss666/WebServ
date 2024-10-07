@@ -17,8 +17,16 @@
 
 class Response: public Request {
 	public:
-		Response(const Request & src);
+		Response(const Request & src, const Host &host);
 		~Response(void);
+
+		void			createGET();
+
+
+		std::map<std::string, Location>  _Location;
+		std::vector<std::string>		_indexPages;
+		std::string						_path_file;
+		std::string						_root;
 };
 
 #endif

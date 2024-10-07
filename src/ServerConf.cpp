@@ -449,7 +449,7 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				prefix = kw;
 				location.setUri(prefix);
-				ft_perror(("prefix " + location.getUri()).c_str());
+				// ft_perror(("prefix " + location.getUri()).c_str());
 				if ((iss >> kw) && kw != "{")
 					throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			}

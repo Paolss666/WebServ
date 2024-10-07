@@ -23,6 +23,7 @@ Location::Location(void)
     _AutoFlag = false;
     _AutoIndex = false;
     _MetFlag   = false;
+	_rootflag = false;
     return;
 }
 
@@ -200,6 +201,30 @@ void        Location::InLoc_AutoIndex(std::istringstream& iss)
     _AutoFlag = true;
 }
 
+void	Location::InLoc_root(std::istringstream& iss)
+{
+	std::string 	pathRoot;
+
+	if (!(iss >> pathRoot))
+		throw ErrorConfFile("Error conf file: root path don't found;");
+	
+	std::cout << " path-root found --->  " << pathRoot << std::endl; 
+
+	if (pathRoot.compare(0, 3, "www") != 0 && pathRoot.compare(0, 4, "www/") != 0)
+		throw ErrorConfFile("Error conf file: root wrong path;");
+
+	_Root = pathRoot;
+
+
+	struct stat info;
+	if (stat(_Root.c_str(), &info) != 0)// cannot access path 
+		throw ErrorConfFile("Error : root : cannot access path or file");
+	
+	std::cout << " root found --->  " << _Root << std::endl; 
+
+	_rootflag = 1;
+}	
+
 void        Location::ParseLocation(std::istream &file)
 {
     std::string line;
@@ -226,6 +251,8 @@ void        Location::ParseLocation(std::istream &file)
             InLoc_ErPages(iss);
         else if (keyword == "autoindex" && !_AutoFlag)
             InLoc_AutoIndex(iss);
+		else if (keyword == "root" && !_rootflag)
+			InLoc_root(iss);
         else if (keyword == "}")
             break;
         else
@@ -233,3 +260,46 @@ void        Location::ParseLocation(std::istream &file)
     }
     return;
 }
+
+
+int		Location::getFlagIndex()
+{
+	return (this->_indexFlag);
+}
+
+std::vector<std::string> Location::getIndexPages()
+{
+	return (this->_Indx);
+}
+
+int		Location::getRootFlag()
+{
+	return (this->_rootflag);
+}
+
+std::string		Location::getRoot()
+{
+	return (this->_Root);
+}
+
+int		Location::getReturnFlag()
+{
+	return (this->_ReturnFlag);
+}
+
+std::map<int, std::string> Location::getReturnPages()
+{
+	return (this->_Retourn);
+}
+
+int		Location::getFlagErrorPages()
+{
+	return (this->_ErPages);
+}
+
+std::map<int, std::string> Location::getPagesError()
+{
+	return (this->_PageError);
+}
+
+
