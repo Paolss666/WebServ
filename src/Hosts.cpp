@@ -206,6 +206,7 @@ void	Host::act_on_request(int fd) {
 	Response response(_requests[_events[fd].data.fd], *this);
 	if (response._request_line["method"] == "GET")
 		BuildGet(fd, response);
+	
 	// Close the connection if needed
 	if (_requests[_events[fd].data.fd]._headers["Connection"].compare("close")) {
 		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);

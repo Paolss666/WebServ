@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 17:08:24 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 17:42:33 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,15 +32,15 @@ void	Request::check_request_line(void) {
 
 	// Check the method
 	if (!(_request_line["method"] == "GET" || _request_line["method"] == "POST" || _request_line["method"] == "DELETE"))
-		throw ErrorRequest("Error in the request: method not supported", 666);
+		throw ErrorRequest("Error in the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
 	
 	// Check the protocol
 	if (_request_line["protocol"] != "HTTP/1.1\r")
-		throw ErrorRequest("Error in the request: protocol not supported", 666);
+		throw ErrorRequest("Error in the request: protocol not supported", ERR_CODE_HTTP_VERSION);
 
 	// Check the uri
 	if (_request_line["uri"].empty())
-		throw ErrorRequest("Error in the request: uri not found", 666);
+		throw ErrorRequest("Error in the request: uri not found", ERR_CODE_BAD_REQUEST);
 }
 
 void	Request::check_headers(void) {
@@ -49,21 +49,17 @@ void	Request::check_headers(void) {
 	std::ostringstream	oss;
 	oss << _host._port;
 	
-	if (!_host._name.empty()
-		&& (_headers.find("Host") == _headers.end()
-			|| (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
-	{
+	if (!_host._name.empty() && (_headers.find("Host") == _headers.end() || (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
 		throw ErrorRequest("Error in the request: host error", 666);
-	}
 
 	// Check content for POST
 	if (_request_line["method"] == "POST") {
 		if (_headers.find("Content-Length") == _headers.end() || _headers.find("Content-Type") == _headers.end())
-			throw ErrorRequest("Error in the request: content-length not found", 666);
+			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_LENGTH_REQUIRED);
 		if (_headers["Content-Length"].empty() || _headers["Content-Length"].find_first_not_of("0123456789") != std::string::npos)
-			throw ErrorRequest("Error in the request: content-length mismatch", 666);
+			throw ErrorRequest("Error in the request: content-length mismatch", BUS_ADRERR);
 		if (_headers["Content-Type"].empty())
-			throw ErrorRequest("Error in the request: content-type not found", 666);
+			throw ErrorRequest("Error in the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
 	}
 
 	return ;
@@ -89,7 +85,7 @@ void	Request::parse(void) {
 	// Parse the request line
 	std::istringstream	iss_line(line);
 	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
-		throw ErrorRequest("Error in the request: method not well formatted", 666);
+		throw ErrorRequest("Error in the request: method not well formatted", ERR_CODE_BAD_REQUEST);
 	_request_line["method"] = method;
 	_request_line["uri"] = uri;
 	_request_line["protocol"] = protocol;
@@ -106,7 +102,7 @@ void	Request::parse(void) {
 		std::istringstream	iss_line(line.erase(buffer.size() - 1));
 		
 		if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
-			throw ErrorRequest("Error in the request: header not well formatted", 666);
+			throw ErrorRequest("Error in the request: header not well formatted", ERR_CODE_BAD_REQUEST);
 		// Remove leading and trailing whitespaces
 		key = trim(key);
 		value = trim(value);
@@ -114,7 +110,7 @@ void	Request::parse(void) {
 		buffer.clear();
 	}
 	if (_headers.empty())
-		throw ErrorRequest("Error in the request: end of headers not found", 666);
+		throw ErrorRequest("Error in the request: end of headers not found", ERR_CODE_BAD_REQUEST);
 
 	// Parse the body
 	if (_headers.find("Content-Length") != _headers.end()) {
@@ -124,18 +120,18 @@ void	Request::parse(void) {
 			while (iss.get(ch)) {
 				len++;
 				if (len > max_content_len || len > long(_host._maxBodySize))
-					throw ErrorRequest("Error in the request: body too long", 666);
+					throw ErrorRequest("Error in the request: body too long", ERR_CODE_BAD_REQUEST);
 				_body.append(1, ch);
 			}
 			if (len != max_content_len)
-				throw ErrorRequest("Error in the request: body not complete", 666);	
+				throw ErrorRequest("Error in the request: body not complete", ERR_CODE_BAD_REQUEST);	
 		}
 	}
 
 	// Check the request
 	check_request_line();
 	check_headers();
-	check_body();
+	check_body(); // A supprimer ?
 
 	// Display the request
 	print_request(_request_line, _headers, _body);

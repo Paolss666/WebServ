@@ -6,27 +6,24 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 15:43:18 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 17:33:35 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-void	Check_extension(const std::string & str, const std::string & ext)
-{
+void	Check_extension(const std::string & str, const std::string & ext) {
 	if (str.size() >= ext.size() && !str.compare(str.size() - ext.size(), ext.size(), ext))
 		return ;	
 	throw ErrorConfFile("Error : wrong conf extension");
 }
 
-void	Print_map_code_errors(std::map<int, std::string> errorPages)
-{
+void	Print_map_code_errors(std::map<int, std::string> errorPages) {
 	for (std::map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
 		std::cout << "code -> " << it->first << " pages -> " << it ->second << "\n";
 }
 
-void	Print_map_code_return(std::map<int, std::string> errorPages)
-{
+void	Print_map_code_return(std::map<int, std::string> errorPages) {
 	for (std::map<int, std::string>::const_iterator it = errorPages.begin(); it != errorPages.end(); ++it)
 		std::cout << "return -> " << it->first << " pages -> " << it ->second << "\n";
 }
