@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/05 17:20:42 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/08 15:40:29 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,16 +66,14 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 			<< RESET << std::endl;
 
 	std::cout << CYAN BOLD "\n----------------- Server is running -----------------\n" RESET << std::endl;
-	while (!g_sig) {
+	while (!g_sig)
 		for (size_t i = 0; i < hosts.size(); ++i)
 			hosts[i].run_server();
-	}
 	for (size_t i = 0; i < server.size(); i++)
 		hosts[i].close_everything();
 }
 
 int main(int ac, char **av) {
-	// server  server;
 	std::vector<ServerConf> server;
 	std::vector<Host> hosts;
 	signal(SIGINT, sig_handler);
@@ -85,10 +83,12 @@ int main(int ac, char **av) {
 		else
 			server = ft_conf_init(av[1]);
 		WebServe(server, hosts);
-	}
-	catch(std::exception & c) {
+	} catch(std::exception & c) {
 		ft_perror(c.what());
+		for (size_t i = 0; i < server.size(); i++)
+			hosts[i].close_everything();
 		return EXIT_FAILURE;
 	}
 	std::cout << GREEN BOLD "Server is done running" RESET << std::endl;
+	return EXIT_SUCCESS;
 }

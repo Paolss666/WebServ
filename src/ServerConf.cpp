@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:26:00 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 16:45:22 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ ServerConf::ServerConf(void) {
 	_fdSetSock = -1;
 	_fdEpoll = -1;
 	_fdAcceptSock = -1;
-	_n_b_keepalive = 0;
+	_nb_keepalive = 0;
 	_max_keepalive = 0;
 	_IndexPages = 0;
 	_nbServer = 0;
@@ -54,7 +54,7 @@ ServerConf::ServerConf(ServerConf const & src) {
 	_fdSetSock = src._fdSetSock;
 	_fdEpoll = src._fdEpoll;
 	_fdAcceptSock = src._fdAcceptSock;
-	_n_b_keepalive = src._n_b_keepalive;
+	_nb_keepalive = src._nb_keepalive;
 	_max_keepalive = src._max_keepalive;
 	_address_len = src._address_len;
 	_NotBind = src._NotBind;
