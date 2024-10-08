@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 16:50:52 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 18:25:25 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,6 +82,9 @@ void	send_error_page(Host & request, int fd, int code);
 
 # define ERR_CODE_UNSUPPORTED_MEDIA	415
 # define ERR_NAME_UNSUPPORTED_MEDIA	"Unsupported Media Type"
+
+# define ERR_CODE_REQ_HEADER_FIELDS	431
+# define ERR_NAME_REQ_HEADER_FIELDS	"Request Header Fields Too Large"
 
 # define ERR_CODE_INTERNAL_ERROR	500
 # define ERR_NAME_INTERNAL_ERROR	"Internal Server Error"

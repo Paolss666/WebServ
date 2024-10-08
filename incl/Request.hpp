@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 17:03:46 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 19:29:17 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,10 +26,9 @@ class Request {
 
 		void								parse(void);
 		void								append(std::string const & data);
-		void								check_request_line(void);
-		void								check_headers(void);
-		void								check_body(void);
-		std::string							trim(std::string & str);
+		void								pnc_request_line(std::istringstream & iss);
+		void								pnc_headers(std::istringstream & iss);
+		void								pnc_body(std::istringstream & iss);
 
 		Host &								_host;
 		struct epoll_event &				_event;
@@ -38,6 +37,7 @@ class Request {
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		bool								_b_content_length;
+		int									_stage;
 		
 };
 

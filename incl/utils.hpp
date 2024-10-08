@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 15:43:29 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 18:21:30 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,15 @@
 
 # include "webserv.hpp"
 
-void	Check_extension(const std::string & str, const std::string & ext);
-void	Print_map_code_errors(std::map<int, std::string> PagesError);
-void	printVector(const std::vector<std::string> & vec);
-void	Print_map_code_return(std::map<int, std::string> errorPages);
-void	sig_handler(int signal);
-void	ft_close(int fd);
-void	print_with_hex(const std::string & str);
-void	print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
+void		Check_extension(const std::string & str, const std::string & ext);
+void		Print_map_code_errors(std::map<int, std::string> PagesError);
+void		printVector(const std::vector<std::string> & vec);
+void		Print_map_code_return(std::map<int, std::string> errorPages);
+void		sig_handler(int signal);
+void		ft_close(int fd);
+void		print_with_hex(const std::string & str);
+void		print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
+std::string	trim(std::string & str);
 
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
@@ -42,7 +43,12 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
 # define PORT				8080
-# define BUFFER_SIZE		124
+# define BUFFER_SIZE		1024
 # define MAX_BODY_SIZE		5368709120	// 5 GB
+# define MAX_HEADER_SIZE	8192	// 8 KB
+# define MAX_URI_SIZE		2048	// 2 KB
+# define RL_DONE			0
+# define HEADERS_DONE		1
+# define BODY_DONE			2
 
 #endif

@@ -14,15 +14,10 @@
 
 Host::Host() { return ;}
 
-Host::Host(ServerConf & src): ServerConf(src) {
+Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 
 	struct epoll_event	event;
 	std::ostringstream	oss;
-
-	// Initialize variables
-	_nfds = 0;
-	_b_completed = false;
-	_b_partial = false;
 
 	// printVector(src._IndexFile);
 	// Create listening socket
@@ -105,12 +100,12 @@ void	Host::new_connection(void) {
 }
 
 void	Host::parse_request(int fd) {
-	char	buffer[BUFFER_SIZE] = { 0 };
-	int		valread;
+	char		buffer[BUFFER_SIZE] = { 0 };
+	int			valread;
+	std::string	raw;
 
+	// Read data from client
 	try {
-
-		// Read data from client
 		valread = read(_events[fd].data.fd, buffer, BUFFER_SIZE - 1);
 		buffer[valread] = '\0';
 		if (valread < 0) {
@@ -118,28 +113,29 @@ void	Host::parse_request(int fd) {
 			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
 			throw ErrorFdManipulation("Error in the read", ERR_CODE_INTERNAL_ERROR);
 		}
-
-		// Parse the request
-		std::string raw(buffer);
-		if (_requests.find(_events[fd].data.fd) != _requests.end())
-			_requests[_events[fd].data.fd].append(raw);
-		else {
-			Request tmp(*this, _events[fd], raw);
-			_requests.insert(std::pair<int, Request>(_events[fd].data.fd, tmp));
-		}
-		if (valread == 0 || recv(_events[fd].data.fd, buffer, BUFFER_SIZE - 1, MSG_PEEK) <= 0) {
-			try {
-				_requests[_events[fd].data.fd].parse();
-			} catch (const ErrorRequest & e) {
-				ft_perror(e.what());
-				send_error_page(*this, fd, e._code);
-			}
-			_b_completed = true;
-		}
 	} catch (const ErrorFdManipulation & e) {
 		ft_perror(e.what());
 		send_error_page(*this, fd, e._code);
+		return ;
 	}
+
+	// Append the data to the request
+	raw = buffer;
+	if (_requests.find(_events[fd].data.fd) != _requests.end())
+		_requests[_events[fd].data.fd].append(raw);
+	else {
+		Request tmp(*this, _events[fd], raw);
+		_requests.insert(std::pair<int, Request>(_events[fd].data.fd, tmp));
+	}
+
+	// Parse the partial read of the request
+	try {
+		_requests[_events[fd].data.fd].parse();
+	} catch (const ErrorRequest & e) {
+		ft_perror(e.what());
+		send_error_page(*this, fd, e._code);
+	}
+
 }
 
 // struct stat buffer;
@@ -240,10 +236,10 @@ void	Host::run_server(void) {
 			else {
 				parse_request(i);
 				// Change the event to EPOLLOUT
-				if (_b_completed) {
+				if (_requests[_events[i].data.fd]._stage == BODY_DONE) {
 					_events[i].events = EPOLLOUT;
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
-					_b_completed = false;
+					_requests.erase(_events[i].data.fd);
 				}
 			}
 		}

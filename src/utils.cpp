@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 17:33:35 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 17:44:47 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,4 +69,10 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
 	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
+}
+
+std::string	trim(std::string & str) {
+	size_t	start = str.find_first_not_of(" \t");
+	size_t	end = str.find_last_not_of(" \t");
+	return (str.substr(start, end - start + 1));
 }

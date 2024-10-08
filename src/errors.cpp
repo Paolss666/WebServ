@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 16:50:03 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 19:27:13 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,6 +71,9 @@ void	send_error_page(Host & request, int fd, int code) {
 		case ERR_CODE_UNSUPPORTED_MEDIA:
 			status = ERR_NAME_UNSUPPORTED_MEDIA;
 			break;
+		case ERR_CODE_REQ_HEADER_FIELDS:
+			status = ERR_NAME_REQ_HEADER_FIELDS;
+			break;
 		case ERR_CODE_INTERNAL_ERROR:
 			status = ERR_NAME_INTERNAL_ERROR;
 			break;
@@ -86,7 +89,10 @@ void	send_error_page(Host & request, int fd, int code) {
 	}
 
 	str_code << code;
-	body = "<html><head><title>" + status + "</title></head><body><center><img src=\"https://http.cat/" + str_code.str() + ".jpg\"></html>";
+	if (status == "Unkown")
+		body = "<html><head><title>" + status + "</title></head><body><center><img src=\"https://http.cat/450.jpg\"></html>";
+	else
+		body = "<html><head><title>" + status + "</title></head><body><center><img src=\"https://http.cat/" + str_code.str() + ".jpg\"></html>";
 
 	// Set the response
 	oss << "HTTP/1.1 " << code << " " << status << "\r\n";
@@ -105,5 +111,10 @@ void	send_error_page(Host & request, int fd, int code) {
 
 	// Send the response
 	if (send(request._events[fd].data.fd, response.c_str(), response.size(), 0) < 0)
-		ft_perror("Error in the send");
+		ft_perror(("Error in the send of error page: " + str_code.str()).c_str());
+	
+	// Close the connection
+	epoll_ctl(request._fdEpoll, EPOLL_CTL_DEL, request._events[fd].data.fd, NULL);
+	ft_close(request._events[fd].data.fd);
+	request._requests.erase(request._events[fd].data.fd);
 }
