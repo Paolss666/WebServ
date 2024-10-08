@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:30:35 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 15:43:29 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ void	Check_extension(const std::string & str, const std::string & ext);
 void	Print_map_code_errors(std::map<int, std::string> PagesError);
 void	printVector(const std::vector<std::string> & vec);
 void	Print_map_code_return(std::map<int, std::string> errorPages);
-void	ft_perror(const char * message);
 void	sig_handler(int signal);
 void	ft_close(int fd);
 void	print_with_hex(const std::string & str);

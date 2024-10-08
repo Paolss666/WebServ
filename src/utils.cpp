@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:25:44 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/08 15:43:18 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,8 +37,6 @@ void printVector(const std::vector<std::string>& vec) {
 		std::cout << " - " << vec[i] << std::endl;
 	}
 }
-
-void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
 
 void sig_handler(int signal) {
 	std::time_t currentTime = std::time(0);
