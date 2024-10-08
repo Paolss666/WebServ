@@ -20,7 +20,7 @@ class Response: public Request {
 		Response(const Request & src, const Host &host);
 		~Response(void);
 
-		void			createGET();
+		// void			createGET();
 
 
 		std::map<std::string, Location>  _Location;

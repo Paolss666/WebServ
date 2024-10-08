@@ -49,10 +49,12 @@ Response::Response(const Request & src, const Host &host): Request(src) {
         std::size_t pos = uri.find_last_of('/');
         if (pos == std::string::npos || pos == 0) {
             uri = "/";
+			break;
         } else {
             uri = uri.substr(0, pos);
         }
 	}
+	std::cout  << "uri -> " << uri << std::endl;
 	if (_Location[uri].getFlagIndex())
 		_indexPages = _Location[uri].getIndexPages();
 	if (_Location[uri].getRootFlag())
@@ -61,27 +63,17 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 		_returnPages = _Location[uri].getReturnPages();
 	if (_Location[uri].getFlagErrorPages())
 		_pagesError = _Location[uri].getPagesError();
-
+	
 	std::string		file_path = _root + uri;
 	std::cout << file_path << " << ===== file_path " << std::endl;
-	_path_file = file_path + _indexPages[0];
-	std::cout << _path_file << " << =====  " << std::endl;
-	return ;
+	if (file_path == "www/home" && !file_path.empty() && file_path[file_path.size() - 1] != '/') {
+	    file_path += '/';
+	}
+	struct stat buf;
+	if (stat(file_path.c_str(), &buf) < 0 || file_path == "www/")
+		_path_file = "www/index.html";
+	else
+		_path_file = file_path + _indexPages[0];
 }
 
 Response::~Response(void) { return ; }
-
-void		Response::createGET()
-{
-	
-	
-	// if (file_path.back() == '/')
-		// file_path += _indexPages[0];
-	// else
-	// {
-	// 	file_path += '/';
-	// 	file_path += _indexPages[0];
-	// }
-	// std::cout << file_path << " << ===== file_path " << std::endl;
-	// _path_file = file_path;
-}
