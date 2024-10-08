@@ -33,7 +33,7 @@ class Host: public ServerConf {
 		void							new_connection(void);
 		void							parse_request(int fd);
 		void							act_on_request(int fd);
-		void							send_response(int fd/*  Response &reponse */);
+		void							send_response(int fd, Response &reponse);
 		void							run_server(void);
 		void							close_everything(void);
 };

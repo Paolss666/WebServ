@@ -27,6 +27,8 @@ class Response: public Request {
 		std::vector<std::string>		_indexPages;
 		std::string						_path_file;
 		std::string						_root;
+		std::map<int, std::string>		_returnPages;
+		std::map<int, std::string>		_pagesError;
 };
 
 #endif

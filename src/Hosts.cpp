@@ -144,42 +144,42 @@ void	Host::parse_request(int fd) {
 // if (stat(location.getUri().c_str(),&buffer) < 0)
 // 	// throw ErrorConfFile("Error in the conf file : Uri : wrong path");/
 
-void	Host::send_response(int fd/* , Response &reponse */) {
+void	Host::send_response(int fd, Response &reponse) {
 	// struct stat buffer;	
 	// HERE We have to put de response;
-	// std::ifstream file(reponse._path_file.c_str());
-    // std::string file_content;
-	// if (file) {
-    //     std::ostringstream ss;
-    //     ss << file.rdbuf(); 
-	// 	 std::cout << "File's open: " << reponse._path_file << std::endl;
-    //     file_content = ss.str(); // Converti in stringa
-    // } else {
-    //     // Se il file non può essere aperto, gestisci l'errore 404
-    //     std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
-    //     send(fd, error_response.c_str(), error_response.length(), 0);
-    //     return;
-    // }
-	// std::ostringstream oss;
-	// oss << file_content.length();
+	std::ifstream file(reponse._path_file.c_str());
+    std::string file_content;
+	if (file) {
+        std::ostringstream ss;
+        ss << file.rdbuf(); 
+		 std::cout << "File's open: " << reponse._path_file << std::endl;
+        file_content = ss.str(); // Converti in stringa
+    } else {
+        // Se il file non può essere aperto, gestisci l'errore 404
+        std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
+        send(fd, error_response.c_str(), error_response.length(), 0);
+        return;
+    }
+	std::ostringstream oss;
+	oss << file_content.length();
 
-	// std::string response_header = "HTTP/1.1 200 OK\r\n";
-	// response_header += "Content-Length: " + oss.str() + "\r\n";
-    // // response_header += "Content-Length: " + std::to_string(file_content.length()) + "\r\n";
-    // response_header += "Content-Type: text/html\r\n"; // Imposta il Content-Type corretto
-    // response_header += "\r\n"; // Fine degli header
+	std::string response_header = "HTTP/1.1 200 OK\r\n";
+	response_header += "Content-Length: " + oss.str() + "\r\n";
+    // response_header += "Content-Length: " + std::to_string(file_content.length()) + "\r\n";
+    response_header += "Content-Type: text/html\r\n"; // Imposta il Content-Type corretto
+    response_header += "\r\n"; // Fine degli header
 
-    // // 5. Invia la risposta
-    // int byte = send(fd, response_header.c_str(), response_header.length(), 0);
-	// if (byte == -1) {
-    // std::cerr << "Errore durante l'invio degli header" << std::endl;
-	// }
-    // int bytes = send(fd, file_content.c_str(), file_content.length(), 0);
-	// 	if (bytes == -1) {
-    // 	std::cerr << "Errore durante l'invio degli header" << std::endl;
-	// }
-	// return ;
-	send(_events[fd].data.fd, "HTTP/1.1 200 OK\r\nContent-Length: 29\r\n\r\nHello, World! this->_rootPath\n", 70, 0);
+    // 5. Invia la risposta
+    int byte = send(fd, response_header.c_str(), response_header.length(), 0);
+	if (byte == -1) {
+    std::cerr << "Errore durante l'invio degli header" << std::endl;
+	}
+    int bytes = send(fd, file_content.c_str(), file_content.length(), 0);
+		if (bytes == -1) {
+    	std::cerr << "Errore durante l'invio degli header" << std::endl;
+	}
+	return ;
+	// send(_events[fd].data.fd, "HTTP/1.1 200 OK\r\nContent-Length: 29\r\n\r\nHello, World! this->_rootPath\n", 70, 0);
 	// std::cout << this->_rootPath << std::endl; 
 }
 
@@ -190,9 +190,11 @@ void	Host::act_on_request(int fd) {
 	// Send data to client
 	// printVector(_IndexFile);
 	Response response(_requests[_events[fd].data.fd], *this);
-	response.createGET();
-	send_response(fd/* , repom */);
-	
+	if (response._request_line["method"] == "GET")
+	{
+		response.createGET();
+		// send_response(fd, response);
+	}
 	// Close the connection if needed
 	epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
 	ft_close(_events[fd].data.fd);
