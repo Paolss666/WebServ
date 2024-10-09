@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 18:21:30 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 16:42:25 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ void		ft_close(int fd);
 void		print_with_hex(const std::string & str);
 void		print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
 std::string	trim(std::string & str);
+void		ft_print_coucou(int i);
 
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
@@ -43,7 +44,7 @@ std::string	trim(std::string & str);
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
 # define PORT				8080
-# define BUFFER_SIZE		1024
+# define BUFFER_SIZE		8
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB

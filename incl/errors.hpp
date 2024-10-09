@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 18:25:25 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 15:39:19 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,8 @@ class ErrorFdManipulation: public std::exception {
 
 		virtual const char* what() const throw();
 
-		std::string	_errorMsg;
-		int			_code;
+		mutable std::string	_errorMsg;
+		int					_code;
 };
 
 class ErrorRequest: public std::exception {
@@ -45,8 +45,8 @@ class ErrorRequest: public std::exception {
 
 		virtual const char* what() const throw();
 
-		std::string	_errorMsg;
-		int			_code;
+		mutable std::string	_errorMsg;
+		int					_code;
 };
 
 void	ft_perror(const char * message);

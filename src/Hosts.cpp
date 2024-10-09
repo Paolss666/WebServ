@@ -130,12 +130,12 @@ void	Host::parse_request(int fd) {
 
 	// Parse the partial read of the request
 	try {
+		_requests[_events[fd].data.fd]._eof = recv(_events[fd].data.fd, buffer, 2, MSG_PEEK);
 		_requests[_events[fd].data.fd].parse();
 	} catch (const ErrorRequest & e) {
 		ft_perror(e.what());
 		send_error_page(*this, fd, e._code);
 	}
-
 }
 
 // struct stat buffer;
@@ -189,26 +189,34 @@ void	Host::BuildGet(int fd, Response &reponse) {
     if (body_bytes_sent == -1) {
         std::cerr << "Error in send for the content of the fd" << std::endl;
     }
-
-    close(fd);
 }
 
 void	Host::act_on_request(int fd) {
 
-	std::cout << CYAN "Acting on request" RESET << std::endl;
+	std::cout << YELLOW "Acting on request" RESET << std::endl;
 
 	// Send data to client
-	// printVector(_IndexFile);
 	Response response(_requests[_events[fd].data.fd], *this);
 	if (response._request_line["method"] == "GET")
-		BuildGet(fd, response);
+		BuildGet(_events[fd].data.fd, response);
+	else {
+		send_error_page(*this, fd, ERR_CODE_MET_NOT_ALLOWED);
+		return ;
+	}
 	
 	// Close the connection if needed
-	if (_requests[_events[fd].data.fd]._headers["Connection"].compare("close")) {
+	if (!_requests[_events[fd].data.fd]._headers["Connection"].compare("close")) {
+		std::cout << "Closing connection" << std::endl;
 		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
 		ft_close(_events[fd].data.fd);
 		_requests.erase(_events[fd].data.fd);
+	} else {
+		std::cout << "Connection kept alive" << std::endl;
+		_events[fd].events = EPOLLIN;
+		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[fd].data.fd, &_events[fd]);
 	}
+
+	std::cout << YELLOW "---> Request answered" RESET << std::endl << std::endl;
 }
 
 void	Host::run_server(void) {
@@ -237,9 +245,11 @@ void	Host::run_server(void) {
 				parse_request(i);
 				// Change the event to EPOLLOUT
 				if (_requests[_events[i].data.fd]._stage == BODY_DONE) {
+					std::cout << YELLOW "New request cought" RESET << std::endl;
+					print_request(_requests[_events[i].data.fd]._request_line, _requests[_events[i].data.fd]._headers, _requests[_events[i].data.fd]._body);
+					std::cout << std::endl;
 					_events[i].events = EPOLLOUT;
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
-					_requests.erase(_events[i].data.fd);
 				}
 			}
 		}

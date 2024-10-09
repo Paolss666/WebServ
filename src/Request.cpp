@@ -3,20 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 19:31:00 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 17:38:01 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-Request::Request(void): _host(*(Host*)NULL), _event(*(epoll_event*)NULL), _raw(""), _request_line(), _headers(), _body(""), _b_content_length(false), _stage(-1) { return ; }
+Request::Request(void): _host(*(Host*)NULL), _event(*(epoll_event*)NULL), _raw(""), _request_line(), _headers(), _body(""), _b_content_length(false), _stage(-1), _eof(1) { return ; }
 
-Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1) { return ; }
+Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1), _eof(1) { return ; }
 
-Request::Request(Request const & src): _host(src._host), _event(src._event), _stage(-1) {
+Request::Request(Request const & src): _host(src._host), _event(src._event), _stage(-1), _eof(1) {
 	_raw = src._raw;
 	_request_line = src._request_line;
 	_headers = src._headers;
@@ -29,8 +29,7 @@ Request::~Request(void) { return ; }
 void	Request::append(std::string const & data) { _raw.append(data); }
 
 void	Request::pnc_request_line(std::istringstream & iss) {
-	std::string			line, method, uri, protocol;
-	std::istringstream	iss_line(line);
+	std::string	line, method, uri, protocol;
 
 	// Skip the empty lines
 	while (std::getline(iss, line, '\n') && line == "\r");
@@ -40,10 +39,9 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 		return ;
 
 	// Parse the request line
+	std::istringstream	iss_line(line);
 	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
 		throw ErrorRequest("Error in the request: method not well formatted", ERR_CODE_BAD_REQUEST);
-	if (uri.size() > MAX_URI_SIZE)
-		throw ErrorRequest("Error in the request: uri too long", ERR_CODE_URI_TOO_LONG);
 	_request_line["method"] = method;
 	_request_line["uri"] = uri;
 	_request_line["protocol"] = protocol;
@@ -62,8 +60,8 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 }
 
 void	Request::pnc_headers(std::istringstream & iss) {
-	std::ostringstream					oss;
-	std::string							line, buffer, key, value;
+	std::ostringstream	oss;
+	std::string			line, buffer, key, value;
 
 	while (std::getline(iss, line, '\n') && line != "\r") {
 		if (line[line.size() - 1] == '\r') {
@@ -94,67 +92,73 @@ void	Request::pnc_headers(std::istringstream & iss) {
 
 	// Check content for POST
 	if (_request_line["method"] == "POST") {
-		if (_headers.find("Content-Length") == _headers.end() || _headers.find("Content-Type") == _headers.end())
+		if (_headers.find("Content-Length") == _headers.end())
 			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_LENGTH_REQUIRED);
+		if (_headers.find("Content-Type") == _headers.end() || _headers["Content-Type"].empty())
+			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_UNSUPPORTED_MEDIA);
 		if (_headers["Content-Length"].empty() || _headers["Content-Length"].find_first_not_of("0123456789") != std::string::npos)
-			throw ErrorRequest("Error in the request: content-length mismatch", BUS_ADRERR);
-		if (_headers["Content-Type"].empty())
-			throw ErrorRequest("Error in the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
+			throw ErrorRequest("Error in the request: content-length mismatch", ERR_CODE_BAD_REQUEST);
 	}
-
-	return ;
 }
 
 void	Request::pnc_body(std::istringstream & iss) {
-	char								ch;
-	long								len, max_content_len;
-	std::string							line;
-
+	char			ch;
+	long			len, max_content_len;
+	std::string		line;
+	std::streampos	last_pos;
 
 	// Check the body size
-	if (_raw.size() > MAX_BODY_SIZE || _raw.size() > _host._maxBodySize
-		|| _raw.size() > size_t(std::atof(_headers["Content-Length"].c_str())))
+	if (iss.str().size() > MAX_BODY_SIZE || iss.str().size() > _host._maxBodySize
+		|| iss.str().size() > size_t(std::atof(_headers["Content-Length"].c_str())))
 		throw ErrorRequest("Error in the request: body too long", ERR_CODE_BAD_REQUEST);
 
-	// Skip the empty lines
-	while (std::getline(iss, line, '\n') && line == "\r");
-	
+	if (_eof > 0)
+		return ;
+
+	// Skip the empty lines and get back at the start of the body
+	last_pos = iss.tellg();
+	while (std::getline(iss, line, '\n') && line == "\r")
+		last_pos = iss.tellg();
+	iss.seekg(last_pos);
+
 	if (_headers.find("Content-Length") != _headers.end()) {
 		if (_request_line["method"] == "POST") {
 			max_content_len = long(std::atof(_headers["Content-Length"].c_str()));
 			len = 0;
 			while (iss.get(ch)) {
 				len++;
-				if (len > max_content_len || len > long(_host._maxBodySize))
-					
 				_body.append(1, ch);
 			}
 			if (len != max_content_len)
 				throw ErrorRequest("Error in the request: body not complete", ERR_CODE_BAD_REQUEST);	
 		}
 	}
+
+	_stage = BODY_DONE;
 }
 
-void	Request::parse(void) {
-	std::istringstream					iss(_raw);
-	long								header_len;
-	std::streampos						pos;
-	std::string							line;
+void	Request::parse() {
+	std::istringstream	iss(_raw);
+	long				header_len;
+	std::string			line;
 
 	// Parse the request line
 	if (_stage == -1) {
 
 		// Check if there is a whole line
-		if (_raw.find("\r\n") == std::string::npos)
+		if (_raw.find("\r\n") == std::string::npos && _raw.length() < MAX_URI_SIZE + 16)
 			return ;
+		else if (_raw.length() >= MAX_URI_SIZE + 16)
+			throw ErrorRequest("Error in the request: request line too long", ERR_CODE_URI_TOO_LONG);
 		
 		// Parse & Check the request line
 		pnc_request_line(iss);
 
 		// Mark the request line as done & store the end of the request line
 		_stage = RL_DONE;
-		pos = iss.tellg();
-		_raw = _raw.substr(static_cast<std::string::size_type>(pos));
+		if (iss.tellg() < 0)
+			return ;
+		_raw = _raw.substr(static_cast<std::string::size_type>(iss.tellg()));
 	}
 	
 	// Parse the headers
@@ -181,8 +185,9 @@ void	Request::parse(void) {
 
 		// Mark the headers as done & store the end of the request line
 		_stage = HEADERS_DONE;
-		pos = iss.tellg();
-		_raw = _raw.substr(static_cast<std::string::size_type>(pos));
+		if (iss.tellg() < 0)
+			return ;
+		_raw = _raw.substr(static_cast<std::string::size_type>(iss.tellg()));
 	}
 
 	// Parse the body
@@ -193,10 +198,7 @@ void	Request::parse(void) {
 		// Check if a body is expected
 		if (_request_line["method"] == "POST")
 			pnc_body(iss);
-		
-		_stage = BODY_DONE;
+		else
+			_stage = BODY_DONE;
 	}
-
-	// Display the request
-	print_request(_request_line, _headers, _body);
 }

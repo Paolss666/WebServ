@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 19:29:17 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 16:53:47 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ class Request {
 		std::string							_body;
 		bool								_b_content_length;
 		int									_stage;
+		int									_eof;
 		
 };
 

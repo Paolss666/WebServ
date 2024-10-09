@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 19:27:13 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 15:44:28 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,9 @@ ErrorRequest::~ErrorRequest() throw() { return ; }
 const char *ErrorRequest::what() const throw() {
 	std::ostringstream oss;
 	oss << _code;
-	return (_errorMsg + " | Response code: " + oss.str()).c_str();
+	_errorMsg += " | Response code: ";
+	_errorMsg += oss.str();
+	return _errorMsg.c_str();
 }
 
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
@@ -98,7 +100,7 @@ void	send_error_page(Host & request, int fd, int code) {
 	oss << "HTTP/1.1 " << code << " " << status << "\r\n";
 	if (request._name.empty()) {
 		str_port << request._port;
-		oss << "Server: " << request._raw_ip << ":" << str_port << "\r\n";	
+		oss << "Server: " << request._raw_ip << ":" << str_port.str() << "\r\n";	
 	} else
 		oss << "Server: " << request._name << "\r\n";
 	oss << "Content-Type: text/html\r\n";
