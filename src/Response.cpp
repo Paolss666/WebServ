@@ -23,19 +23,31 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_root = host._rootPath;
 	_pagesError = host._PageError;
 	_returnPages = host._CodeReturn;
+	_err = 0; // 4 error 404 etc etc 
 
 	if (_root[0] == '/')
 		_root = _root.substr(1,_root.size() - 1);
 	if (_root[_root.size() - 1] == '/')
 		_root = _root.substr(0,_root.size() - 1);
-	
-	std::string 	uri = _request_line["uri"];
 
+	std::string 	uri = _request_line["uri"];
+	
 	std::cout  << "uri -> " << uri << std::endl; 
+	std::string test_path = _root + uri;
+	std::cout  << "test_path -> " << test_path << std::endl;
+	// < ----- i need this for check if 404 and if is a repertory or a file // ----- 
+
+	if (test_path.find(".") != std::string::npos)
+		_err = IsARepertory(test_path);
+		// return 1 file // return 3 repertory // 
+	// ? -----
+	// ? -----
+	// ? -----  
 	while (true)
 	{
 		bool found = false;
         for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
+			std::cout << "it->first" << it->first << std::endl;
             if (it->first == uri)
 			{                
 				std::cout << "Found matching URI: " << it->first << std::endl;
@@ -47,6 +59,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
             break;
         }
         std::size_t pos = uri.find_last_of('/');
+		uri = uri.substr(0, uri.find_last_of('/'));
+		std::cout << " --------->  uri    ->" << uri << std::endl;
         if (pos == std::string::npos || pos == 0) {
             uri = "/";
 			break;
@@ -64,7 +78,11 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	if (_Location[uri].getFlagErrorPages())
 		_pagesError = _Location[uri].getPagesError();
 	
+	
 	std::string		file_path = _root + uri;
+	
+	std::cout << file_path <<  "< ----- filepath befor" << std::endl;
+	// IsARepertory(file_path);
 	std::cout << file_path << " << ===== file_path " << std::endl;
 	if (file_path == "www/home" && !file_path.empty() && file_path[file_path.size() - 1] != '/') {
 	    file_path += '/';
@@ -73,7 +91,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	if (stat(file_path.c_str(), &buf) < 0 || file_path == "www/")
 		_path_file = "www/index.html";
 	else
-		_path_file = file_path + _indexPages[0];
+		_path_file = file_path + "/" + _indexPages[0];
+	
 }
 
 Response::~Response(void) { return ; }

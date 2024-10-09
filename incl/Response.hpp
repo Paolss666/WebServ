@@ -29,6 +29,7 @@ class Response: public Request {
 		std::string						_root;
 		std::map<int, std::string>		_returnPages;
 		std::map<int, std::string>		_pagesError;
+		int								_err;
 };
 
 #endif

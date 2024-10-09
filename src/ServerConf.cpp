@@ -240,7 +240,7 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
 {
 	const size_t KB_IN_BYTES = 1024;
 	const size_t MB_IN_BYTES = 1024 * 1024;
-	const size_t MAX_SIZE_LIMIT = 3 * MB_IN_BYTES; // 3MB
+	const size_t MAX_SIZE_LIMIT = 10 * MB_IN_BYTES; // 3MB
 	std::string		maxClntBodySize;
 	
 	if (!(iss >> maxClntBodySize) || maxClntBodySize.empty())

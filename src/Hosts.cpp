@@ -148,7 +148,7 @@ void	Host::BuildGet(int fd, Response &reponse) {
 	
 	struct stat buffer;
 	std::cout << reponse._path_file << "<----------\n"; 
-	if (stat(reponse._path_file.c_str(), &buffer) != 0)
+	if (stat(reponse._path_file.c_str(), &buffer) != 0 || reponse._err == 404)
 	{
 		std::cout << "BAD FILE PATH\n";
 		std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
