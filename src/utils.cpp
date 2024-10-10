@@ -66,6 +66,7 @@ void	print_with_hex(const std::string & str) {
 	std::cout << std::dec; // Reset to decimal format
 }
 
+
 void	print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body) {
 	std::cout << CYAN << "Method: " << WHITE << _request_line["method"] << std::endl;
 	std::cout << CYAN << "URI: " << WHITE << _request_line["uri"] << std::endl;

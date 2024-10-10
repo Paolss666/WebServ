@@ -29,7 +29,7 @@ class Response: public Request {
 		std::string						_root;
 		std::map<int, std::string>		_returnPages;
 		std::map<int, std::string>		_pagesError;
-		int								_err;
+		int								_err; // Error code 4 the pages -- need to be setup
 		bool							_autoIndex; // if is true->on else flase->off;
 };
 

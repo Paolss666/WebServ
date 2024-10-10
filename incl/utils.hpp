@@ -25,6 +25,7 @@ void	ft_close(int fd);
 void	print_with_hex(const std::string & str);
 void	print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
 int 	IsARepertory(std::string filename);
+// void	buildPageError(std::string &file_path, Response const &reponse, int fd);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black

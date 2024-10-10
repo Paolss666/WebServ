@@ -151,7 +151,7 @@ void	Host::BuildGet(int fd, Response &reponse) {
 	if (stat(reponse._path_file.c_str(), &buffer) != 0 || reponse._err == 404)
 	{
 		// std::cout << "BAD FILE PATH\n";
-		std::ifstream file(_PageError[404].c_str());
+		std::ifstream file(_PageError[reponse._err].c_str());
 		std::string file_con;
 		if (file.good())
 		{

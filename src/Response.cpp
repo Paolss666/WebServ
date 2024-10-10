@@ -36,13 +36,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	std::string test_path = _root + uri;
 	std::cout  << "test_path -> " << test_path << std::endl;
 	
-	// < ----- i need this for check if 404 and if is a repertory or a file // ----- 
 	if (test_path.find(".") != std::string::npos)
 		_err = IsARepertory(test_path);
-		// return 1 file // return 3 repertory // 
-	// ? -----
-	// ? -----
-	// ? -----  
 	while (true)
 	{
 		bool found = false;
@@ -97,13 +92,9 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 		for (size_t i = 0; i < _indexPages.size() ; i++)
 		{
 			if (file_path[file_path.size() - 1] != '/')
-			{
 				_path_file = file_path + "/" + _indexPages[i];
-			}
 			else
-			{
 				_path_file = file_path + _indexPages[i];
-			}
 		}
 	}
 	
