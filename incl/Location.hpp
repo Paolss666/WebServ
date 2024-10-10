@@ -60,6 +60,7 @@ class Location
         void            setUri(std::string uri);
         std::string     getUri(void);
         void            ParseLocation(std::istream &file);
+        int             getFlagAutoInx(void);
         int             getFlagIndex(void);
         int             getReturnFlag(void);
         int             getFlagErrorPages(void);
@@ -67,7 +68,8 @@ class Location
         std::map<int, std::string> getReturnPages();
         std::map<int, std::string> getPagesError();
         std::vector<std::string> getIndexPages();
-        std::string               getRoot();
+        std::string             getRoot();
+        bool                    getAutoIndex();
 };
 
 #endif

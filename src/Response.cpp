@@ -35,8 +35,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	std::cout  << "uri -> " << uri << std::endl; 
 	std::string test_path = _root + uri;
 	std::cout  << "test_path -> " << test_path << std::endl;
+	
 	// < ----- i need this for check if 404 and if is a repertory or a file // ----- 
-
 	if (test_path.find(".") != std::string::npos)
 		_err = IsARepertory(test_path);
 		// return 1 file // return 3 repertory // 
@@ -71,6 +71,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	std::cout  << "uri -> " << uri << std::endl;
 	if (_Location[uri].getFlagIndex())
 		_indexPages = _Location[uri].getIndexPages();
+	if (_Location[uri].getFlagAutoInx())
+		_autoIndex = _Location[uri].getAutoIndex();
 	if (_Location[uri].getRootFlag())
 		_root = _Location[uri].getRoot();
 	if (_Location[uri].getReturnFlag())
@@ -91,7 +93,19 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	if (stat(file_path.c_str(), &buf) < 0 || file_path == "www/")
 		_path_file = "www/index.html";
 	else
-		_path_file = file_path + "/" + _indexPages[0];
+	{
+		for (size_t i = 0; i < _indexPages.size() ; i++)
+		{
+			if (file_path[file_path.size() - 1] != '/')
+			{
+				_path_file = file_path + "/" + _indexPages[i];
+			}
+			else
+			{
+				_path_file = file_path + _indexPages[i];
+			}
+		}
+	}
 	
 }
 

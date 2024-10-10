@@ -30,6 +30,7 @@ class Response: public Request {
 		std::map<int, std::string>		_returnPages;
 		std::map<int, std::string>		_pagesError;
 		int								_err;
+		bool							_autoIndex; // if is true->on else flase->off;
 };
 
 #endif

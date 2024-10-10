@@ -150,13 +150,39 @@ void	Host::BuildGet(int fd, Response &reponse) {
 	std::cout << reponse._path_file << "<----------\n"; 
 	if (stat(reponse._path_file.c_str(), &buffer) != 0 || reponse._err == 404)
 	{
-		std::cout << "BAD FILE PATH\n";
-		std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
-        send(fd, error_response.c_str(), error_response.length(), 0);
-        close(fd);
+		// std::cout << "BAD FILE PATH\n";
+		std::ifstream file(_PageError[404].c_str());
+		std::string file_con;
+		if (file.good())
+		{
+			std::ostringstream ss;
+			ss << file.rdbuf();
+			file_con = ss.str();
+			std::ostringstream os;
+			os << file_con.length();
+    		std::string response_header = "HTTP/1.1 404 OK\r\n";
+			// std::string reponde_header = ""
+			response_header += "Content-Length: " + os.str() + "\r\n";
+    		response_header += "Content-Type: text/html\r\n"; // forma html
+    		response_header += "\r\n";  // Fine dell'header
+			int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
+    		if (header_bytes_sent == -1) {
+    		    std::cerr << "Error in send for header" << std::endl;
+    		    close(fd);
+    		    return;
+			}
+    		int body_bytes_sent = send(fd, file_con.c_str(), file_con.length(), 0);
+    		if (body_bytes_sent == -1) {
+    		    std::cerr << "Error in send for the content of the fd" << std::endl;
+    			close(fd);
+				return;
+			}
+		// std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
+        // send(fd, error_response.c_str(), error_response.length(), 0);
+        // close(fd);
         return;
+		}
 	}
-
 	std::ifstream file(reponse._path_file.c_str());
     std::string file_content;
 	std::cout << "path --> " << reponse._path_file << std::endl;
@@ -168,7 +194,7 @@ void	Host::BuildGet(int fd, Response &reponse) {
     } else {
         std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
         send(fd, error_response.c_str(), error_response.length(), 0);
-        close(fd);  // Chiudi la connessione
+        close(fd);
         return;
     }
 
@@ -176,7 +202,7 @@ void	Host::BuildGet(int fd, Response &reponse) {
     oss << file_content.length();
 
     std::string response_header = "HTTP/1.1 200 OK\r\n";
-    response_header += "Content-Length: " + oss.str() + "\r\n";  // Aggiungi la lunghezza del contenuto
+    response_header += "Content-Length: " + oss.str() + "\r\n";
     response_header += "Content-Type: text/html\r\n"; // forma html
     response_header += "\r\n";  // Fine dell'header
 

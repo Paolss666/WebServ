@@ -303,3 +303,12 @@ std::map<int, std::string> Location::getPagesError()
 }
 
 
+int				Location::getFlagAutoInx()
+{
+	return (this->_AutoFlag);
+}
+
+bool			Location::getAutoIndex()
+{
+	return(this->_AutoIndex);
+}
