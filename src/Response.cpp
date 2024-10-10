@@ -35,8 +35,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	std::cout  << "uri -> " << uri << std::endl; 
 	std::string test_path = _root + uri;
 	std::cout  << "test_path -> " << test_path << std::endl;
-	
-	if (test_path.find(".") != std::string::npos)
+	if (test_path.find(".") != std::string::npos && _err == 0)
 		_err = IsARepertory(test_path);
 	while (true)
 	{

@@ -147,11 +147,28 @@ void	Host::parse_request(int fd) {
 void	Host::BuildGet(int fd, Response &reponse) {
 	
 	struct stat buffer;
-	std::cout << reponse._path_file << "<----------\n"; 
-	if (stat(reponse._path_file.c_str(), &buffer) != 0 || reponse._err == 404)
+	std::cout << reponse._path_file << "<----------\n";
+	std::size_t pos  = reponse._path_file.find_last_of('/') + 1;
+	std::string tmp = reponse._path_file.substr(pos, reponse._path_file.size() -1);
+	std::cout  << "tmp -> " << tmp << std::endl;
+	// printVector(reponse._indexPages);
+	size_t check = 0;
+	// std::cout << "reponseIndexpgesSIZE-> " << reponse._indexPages.size() << std::endl;
+	if (reponse._indexPages.size() == 0)
+		check = 404;
+	for (size_t i = 0; i < reponse._indexPages.size(); i++)
+	{
+		if (tmp != reponse._indexPages[i])
+		{
+			check = 404;
+			break;
+		}
+	}
+	if (stat(reponse._path_file.c_str(), &buffer) != 0 || (reponse._err == 404) 
+		|| (reponse._err == 1 && check == 404))
 	{
 		// std::cout << "BAD FILE PATH\n";
-		std::ifstream file(_PageError[reponse._err].c_str());
+		std::ifstream file(_PageError[404].c_str());
 		std::string file_con;
 		if (file.good())
 		{
@@ -161,7 +178,6 @@ void	Host::BuildGet(int fd, Response &reponse) {
 			std::ostringstream os;
 			os << file_con.length();
     		std::string response_header = "HTTP/1.1 404 OK\r\n";
-			// std::string reponde_header = ""
 			response_header += "Content-Length: " + os.str() + "\r\n";
     		response_header += "Content-Type: text/html\r\n"; // forma html
     		response_header += "\r\n";  // Fine dell'header
@@ -177,9 +193,6 @@ void	Host::BuildGet(int fd, Response &reponse) {
     			close(fd);
 				return;
 			}
-		// std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
-        // send(fd, error_response.c_str(), error_response.length(), 0);
-        // close(fd);
         return;
 		}
 	}

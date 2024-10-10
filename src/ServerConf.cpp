@@ -225,7 +225,7 @@ void	ServerConf::p_AutoIndex(std::istringstream & iss)
 		if (autoIndex == "on")
 			_Autoindex = true;
 		else
-			_Autoindex = false;
+			_Autoindex = false; // forbidden page
 	}
 	std::cout << "autoindex = " << _Autoindex << std::endl;
 }
@@ -269,7 +269,7 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
                 sizeValue *= MB_IN_BYTES;
                 break;
             case '\0':
-                // Default is bytes if no unit provided
+                sizeValue *= MB_IN_BYTES; // Default is bytes if no unit provided 
                 break;
             default:
                 throw ErrorConfFile("Error in the conf file: max_client_body_size: wrong unit, must be k, K, m, M or empty");
