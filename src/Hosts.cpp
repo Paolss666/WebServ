@@ -15,6 +15,7 @@
 Host::Host() { return ;}
 
 Host::Host(ServerConf & src): ServerConf(src) {
+
 	struct epoll_event	event;
 	std::ostringstream	oss;
 
@@ -23,6 +24,7 @@ Host::Host(ServerConf & src): ServerConf(src) {
 	_b_completed = false;
 	_b_partial = false;
 
+	// printVector(src._IndexFile);
 	// Create listening socket
 	if ((_fdSetSock = socket(_address.sin_family, SOCK_STREAM, 0)) <= 0) {
 		oss << "Error in the socket creation for server " << _nbServer;
@@ -138,9 +140,98 @@ void	Host::parse_request(int fd) {
 	}
 }
 
+// struct stat buffer;
+// if (stat(location.getUri().c_str(),&buffer) < 0)
+// 	// throw ErrorConfFile("Error in the conf file : Uri : wrong path");/
 
-void	Host::send_response(int fd) {
-	send(_events[fd].data.fd, "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!\n", 53, 0);
+void	Host::BuildGet(int fd, Response &reponse) {
+	
+	struct stat buffer;
+	std::cout << reponse._path_file << "<----------\n";
+	std::size_t pos  = reponse._path_file.find_last_of('/') + 1;
+	std::string tmp = reponse._path_file.substr(pos, reponse._path_file.size() -1);
+	std::cout  << "tmp -> " << tmp << std::endl;
+	// printVector(reponse._indexPages);
+	size_t check = 0;
+	// std::cout << "reponseIndexpgesSIZE-> " << reponse._indexPages.size() << std::endl;
+	if (reponse._indexPages.size() == 0)
+		check = 404;
+	for (size_t i = 0; i < reponse._indexPages.size(); i++)
+	{
+		if (tmp != reponse._indexPages[i])
+		{
+			check = 404;
+			break;
+		}
+	}
+	if (stat(reponse._path_file.c_str(), &buffer) != 0 || (reponse._err == 404) 
+		|| (reponse._err == 1 && check == 404))
+	{
+		// std::cout << "BAD FILE PATH\n";
+		std::ifstream file(_PageError[404].c_str());
+		std::string file_con;
+		if (file.good())
+		{
+			std::ostringstream ss;
+			ss << file.rdbuf();
+			file_con = ss.str();
+			std::ostringstream os;
+			os << file_con.length();
+    		std::string response_header = "HTTP/1.1 404 OK\r\n";
+			response_header += "Content-Length: " + os.str() + "\r\n";
+    		response_header += "Content-Type: text/html\r\n"; // forma html
+    		response_header += "\r\n";  // Fine dell'header
+			int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
+    		if (header_bytes_sent == -1) {
+    		    std::cerr << "Error in send for header" << std::endl;
+    		    close(fd);
+    		    return;
+			}
+    		int body_bytes_sent = send(fd, file_con.c_str(), file_con.length(), 0);
+    		if (body_bytes_sent == -1) {
+    		    std::cerr << "Error in send for the content of the fd" << std::endl;
+    			close(fd);
+				return;
+			}
+        return;
+		}
+	}
+	std::ifstream file(reponse._path_file.c_str());
+    std::string file_content;
+	std::cout << "path --> " << reponse._path_file << std::endl;
+
+    if (file.good()) {
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        file_content = ss.str();
+    } else {
+        std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
+        send(fd, error_response.c_str(), error_response.length(), 0);
+        close(fd);
+        return;
+    }
+
+    std::ostringstream oss;
+    oss << file_content.length();
+
+    std::string response_header = "HTTP/1.1 200 OK\r\n";
+    response_header += "Content-Length: " + oss.str() + "\r\n";
+    response_header += "Content-Type: text/html\r\n"; // forma html
+    response_header += "\r\n";  // Fine dell'header
+
+    int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
+    if (header_bytes_sent == -1) {
+        std::cerr << "Error in send for header" << std::endl;
+        close(fd);
+        return;
+    }
+
+    int body_bytes_sent = send(fd, file_content.c_str(), file_content.length(), 0);
+    if (body_bytes_sent == -1) {
+        std::cerr << "Error in send for the content of the fd" << std::endl;
+    }
+
+    close(fd);
 }
 
 void	Host::act_on_request(int fd) {
@@ -148,13 +239,15 @@ void	Host::act_on_request(int fd) {
 	std::cout << CYAN "Acting on request" RESET << std::endl;
 
 	// Send data to client
-	Response response(_requests[_events[fd].data.fd]);
-	send_response(fd);
-	
+	// printVector(_IndexFile);
+	Response response(_requests[_events[fd].data.fd], *this);
+	if (response._request_line["method"] == "GET")
+		BuildGet(fd, response);
 	// Close the connection if needed
 	epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
 	ft_close(_events[fd].data.fd);
 	_requests.erase(_events[fd].data.fd);
+	return ;
 }
 
 void	Host::run_server(void) {

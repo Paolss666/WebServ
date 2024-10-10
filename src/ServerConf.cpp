@@ -225,7 +225,7 @@ void	ServerConf::p_AutoIndex(std::istringstream & iss)
 		if (autoIndex == "on")
 			_Autoindex = true;
 		else
-			_Autoindex = false;
+			_Autoindex = false; // forbidden page
 	}
 	std::cout << "autoindex = " << _Autoindex << std::endl;
 }
@@ -240,7 +240,7 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
 {
 	const size_t KB_IN_BYTES = 1024;
 	const size_t MB_IN_BYTES = 1024 * 1024;
-	const size_t MAX_SIZE_LIMIT = 3 * MB_IN_BYTES; // 3MB
+	const size_t MAX_SIZE_LIMIT = 10 * MB_IN_BYTES; // 3MB
 	std::string		maxClntBodySize;
 	
 	if (!(iss >> maxClntBodySize) || maxClntBodySize.empty())
@@ -269,7 +269,7 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
                 sizeValue *= MB_IN_BYTES;
                 break;
             case '\0':
-                // Default is bytes if no unit provided
+                sizeValue *= MB_IN_BYTES; // Default is bytes if no unit provided 
                 break;
             default:
                 throw ErrorConfFile("Error in the conf file: max_client_body_size: wrong unit, must be k, K, m, M or empty");
@@ -449,7 +449,7 @@ void    ServerConf::initWServer(std::istream &file)
 			{
 				prefix = kw;
 				location.setUri(prefix);
-				ft_perror(("prefix " + location.getUri()).c_str());
+				// ft_perror(("prefix " + location.getUri()).c_str());
 				if ((iss >> kw) && kw != "{")
 					throw ErrorConfFile("Error in the conf file : location : wrong content3");
 			}

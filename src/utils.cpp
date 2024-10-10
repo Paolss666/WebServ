@@ -66,6 +66,7 @@ void	print_with_hex(const std::string & str) {
 	std::cout << std::dec; // Reset to decimal format
 }
 
+
 void	print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body) {
 	std::cout << CYAN << "Method: " << WHITE << _request_line["method"] << std::endl;
 	std::cout << CYAN << "URI: " << WHITE << _request_line["uri"] << std::endl;
@@ -74,4 +75,25 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 	for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); ++it)
 		std::cout << BLUE << it->first << ": " << WHITE << it->second << std::endl;
 	std::cout << CYAN << "Body: " << WHITE << body << std::endl;
+}
+
+int			IsARepertory(std::string filename)
+{
+	struct stat buffer;
+	if (stat(filename.c_str(), &buffer) < 0)
+	{
+		std::cout << "404\n"; // 404 request not found;
+		return (404);
+	}
+	if (S_ISREG(buffer.st_mode))
+	{
+		std::cout << "is a fichier return 1\n";
+		return (1);
+	}
+	if (S_ISDIR(buffer.st_mode))
+	{
+		std::cout << "is a dossier return 3\n";
+		return (3);
+	}
+	return(0);
 }

@@ -36,6 +36,7 @@ class Request {
 		std::string							_body;
 		bool								_b_keepalive;
 		bool								_b_content_length;
+		
 };
 
 #endif
