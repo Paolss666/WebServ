@@ -31,6 +31,9 @@ class Response: public Request {
 		std::map<int, std::string>		_pagesError;
 		int								_err; // Error code 4 the pages -- need to be setup
 		bool							_autoIndex; // if is true->on else flase->off;
+		int								_autoInxPrint;
+		std::string						_tmpForInx;
+		std::string						_finalUri;
 };
 
 #endif

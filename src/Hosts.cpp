@@ -140,20 +140,157 @@ void	Host::parse_request(int fd) {
 	}
 }
 
-// struct stat buffer;
-// if (stat(location.getUri().c_str(),&buffer) < 0)
-// 	// throw ErrorConfFile("Error in the conf file : Uri : wrong path");/
 
 void	Host::BuildGet(int fd, Response &reponse) {
 	
 	struct stat buffer;
+	
 	std::cout << reponse._path_file << "<----------\n";
+	
 	std::size_t pos  = reponse._path_file.find_last_of('/') + 1;
 	std::string tmp = reponse._path_file.substr(pos, reponse._path_file.size() -1);
 	std::cout  << "tmp -> " << tmp << std::endl;
-	// printVector(reponse._indexPages);
 	size_t check = 0;
-	// std::cout << "reponseIndexpgesSIZE-> " << reponse._indexPages.size() << std::endl;
+	std::cout << "AUTOINDEXPRINT --> " << reponse._autoInxPrint << std::endl;
+	if (reponse._autoInxPrint)
+	{
+		std::vector<std::string> filesList;
+		DIR *dir = opendir(reponse._finalUri.c_str());
+		if (!dir)
+			std::cerr << "ERROR\n";
+			// std::vector<std::string> Response::doDirListing(DIR *dir)
+// {
+
+		struct dirent *fileRead;
+		while ((fileRead = readdir(dir)) != NULL)
+		{
+			if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && reponse._finalUri != "/"))
+				filesList.push_back(fileRead->d_name);
+		}
+	// return (filesList);
+// }
+
+		reponse._headers["content-type"] = "text/html";
+		reponse._body = "<!DOCTYPE html>\n"
+                "<html lang=\"en\">\n"
+                "<head>\n"
+                "<meta charset=\"UTF-8\">\n"
+                "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n"
+                "<link href=\"style_autoindex.css\" rel=\"stylesheet\">\n"
+                "<link href='../home/css/style.css' rel='stylesheet' type='text/css'>\n"
+                "<link href=\"../../style_autoindex.css\" rel=\"stylesheet\" />\n"
+                "<title>Auto index</title>\n"
+                "</head>\n"
+                "<body>\n"
+                "<style>\n"
+                "    body {\n"
+                "        font-family: 'Arial', sans-serif;\n"
+                "        display: flex;\n"
+                "        flex-direction: column;\n"
+                "        justify-content: center;\n"
+                "        align-items: center;\n"
+                "        height: 100vh;\n"
+                "        margin: 0;\n"
+                "        background-color: #f4f7f6;\n"
+                "    }\n"
+                "    h1 {\n"
+                "        font-size: 48px;\n"
+                "        color: #333;\n"
+                "        margin-bottom: 20px;\n"
+                "    }\n"
+				"    h2 {\n"
+                "        font-size: 48px;\n"
+                "        color: #330;\n"
+                "        margin-bottom: 10px;\n"
+                "    }\n"
+                "    p {\n"
+                "        font-size: 18px;\n"
+                "        color: #777;\n"
+                "        margin-bottom: 40px;\n"
+                "    }\n"
+                "    .button-container {\n"
+                "        display: flex;\n"
+                "        gap: 20px;\n"
+                "    }\n"
+                "    button, .link-button {\n"
+                "        padding: 15px 30px;\n"
+                "        font-size: 18px;\n"
+                "        cursor: pointer;\n"
+                "        border: none;\n"
+                "        border-radius: 50px;\n"
+                "        transition: background-color 0.3s, box-shadow 0.3s;\n"
+                "    }\n"
+                "    button {\n"
+                "        background-color: #3498db;\n"
+                "        color: white;\n"
+                "    }\n"
+                "    button:hover {\n"
+                "        background-color: #2980b9;\n"
+                "        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
+                "    }\n"
+                "    .link-button {\n"
+                "        background-color: #2ecc71;\n"
+                "        color: white;\n"
+                "        text-decoration: none;\n"
+                "        display: inline-block;\n"
+                "        line-height: 1.5;\n"
+                "    }\n"
+                "    .link-button:hover {\n"
+                "        background-color: #03eb63;\n"
+                "        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
+                "    }\n"
+                "</style>\n"
+                "<h1 class=\"title1\"> Auto index </h1>\n"
+                "<h2 class=\"autoindex\">\n" + reponse._finalUri + "\n"
+                "</h2>\n"
+                "</body>\n"
+                "</html>";
+
+		for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++)
+		{
+			if (*it == ".")
+				continue ;
+			std::string hyperlink("");
+			std::string filename("");
+			if (*it == "..")
+				filename = "<< COME BACK TO HOME ";
+			else
+				filename = (*it);
+			// hyperlink = _finalURI + (*it);
+			hyperlink = (*it);
+			// if (RESPONSE)
+			// 	std::cerr << "hyperlink = " << hyperlink << std::endl;
+			reponse._body += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
+			// reponse._body += 
+		}
+
+		reponse._body += "</body>\n";
+		reponse._body += "</html>";
+
+		closedir(dir);
+		 
+    	std::ostringstream oss;  // Crea un flusso di output
+    	oss << reponse._body.size();           // Scrivi il numero nel flusso
+		std::string response_header = "HTTP/1.1 200 OK\r\n";
+		response_header += "Content-Length: " + oss.str() + "\r\n";
+    	response_header += "Content-Type: text/html\r\n"; // forma html
+    	// response_header += "Content-Type: text/css\r\n"; // forma html
+    	response_header += "\r\n";  // Fine dell'header
+		int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
+    	if (header_bytes_sent == -1) {
+    	    std::cerr << "Error in send for header" << std::endl;
+    	    close(fd);
+    	    return;
+    	}
+
+    	int body_bytes_sent = send(fd, reponse._body.c_str(), reponse._body.length(), 0);
+    	if (body_bytes_sent == -1) {
+    	    std::cerr << "Error in send for the content of the fd" << std::endl;
+    	}
+
+    	close(fd);
+		return ;
+    }
 	if (reponse._indexPages.size() == 0)
 		check = 404;
 	for (size_t i = 0; i < reponse._indexPages.size(); i++)
@@ -167,7 +304,7 @@ void	Host::BuildGet(int fd, Response &reponse) {
 	if (stat(reponse._path_file.c_str(), &buffer) != 0 || (reponse._err == 404) 
 		|| (reponse._err == 1 && check == 404))
 	{
-		// std::cout << "BAD FILE PATH\n";
+		// std::cout << "BAD FILE PATH\n;
 		std::ifstream file(_PageError[404].c_str());
 		std::string file_con;
 		if (file.good())
@@ -196,10 +333,12 @@ void	Host::BuildGet(int fd, Response &reponse) {
         return;
 		}
 	}
+	// if (reponse._autoInxPrint)
+	// 	reponse._path_file = reponse._tmpForInx;
+	// std::cout << "ECCOLOOOOOOOOOOOOOOOOOo " << reponse._path_file << std::endl;
 	std::ifstream file(reponse._path_file.c_str());
     std::string file_content;
 	std::cout << "path --> " << reponse._path_file << std::endl;
-
     if (file.good()) {
         std::ostringstream ss;
         ss << file.rdbuf();
