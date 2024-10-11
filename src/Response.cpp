@@ -25,6 +25,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_returnPages = host._CodeReturn;
 	_err = 0; // 4 error 404 etc etc 
 	_autoInxPrint = 0;
+	_autoIndex = host._Autoindex;
 
 	if (_root[0] == '/')
 		_root = _root.substr(1,_root.size() - 1);
@@ -77,6 +78,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 		_pagesError = _Location[uri].getPagesError();
 	
 	// _finalUri
+	std::cout << host._Autoindex << "autoindex HOST \n";
 	std::string		file_path = _root + uri;
 	_finalUri = file_path;
 	std::cout << "TMP URI --> " << tmpUri << std::endl;
