@@ -3,16 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/09 17:38:01 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 17:07:18 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
-
-Request::Request(void): _host(*(Host*)NULL), _event(*(epoll_event*)NULL), _raw(""), _request_line(), _headers(), _body(""), _b_content_length(false), _stage(-1), _eof(1) { return ; }
 
 Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1), _eof(1) { return ; }
 
@@ -21,7 +19,6 @@ Request::Request(Request const & src): _host(src._host), _event(src._event), _st
 	_request_line = src._request_line;
 	_headers = src._headers;
 	_body = src._body;
-	_b_content_length = src._b_content_length;
 }
 
 Request::~Request(void) { return ; }

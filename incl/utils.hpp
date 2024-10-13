@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:43:09 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 17:13:02 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,13 +43,14 @@ void			error_send(int fd, struct epoll_event & event, std::string message);
 # define ITALIC				"\033[3m"	// Italic
 # define UNDERLINE			"\033[4m"	// Underline
 
+# define PORT				8080
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
-# define PORT				8080
 # define BUFFER_SIZE		8
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB
+# define KEEP_ALIVE			30
 # define RL_DONE			0
 # define HEADERS_DONE		1
 # define BODY_DONE			2

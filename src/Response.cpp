@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:49:34 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 17:24:27 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_request_line = src._request_line;
 	_headers = src._headers;
 	_body = src._body;
-	_b_content_length = src._b_content_length;
 	_indexPages = host._IndexFile;
 	_Location =  host._Location;
 	_root = host._rootPath;
@@ -308,10 +307,7 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
         return;
     }
 
-	std::cout << "fd -> " << fd << std::endl;
-		std::cout << "epoll event fd -> " << event.data.fd << std::endl;
-	std::cout << "epoll event events -> " << event.events << std::endl;
-    error = send(fd, file_content.c_str(), file_content.length(), 0);
+    error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
     if (error == -1)
 		error_send(fd, event, "Error in send for the content of the fd");
 }

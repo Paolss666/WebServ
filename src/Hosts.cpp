@@ -73,7 +73,7 @@ Host::~Host() { return ; }
 
 void	Host::new_connection(void) {
 	std::ostringstream oss;
-	std::cout << YELLOW "New connection detected" RESET << std::endl;
+	std::cout << YELLOW BOLD "New connection detected" RESET << std::endl;
 	
 	// Accept the connection
 	_fdAcceptSock = accept(_fdSetSock, (struct sockaddr *)&_address, (socklen_t*)&_address_len);
@@ -97,6 +97,10 @@ void	Host::new_connection(void) {
 	new_event.data.fd = _fdAcceptSock;
 	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, _fdAcceptSock, &new_event) < 0)
 		throw ErrorFdManipulation("Error in the epoll_ctl: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
+
+	// Manage number of kept connections
+	_keep_alive_time = time(NULL);
+	_nb_keepalive++;
 }
 
 void	Host::parse_request(int fd) {
@@ -122,7 +126,7 @@ void	Host::parse_request(int fd) {
 	// Append the data to the request
 	raw = buffer;
 	if (_requests.find(_events[fd].data.fd) != _requests.end())
-		_requests[_events[fd].data.fd].append(raw);
+		_requests.find(_events[fd].data.fd)->second.append(raw);
 	else {
 		Request tmp(*this, _events[fd], raw);
 		_requests.insert(std::pair<int, Request>(_events[fd].data.fd, tmp));
@@ -130,8 +134,8 @@ void	Host::parse_request(int fd) {
 
 	// Parse the partial read of the request
 	try {
-		_requests[_events[fd].data.fd]._eof = recv(_events[fd].data.fd, buffer, 2, MSG_PEEK);
-		_requests[_events[fd].data.fd].parse();
+		_requests.find(_events[fd].data.fd)->second._eof = recv(_events[fd].data.fd, buffer, 2, MSG_PEEK);
+		_requests.find(_events[fd].data.fd)->second.parse();
 	} catch (const ErrorRequest & e) {
 		ft_perror(e.what());
 		send_error_page(*this, fd, e._code);
@@ -143,7 +147,7 @@ void	Host::act_on_request(int fd) {
 	std::cout << YELLOW "Acting on request" RESET << std::endl;
 
 	// Send data to client
-	Response response(_requests[_events[fd].data.fd], *this);
+	Response response(_requests.find(_events[fd].data.fd)->second, *this);
 	if (response._request_line["method"] == "GET")
 		response.BuildGet(_events[fd].data.fd, _events[fd]);
 	else {
@@ -152,12 +156,16 @@ void	Host::act_on_request(int fd) {
 	}
 	
 	// Close the connection if needed
-	if (!_requests[_events[fd].data.fd]._headers["Connection"].compare("close")) {
+	if (!_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
+		|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("keep-alive"))) {
 		std::cout << "Closing connection" << std::endl;
 		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
 		ft_close(_events[fd].data.fd);
 		_requests.erase(_events[fd].data.fd);
+		_nb_keepalive--;
 	} else {
+		if (_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("keep-alive"))
+			_keep_alive_time = time(NULL);
 		std::cout << "Connection kept alive" << std::endl;
 		_events[fd].events = EPOLLIN;
 		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[fd].data.fd, &_events[fd]);
@@ -191,9 +199,9 @@ void	Host::run_server(void) {
 			else {
 				parse_request(i);
 				// Change the event to EPOLLOUT
-				if (_requests[_events[i].data.fd]._stage == BODY_DONE) {
+				if (_requests.find(_events[i].data.fd)->second._stage == BODY_DONE) {
 					std::cout << YELLOW "New request cought" RESET << std::endl;
-					print_request(_requests[_events[i].data.fd]._request_line, _requests[_events[i].data.fd]._headers, _requests[_events[i].data.fd]._body);
+					print_request(_requests.find(_events[i].data.fd)->second._request_line, _requests.find(_events[i].data.fd)->second._headers, _requests.find(_events[i].data.fd)->second._body);
 					std::cout << std::endl;
 					_events[i].events = EPOLLOUT;
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
@@ -208,6 +216,7 @@ void	Host::run_server(void) {
 }
 
 void	Host::close_everything(void) {
+	ft_close(_fdAcceptSock);
 	ft_close(_fdSetSock);
 	ft_close(_fdEpoll);
 	for (size_t i = 0; i < _events.size(); i++)

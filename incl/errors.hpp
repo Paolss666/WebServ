@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/09 15:39:19 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 16:29:36 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class ErrorConfFile: public std::exception {
 
 		virtual const char* what() const throw();
 
-		std::string	_errorMsg;
+		mutable std::string	_errorMsg;
 };
 
 class ErrorFdManipulation: public std::exception {

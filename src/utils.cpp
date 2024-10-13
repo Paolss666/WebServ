@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:46:24 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 18:07:43 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,6 @@ void sig_handler(int signal) {
 	std::cerr << "\rServer interrupted at time: " << timeBuffer << std::endl;
 	if (signal == SIGINT)
 		g_sig = 1;
-	else if (signal == SIGPIPE)
-		g_sig = 2;
 }
 
 void	ft_close(int fd) {
@@ -75,7 +73,7 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 		std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
 
-int			IsARepertory(std::string filename)
+int	IsARepertory(std::string filename)
 {
 	struct stat buffer;
 	if (stat(filename.c_str(), &buffer) < 0) {
@@ -104,13 +102,7 @@ void	ft_print_coucou(int i) {
 }
 
 void	error_send(int fd, struct epoll_event & event, std::string message) {
-	std::string	final_message;
-
 	epoll_ctl(event.data.fd, EPOLL_CTL_DEL, fd, NULL);
-	if (g_sig == 0)
-		final_message = message;
-	else if (g_sig == 2)
-		final_message = "Fd closed by the client: " + message;
-	perror(final_message.c_str());
+	ft_perror(message.c_str());
 	ft_close(fd);
 }

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 16:45:22 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/13 18:12:16 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ ServerConf::ServerConf(void) {
 	_fdEpoll = -1;
 	_fdAcceptSock = -1;
 	_nb_keepalive = 0;
-	_max_keepalive = 0;
+	_max_keepalive = KEEP_ALIVE;
 	_IndexPages = 0;
 	_nbServer = 0;
 	_maxBodyState = false;
@@ -134,7 +134,7 @@ void    ServerConf::p_Listen(std::istringstream& iss)
 
     _ip = line.substr(0, inx);
     p_IpAddrs();
-    std::cout << "_ip bien parse --> " << _ip << std::endl;
+    // std::cout << "_ip bien parse --> " << _ip << std::endl;
     // std::cout << "---> p = " << _ip << std::endl;
     _PortString = line.substr(inx + 1, line.size()); 
     // std::cout << "---> portString = " << _PortString << std::endl;
@@ -152,7 +152,7 @@ void    ServerConf::p_Listen(std::istringstream& iss)
 	if (_port > 65535)// PORT MAX VALEUR
 		throw ErrorConfFile("Error in the conf file : listen : wrong port");
 	_address.sin_port = htons(_port);
-    std::cout << "_port --> assigne _address.sin_port -> " << _port << std::endl;
+    // std::cout << "_port --> assigne _address.sin_port -> " << _port << std::endl;
 	_DefaultPort = false;
     if (iss >> line)
         throw   ErrorConfFile("Error in the conf file");
@@ -179,7 +179,7 @@ void	ServerConf::p_name(std::istringstream &iss)
 
 	_name = serverNames;
 
-	std::cout << "server name -> " << _name << std::endl;
+	// std::cout << "server name -> " << _name << std::endl;
 	_isServerName = true;
 }
 
@@ -190,7 +190,7 @@ void	ServerConf::p_Root(std::istringstream &iss)
 	if (!(iss >> pathRoot))
 		throw ErrorConfFile("Error conf file: root path don't found;");
 	
-	std::cout << " path-root found --->  " << pathRoot << std::endl; 
+	// std::cout << " path-root found --->  " << pathRoot << std::endl; 
 
 	if (pathRoot.compare(0, 3, "www") != 0 && pathRoot.compare(0, 4, "www/") != 0)
 		throw ErrorConfFile("Error conf file: root wrong path;");
@@ -202,7 +202,7 @@ void	ServerConf::p_Root(std::istringstream &iss)
 	if (stat(_rootPath.c_str(), &info) != 0)// cannot access path 
 		throw ErrorConfFile("Error : root : cannot access path or file");
 	
-	std::cout << " root found --->  " << _rootPath << std::endl; 
+	// std::cout << " root found --->  " << _rootPath << std::endl; 
 
 	_rootFlag = 1;
 }
@@ -227,7 +227,7 @@ void	ServerConf::p_AutoIndex(std::istringstream & iss)
 		else
 			_Autoindex = false; // forbidden page
 	}
-	std::cout << "autoindex = " << _Autoindex << std::endl;
+	// std::cout << "autoindex = " << _Autoindex << std::endl;
 }
 
 
@@ -253,12 +253,12 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
 
     // Convert numeric part to value
     sizeValue = std::strtoul(maxClntBodySize.c_str(), NULL, 10);
-	std::cout << maxClntBodySize << " " << sizeValue << "<------- maxClntBodySize , sizeValue" << std::endl;
+	// std::cout << maxClntBodySize << " " << sizeValue << "<------- maxClntBodySize , sizeValue" << std::endl;
     // Check the unit part
     if (index < maxClntBodySize.size()) {
 		size_t size = maxClntBodySize.size();
         char unitChar = maxClntBodySize[size - 1];
-		std::cout << unitChar << "<-----"  << "size = " << size << std::endl;
+		// std::cout << unitChar << "<-----"  << "size = " << size << std::endl;
         switch (unitChar) {
             case 'k':
             case 'K':
@@ -283,7 +283,7 @@ void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
 
     _maxBodySize = sizeValue;
     _maxBodyState = true;
-	std::cout << _maxBodySize << "<------- MaxBodySize " << std::endl;
+	// std::cout << _maxBodySize << "<------- MaxBodySize " << std::endl;
 }
 
 int	ServerConf::p_errorCodes(std::string &pgError)
@@ -324,7 +324,7 @@ void	ServerConf::p_ErrorPages(std::istringstream& iss)
 		throw ErrorConfFile("Error conf file: error_pages format /html");
 	for (size_t i = 0; i < erroCodeVector.size(); i++)
 		_PageError[erroCodeVector[i]] = pgError;
-	Print_map_code_errors(_PageError);
+	// Print_map_code_errors(_PageError);
 	_errorFlag = true;
 }
 
@@ -367,7 +367,7 @@ void	ServerConf::p_CodeReturn(std::istringstream& iss)
 	for (size_t i = 0; i < vectorCode.size(); i++)
 		_CodeReturn[vectorCode[i]] = codeRetrn;
 	_ReturnFlag = true;
-	Print_map_code_return(_CodeReturn);
+	// Print_map_code_return(_CodeReturn);
 }
 
 void	ServerConf::p_Index(std::istringstream& iss)
@@ -387,7 +387,7 @@ void	ServerConf::p_Index(std::istringstream& iss)
 		else
 			_IndexFile.push_back(index);
 	}
-	printVector(_IndexFile);
+	// printVeector(_IndexFile);
 }
 
 void	ServerConf::p_DefaultServer(std::istringstream& iss)
@@ -397,7 +397,7 @@ void	ServerConf::p_DefaultServer(std::istringstream& iss)
 	if (iss >> line)
 		throw ErrorConfFile("Error conf file: defualt_server");
 	_CheckDefaultServer = true;
-	std::cout << "default_server -> " << _Default_server << std::endl;
+	// std::cout << "default_server -> " << _Default_server << std::endl;
 }
 
 void	ServerConf::setDefaultErrorPages(void)
@@ -458,20 +458,20 @@ void    ServerConf::initWServer(std::istream &file)
 			location.ParseLocation(file);
 			_Location[location.getUri()] = location;
 			i++;
-			std::cout << "number of location for server -> " << i << std::endl;
+			// std::cout << "number of location for server -> " << i << std::endl;
 		}
 		else if (line == "}")
 		{
 			if (!_rootFlag || _StateListen || !_isServerName)
 			{
-				std::cout << "_rootFlag -> " << _rootFlag << "_StateListen -> " << _StateListen << std::endl;
+				// std::cout << "_rootFlag -> " << _rootFlag << "_StateListen -> " << _StateListen << std::endl;
 				throw ErrorConfFile("Error in the config file : miss basic line");
 			}
 			if (!_errorFlag)
 			{
-				std::cout << "set default pages error" << std::endl;
+				// std::cout << "set default pages error" << std::endl;
  				setDefaultErrorPages();
-				Print_map_code_errors(_PageError);
+				// Print_map_code_errors(_PageError);
 			}
 			break;
 		}

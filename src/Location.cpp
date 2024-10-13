@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 17:33:18 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/13 18:12:09 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,13 @@ void        Location::InLoc_Methos(std::istringstream& iss)
     std::string line;
     if (!(iss >> line))
         throw ErrorConfFile("Error conf file: location : methods");
-    std::cout << "methods -> " << line << std::endl;
+    // std::cout << "methods -> " << line << std::endl;
     while (iss >> line)
     {
         if (line != "GET" && line != "POST" && line != "DELETE" )
             throw ErrorConfFile("Error conf file: location : wrong method");
         _Methods.push_back(line);
-        std::cout << "methods -> " << line << std::endl;
+        // std::cout << "methods -> " << line << std::endl;
     }
     _MetFlag = true;
 }
@@ -74,7 +74,7 @@ void        Location::InLoc_Index(std::istringstream& iss)
 		else
 			_Indx.push_back(indx);
 	}
-	printVector(_Indx);
+	// printVector(_Indx);
     
 }
 
@@ -97,7 +97,7 @@ void        Location::InLoc_Cgi(std::istringstream& iss)
 	if (stat(_CgiPath.c_str(), &info) != 0)// cannot access path 
 		throw ErrorConfFile("Error conf file: location: cgi cannot access;");
 	
-	std::cout << " cgi path --->  " << _CgiPath << std::endl; 
+	// std::cout << " cgi path --->  " << _CgiPath << std::endl; 
 
 	_CgiFlag = true;
 }
@@ -140,7 +140,7 @@ void        Location::InLoc_Return(std::istringstream& iss)
 	for (size_t i = 0; i < V_Code.size(); i++)
 		_Retourn[V_Code[i]] = rtrn;
 	_ReturnFlag = true;
-    Print_map_code_return(_Retourn);
+    // Print_map_code_return(_Retourn);
 }
 
 int	Location::InLoc_p_errorCodes(std::string &pgError)
@@ -181,7 +181,7 @@ void        Location::InLoc_ErPages(std::istringstream& iss)
 		throw ErrorConfFile("Error conf file: error_pages format /html");
 	for (size_t i = 0; i < erroCodeVector.size(); i++)
 		_PageError[erroCodeVector[i]] = pgError;
-	Print_map_code_errors(_PageError);
+	// Print_map_code_errors(_PageError);
 	_ErPages = true;
 }
 
@@ -196,7 +196,7 @@ void        Location::InLoc_AutoIndex(std::istringstream& iss)
 		else
 			_AutoIndex = false;
 	}
-	std::cout << "autoindex = " << _AutoIndex << std::endl;
+	// std::cout << "autoindex = " << _AutoIndex << std::endl;
     _AutoFlag = true;
 }
 
@@ -207,7 +207,7 @@ void	Location::InLoc_root(std::istringstream& iss)
 	if (!(iss >> pathRoot))
 		throw ErrorConfFile("Error conf file: root path don't found;");
 	
-	std::cout << " path-root found --->  " << pathRoot << std::endl; 
+	// std::cout << " path-root found --->  " << pathRoot << std::endl; 
 
 	if (pathRoot.compare(0, 3, "www") != 0 && pathRoot.compare(0, 4, "www/") != 0)
 		throw ErrorConfFile("Error conf file: root wrong path;");
@@ -219,7 +219,7 @@ void	Location::InLoc_root(std::istringstream& iss)
 	if (stat(_Root.c_str(), &info) != 0)// cannot access path 
 		throw ErrorConfFile("Error : root : cannot access path or file");
 	
-	std::cout << " root found --->  " << _Root << std::endl; 
+	// std::cout << " root found --->  " << _Root << std::endl; 
 
 	_rootflag = 1;
 }	
@@ -237,7 +237,7 @@ void        Location::ParseLocation(std::istream &file)
         if (!(iss >> keyword))
             throw ErrorConfFile("Error in conf file: Location");
     
-        std::cout << "-------------LOCATION-----------------\n";
+        // std::cout << "-------------LOCATION-----------------\n";
         if (keyword == "methods" && !_MetFlag)
             InLoc_Methos(iss);
         else if (keyword == "index" && !_indexFlag)

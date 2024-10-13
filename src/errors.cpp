@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/09 15:44:28 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 16:30:08 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,15 +19,19 @@ const char *ErrorConfFile::what() const throw() { return _errorMsg.c_str(); }
 ErrorFdManipulation::ErrorFdManipulation(std::string msg, int code) throw(): _errorMsg(msg), _code(code) { return ; }
 ErrorFdManipulation::~ErrorFdManipulation() throw() { return ; }
 const char *ErrorFdManipulation::what() const throw() {
-	std::ostringstream oss;
+	std::ostringstream	oss;
+
 	oss << _code;
-	return (_errorMsg + " | Response code: " + oss.str()).c_str();
+	_errorMsg += " | Response code: ";
+	_errorMsg += oss.str();
+	return _errorMsg.c_str();
 }
 
 ErrorRequest::ErrorRequest(std::string msg, int code) throw(): _errorMsg(msg), _code(code) { return ; }
 ErrorRequest::~ErrorRequest() throw() { return ; }
 const char *ErrorRequest::what() const throw() {
 	std::ostringstream oss;
+
 	oss << _code;
 	_errorMsg += " | Response code: ";
 	_errorMsg += oss.str();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/09 16:53:47 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 17:07:23 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ class Host;
 
 class Request {
 	public:
-		Request(void);
 		Request(Host & host, struct epoll_event & event, std::string const & raw);
 		Request(Request const & src);
 		~Request(void);
@@ -36,7 +35,6 @@ class Request {
 		std::map<std::string, std::string>	_request_line;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
-		bool								_b_content_length;
 		int									_stage;
 		int									_eof;
 		

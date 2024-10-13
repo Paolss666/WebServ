@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:13:21 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 18:09:53 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,12 @@ std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     while (std::getline(file, line)) {
         if (line == "server {") {
             ServerConf virtualServer;	
-            std::cout << " ======> "<< line << "<============================== \n";
+            // std::cout << " ======> "<< line << "<============================== \n";
              virtualServer.initWServer(file);
-            std::cout << "FILE DONE\n";
+            // std::cout << "FILE DONE\n";
             virtualServer.setNbServer(i);
 			server.push_back(virtualServer);
-            std::cout << "nbserver " << i << "\n";
+            // std::cout << "nbserver " << i << "\n";
 			i++;
 		}
         else if (line.empty())
@@ -66,7 +66,7 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 			<< RESET << std::endl;
 
 	std::cout << CYAN BOLD "\n----------------- Server is running -----------------\n" RESET << std::endl;
-	while (g_sig != 1)
+	while (!g_sig)
 		for (size_t i = 0; i < hosts.size(); ++i)
 			hosts[i].run_server();
 	for (size_t i = 0; i < server.size(); i++)
@@ -77,7 +77,6 @@ int main(int ac, char **av) {
 	std::vector<ServerConf> server;
 	std::vector<Host> hosts;
 	signal(SIGINT, sig_handler);
-	signal(SIGPIPE, sig_handler);
 	try {
 		if (ac != 2)
 			server = ft_conf_init("conf/basicgood.conf");
