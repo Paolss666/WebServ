@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 12:39:49 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 13:23:31 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ void sig_handler(int signal) {
 	std::cerr << "\rServer interrupted at time: " << timeBuffer << std::endl;
 	if (signal == SIGINT)
 		g_sig = 1;
+	else if (signal == SIGPIPE)
+		g_sig = 2;
 }
 
 void	ft_close(int fd) {

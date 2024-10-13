@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 15:40:29 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/13 13:13:21 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 			<< RESET << std::endl;
 
 	std::cout << CYAN BOLD "\n----------------- Server is running -----------------\n" RESET << std::endl;
-	while (!g_sig)
+	while (g_sig != 1)
 		for (size_t i = 0; i < hosts.size(); ++i)
 			hosts[i].run_server();
 	for (size_t i = 0; i < server.size(); i++)
@@ -77,6 +77,7 @@ int main(int ac, char **av) {
 	std::vector<ServerConf> server;
 	std::vector<Host> hosts;
 	signal(SIGINT, sig_handler);
+	signal(SIGPIPE, sig_handler);
 	try {
 		if (ac != 2)
 			server = ft_conf_init("conf/basicgood.conf");

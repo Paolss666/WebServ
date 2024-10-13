@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:22:37 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:35:24 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/13 13:00:32 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,7 @@ class Response: public Request {
 		Response(const Request & src, const Host &host);
 		~Response(void);
 
-		// void			createGET();
-
+		void							BuildGet(int fd, struct epoll_event & event);
 
 		std::map<std::string, Location>  _Location;
 		std::vector<std::string>		_indexPages;

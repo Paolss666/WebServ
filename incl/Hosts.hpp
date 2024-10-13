@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hosts.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 17:51:48 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 17:51:08 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/13 12:43:55 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@ class Host: public ServerConf {
 		void							new_connection(void);
 		void							parse_request(int fd);
 		void							act_on_request(int fd);
-		void							BuildGet(int fd, Response &reponse);
 		void							run_server(void);
 		void							close_everything(void);
 };
