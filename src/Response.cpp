@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:28:25 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 16:16:57 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_request_line = src._request_line;
 	_headers = src._headers;
 	_body = src._body;
-	_b_keepalive = src._b_keepalive;
 	_b_content_length = src._b_content_length;
 	_indexPages = host._IndexFile;
 	_Location =  host._Location;

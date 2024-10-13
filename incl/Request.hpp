@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/06 18:29:39 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/09 16:53:47 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,22 +20,25 @@ class Host;
 class Request {
 	public:
 		Request(void);
-		Request(std::string const & raw);
+		Request(Host & host, struct epoll_event & event, std::string const & raw);
+		Request(Request const & src);
 		~Request(void);
 
-		void								parse(Host & host);
+		void								parse(void);
 		void								append(std::string const & data);
-		void								check_request_line(void);
-		void								check_headers(Host & host);
-		void								check_body(void);
-		std::string							trim(std::string & str);
+		void								pnc_request_line(std::istringstream & iss);
+		void								pnc_headers(std::istringstream & iss);
+		void								pnc_body(std::istringstream & iss);
 
+		Host &								_host;
+		struct epoll_event &				_event;
 		std::string							_raw;
 		std::map<std::string, std::string>	_request_line;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
-		bool								_b_keepalive;
 		bool								_b_content_length;
+		int									_stage;
+		int									_eof;
 		
 };
 
