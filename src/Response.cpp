@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:23:55 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 13:49:34 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,8 +108,8 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 }
 
 void	Response::BuildGet(int fd, struct epoll_event & event) {
-	
 	struct stat buffer;
+	int			error = 0;
 	
 	std::cout << _path_file << "<----------\n";
 	
@@ -230,20 +230,17 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
     	response_header += "Content-Type: text/html\r\n"; // forma html
     	// response_header += "Content-Type: text/css\r\n"; // forma html
     	response_header += "\r\n";  // Fine dell'header
-		int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
-    	if (header_bytes_sent == -1) {
-    	    ft_perror("Error in send for header");
-    	    ft_close(fd);
+		error = send(fd, response_header.c_str(), response_header.length(), 0);
+    	if (error == -1) {
+			error_send(fd, event, "Error in send for header");
     	    return;
     	}
 
-    	int body_bytes_sent = send(fd, _body.c_str(), _body.length(), 0);
-    	if (body_bytes_sent == -1) {
-    	    ft_perror("Error in send for the content of the fd");
+    	error = send(fd, _body.c_str(), _body.length(), 0);
+    	if (error == -1) {
+    	    error_send(fd, event, "Error in send for the content of the fd");
+			return ;
     	}
-
-    	ft_close(fd);
-		return ;
     }
 	if (_indexPages.size() == 0)
 		check = 404;
@@ -269,16 +266,14 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 			response_header += "Content-Length: " + os.str() + "\r\n";
     		response_header += "Content-Type: text/html\r\n"; // forma html
     		response_header += "\r\n";  // Fine dell'header
-			int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
-    		if (header_bytes_sent == -1) {
-    		    ft_perror("Error in send for header");
-    		    ft_close(fd);
+			error = send(fd, response_header.c_str(), response_header.length(), 0);
+    		if (error == -1) {
+				error_send(fd, event, "Error in send for header");
     		    return;
 			}
-    		int body_bytes_sent = send(fd, file_con.c_str(), file_con.length(), 0);
-    		if (body_bytes_sent == -1) {
-    		    ft_perror("Error in send for the content of the fd");
-    			ft_close(fd);
+    		error = send(fd, file_con.c_str(), file_con.length(), 0);
+    		if (error == -1) {
+				error_send(fd, event, "Error in send for the content of the fd");
 				return;
 			}
         return;
@@ -293,8 +288,9 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
         file_content = ss.str();
     } else {
         std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
-        send(fd, error_response.c_str(), error_response.length(), 0);
-        ft_close(fd);
+        error = send(fd, error_response.c_str(), error_response.length(), 0);
+		if (error == -1)
+			error_send(fd, event, "Error in send for error");
         return;
     }
 
@@ -306,24 +302,18 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
     response_header += "Content-Type: text/html\r\n"; // forma html
     response_header += "\r\n";  // Fine dell'header
 
-    int header_bytes_sent = send(fd, response_header.c_str(), response_header.length(), 0);
-    if (header_bytes_sent == -1) {
-        ft_perror("Error in send for header");
-        ft_close(fd);
+    error = send(fd, response_header.c_str(), response_header.length(), 0);
+    if (error == -1) {
+		error_send(fd, event, "Error in send for header");
         return;
     }
 
 	std::cout << "fd -> " << fd << std::endl;
 		std::cout << "epoll event fd -> " << event.data.fd << std::endl;
 	std::cout << "epoll event events -> " << event.events << std::endl;
-    int body_bytes_sent = send(fd, file_content.c_str(), file_content.length(), 0);
-    if (body_bytes_sent == -1) {
-		ft_close(fd);
-		if (g_sig == 0)
-        	ft_perror("Error in send for the content of the fd");
-		else if (g_sig == 2)
-			ft_perror("Error in send for the content of the fd");
-	}
+    error = send(fd, file_content.c_str(), file_content.length(), 0);
+    if (error == -1)
+		error_send(fd, event, "Error in send for the content of the fd");
 }
 
 Response::~Response(void) {	return ; }

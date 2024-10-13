@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 13:23:31 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 13:46:24 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,4 +101,16 @@ std::string	trim(std::string & str) {
 
 void	ft_print_coucou(int i) {
 	std::cout << "COUCOU " << i << std::endl;
+}
+
+void	error_send(int fd, struct epoll_event & event, std::string message) {
+	std::string	final_message;
+
+	epoll_ctl(event.data.fd, EPOLL_CTL_DEL, fd, NULL);
+	if (g_sig == 0)
+		final_message = message;
+	else if (g_sig == 2)
+		final_message = "Fd closed by the client: " + message;
+	perror(final_message.c_str());
+	ft_close(fd);
 }

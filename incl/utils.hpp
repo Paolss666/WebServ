@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 12:37:42 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/13 13:43:09 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ void			print_request(std::map<std::string, std::string> _request_line, std::map<
 int 			IsARepertory(std::string filename);
 std::string		trim(std::string & str);
 void			ft_print_coucou(int i);
-
+void			error_send(int fd, struct epoll_event & event, std::string message);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black
