@@ -12,7 +12,10 @@
 
 #include "webserv.hpp"
 
+
+
 Response::Response(const Request & src, const Host &host): Request(src) {
+	fillContentTypes();
 	_request_line = src._request_line;
 	_headers = src._headers;
 	_body = src._body;
@@ -24,6 +27,11 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_err = 0; // 4 error 404 etc etc 
 	_autoInxPrint = 0;
 	_autoIndex = host._Autoindex;
+	_found = 0;
+	_serverName = host._name;
+	_maxBodySize= host._maxBodySize;
+	_Ip = host._ip;
+	_Port = host._port;
 
 	if (_root[0] == '/')
 		_root = _root.substr(1,_root.size() - 1);
@@ -31,46 +39,21 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 		_root = _root.substr(0,_root.size() - 1);
 
 	std::string 	uri = _request_line["uri"];
+	
+	_startUri	=	uri;
+
+	// if (_startUri[_startUri.size () - 1] != '/')
+	// 	_err = 301;
+	
 	std::string		tmpUri = uri;
+	std::string		checkUri = uri;
 
 	std::cout  << "uri -> " << uri << std::endl; 
 	std::string test_path = _root + uri;
 	std::cout  << "test_path -> " << test_path << std::endl;
-	if (test_path.find(".") != std::string::npos && _err == 0)
-		_err = IsARepertory(test_path);
-	while (true) {
-		bool found = false;
-        for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
-			std::cout << "it->first" << it->first << std::endl;
-            if (it->first == uri) {                
-				std::cout << "Found matching URI: " << it->first << std::endl;
-                found = true;
-                break;
-            }
-        }
-        if (found)
-            break;
-
-        std::size_t pos = uri.find_last_of('/');
-		uri = uri.substr(0, uri.find_last_of('/'));
-		std::cout << " --------->  uri    ->" << uri << std::endl;
-        if (pos == std::string::npos || pos == 0) {
-            uri = "/";
-			break;
-        } else
-            uri = uri.substr(0, pos);
-	}
-	std::cout  << "uri -> " << uri << std::endl;
-	if (_Location[uri].getFlagIndex())
-		_indexPages = _Location[uri].getIndexPages();
-	if (_Location[uri].getFlagAutoInx())
-		_autoIndex = _Location[uri].getAutoIndex();
-	if (_Location[uri].getRootFlag())
-		_root = _Location[uri].getRoot();
-	if (_Location[uri].getReturnFlag())
-		_returnPages = _Location[uri].getReturnPages();
-	if (_Location[uri].getFlagErrorPages())
-		_pagesError = _Location[uri].getPagesError();
+	// if (test_path.find(".") != std::string::npos && _err == 0)
+	// 	_err = /* IsARepertory(test_path) */404;
+	std::cout << "_err -> " << _err << std::endl;
 	
 	std::cout << host._Autoindex << "autoindex HOST \n";
 	std::string		file_path = _root + uri;
@@ -106,18 +89,80 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	}
 }
 
-void	Response::BuildGet(int fd, struct epoll_event & event) {
-	struct stat buffer;
-	int			error = 0;
-	
-	std::cout << _path_file << "<----------\n";
-	
-	std::size_t pos  = _path_file.find_last_of('/') + 1;
-	std::string tmp = _path_file.substr(pos, _path_file.size() -1);
-	std::cout  << "tmp -> " << tmp << std::endl;
-	size_t check = 0;
-	std::cout << "AUTOINDEXPRINT --> " << _autoInxPrint << std::endl;
-	if (_autoInxPrint) {
+void	Response::buildErrorPage(int fd, int statusCode,  struct epoll_event & event)
+{
+
+	std::string	errorPageUri("");
+	// _statusCode = statusCode;
+	if (this->_Location.empty())
+	{
+		// if (RESPONSE)
+		// 	std::cout << "STATUSCODE = " << _statusCode << std::endl;
+		std::map<int, std::string>::iterator loc = _pagesError.find(statusCode);
+		if (loc != _pagesError.end())
+		{
+			errorPageUri = loc->second;
+		}
+	}
+	if (errorPageUri.empty())
+	{
+		// if (RESPONSE)
+		// 	std::cerr << "PAS DE PAGE ERROR RECORDED\n";
+		std::string errorMsg;
+		std::map<int, std::string>::iterator it = _returnPages.find(statusCode);
+		if (it != _returnPages.end())
+			errorMsg = convertToStr(statusCode) + " " + _returnPages[statusCode];
+		else
+			errorMsg = "Unknown error " + convertToStr(statusCode);
+
+		_body = "<!DOCTYPE html>\
+				<html lang=\"en\">\
+				<head>\
+				<meta charset=\"UTF-8\">\
+				<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+				<link href=\"style.css\" rel=\"stylesheet\">\
+				<link href=\"../../style.css\" rel=\"stylesheet\">\
+				<title>Error</title>\
+				</head>\
+				<body>\
+				<div class=\"title1\">" + errorMsg + "</div>\
+				<div class=\"index\">\
+				<a class=\"indexButton\" href=\"/\">go back to home page</a>\
+				</div>\
+				</body>\
+				</html>";
+
+	}
+	// _headers["content-type"] = "text/html";
+	// _headers["content-length"] = convertToStr(_body.size());
+		std::string response_header = "HTTP/1.1 200 OK\r\n";
+		response_header += "Content-Length: " + _body + "\r\n";
+    	response_header += "Content-Type: text/html\r\n"; // forma html
+    	// response_header += "Content-Type: text/css\r\n"; // forma html
+    	response_header += "\r\n";  // Fine dell'header
+	int error = send(fd, response_header.c_str(), response_header.length(), 0);
+    	if (error == -1) {
+			error_send(fd, event, "Error in send for header");
+    	    return;
+    	}
+
+		// int error = 0;
+
+	// int errors = send(fd, _headers.c_str(), _headers.length(), 0);
+    // if (error == -1) {
+		// error_send(fd, event, "Error in send for header");
+        // return;
+    // }
+    error = send(fd, _body.c_str(), _body.length(), 0);
+    if (error == -1) {
+        error_send(fd, event, "Error in send for the content of the fd");
+		return ;
+    }
+
+}
+
+void	Response::buildAutoindex(int fd, struct epoll_event & event)
+{
 		std::vector<std::string> filesList;
 		DIR *dir = opendir(_finalUri.c_str());
 		if (!dir)
@@ -129,7 +174,7 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 				filesList.push_back(fileRead->d_name);
 
 		_headers["content-type"] = "text/html";
-		_body = "<!DOCTYPE html>\n"
+		this->_body = "<!DOCTYPE html>\n"
                 "<html lang=\"en\">\n"
                 "<head>\n"
                 "<meta charset=\"UTF-8\">\n"
@@ -214,11 +259,11 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 			else
 				filename = (*it);
 			hyperlink = (*it);
-			_body += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
+			this->_body += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
 		}
 
-		_body += "</body>\n";
-		_body += "</html>";
+		this->_body += "</body>\n";
+		this->_body += "</html>";
 
 		closedir(dir);
 		 
@@ -229,18 +274,131 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
     	response_header += "Content-Type: text/html\r\n"; // forma html
     	// response_header += "Content-Type: text/css\r\n"; // forma html
     	response_header += "\r\n";  // Fine dell'header
-		error = send(fd, response_header.c_str(), response_header.length(), 0);
+		int error = send(fd, response_header.c_str(), response_header.length(), 0);
     	if (error == -1) {
 			error_send(fd, event, "Error in send for header");
     	    return;
     	}
 
+		// int error = 0;
     	error = send(fd, _body.c_str(), _body.length(), 0);
     	if (error == -1) {
     	    error_send(fd, event, "Error in send for the content of the fd");
 			return ;
     	}
-    }
+}
+
+
+void	Response::BuildPage(int fd, struct epoll_event & event)
+{
+	// std::map<std::string, std::string>	CONTENT_TYPES;
+	// fillContentTypes();
+	
+	std::ifstream fileRequested(_finalUri.c_str());
+	if (fileRequested.good() == false)
+	{
+		// if (RESPONSE)
+		// 	std::cerr << "file not good\n";
+		return(buildErrorPage(fd, 404, event));
+	}
+	std::stringstream buffer;
+	buffer << fileRequested.rdbuf();
+	_body = buffer.str();
+	if (_body.size() > _maxBodySize)
+	{
+		_body = "";
+		return (buildErrorPage(fd, 404, event));
+	}
+	_headers["content-length"] = convertToStr(_body.size());
+
+	size_t pos = _finalUri.find_last_of("/");
+	if (pos != std::string::npos && (_finalUri.begin() + pos + 1) != _finalUri.end())
+	{
+		std::string resourceName = _finalUri.substr(pos + 1);
+		pos = resourceName.find_last_of(".");
+		if (pos != std::string::npos && (resourceName.begin() + pos + 1) != resourceName.end())
+		{
+			std::string fileExtension = resourceName.substr(pos + 1);
+			if (CONTENT_TYPES.find(fileExtension) != CONTENT_TYPES.end())		
+			{
+				_headers["content-type"] = CONTENT_TYPES[fileExtension];
+				return ;
+			}
+		}
+	}
+
+	// SendUltra(_finalUri)
+}
+
+void	Response::BuildGet(int fd, struct epoll_event & event) {
+	struct stat buffer;
+	// int			error = 0;
+	
+	std::cout << _path_file << "<----------\n";
+
+	std::string uri = foundUriInLoc(_startUri, this->_Location);
+
+	std::cout  << "uri -> " << uri << std::endl;
+	if (_Location[uri].getFlagIndex())
+		_indexPages = _Location[uri].getIndexPages();
+	if (_Location[uri].getFlagAutoInx())
+		_autoIndex = _Location[uri].getAutoIndex();
+	if (_Location[uri].getRootFlag())
+		_root = _Location[uri].getRoot();
+	if (_Location[uri].getReturnFlag())
+		_returnPages = _Location[uri].getReturnPages();
+	if (_Location[uri].getFlagErrorPages())
+		_pagesError = _Location[uri].getPagesError();
+	
+	if (IsARepertory(_path_file) == 3)
+	{
+		if (_finalUri[_finalUri.size() -1] != '/')
+		{
+			// request.statusCode = STATUS_MOVED_PERMANENTLY;
+			_statusCode = 301;
+			std::string serverName(_serverName);
+			if (serverName.empty())
+				serverName = _Ip + ":" + convertToStr(_Port);
+			else
+				serverName += ":" + convertToStr(_Port);
+			_headers["location"] = "http://" + serverName + _finalUri + "/"; //A mettre ici ou dans builHeaders ?
+			return ;
+		}
+		else
+		{
+			if (_indexPages.empty())
+			{
+				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++)
+					{
+						std::string index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
+						std::string path;
+						path = _finalUri + index;
+						// if (RESPONSE)
+						// 	std::cerr << "path = " << path << std::endl;
+						if (IsARepertory(path) == 1)
+						{
+							// if (RESPONSE)
+							// 	std::cerr << "path regular"<< std::endl;
+							_finalUri = path;
+							return (BuildPage(fd, event));
+						}
+
+					}
+			}
+			if (_autoInxPrint)
+				buildAutoindex(fd, event);
+			return(buildErrorPage(fd, 404, event));
+		}
+	}
+	if (IsARepertory(_path_file) == 1)
+		return (BuildPage(fd, event));
+	else
+		buildErrorPage(fd, 404, event);
+	std::size_t pos  = _path_file.find_last_of('/') + 1;
+	std::string tmp = _path_file.substr(pos, _path_file.size() -1);
+	std::cout  << "tmp -> " << tmp << std::endl;
+	size_t check = 0;
+	std::cout << "AUTOINDEXPRINT --> " << _autoInxPrint << std::endl;
 	if (_indexPages.size() == 0)
 		check = 404;
 
@@ -250,66 +408,8 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 			break;
 		}
 	}
-	if (stat(_path_file.c_str(), &buffer) != 0 || (_err == 404) 
-		|| (_err == 1 && check == 404)) {
-		// std::cout << "BAD FILE PATH\n;
-		std::ifstream file(_host._PageError[404].c_str());
-		std::string file_con;
-		if (file.good()) {
-			std::ostringstream ss;
-			ss << file.rdbuf();
-			file_con = ss.str();
-			std::ostringstream os;
-			os << file_con.length();
-    		std::string response_header = "HTTP/1.1 404 OK\r\n";
-			response_header += "Content-Length: " + os.str() + "\r\n";
-    		response_header += "Content-Type: text/html\r\n"; // forma html
-    		response_header += "\r\n";  // Fine dell'header
-			error = send(fd, response_header.c_str(), response_header.length(), 0);
-    		if (error == -1) {
-				error_send(fd, event, "Error in send for header");
-    		    return;
-			}
-    		error = send(fd, file_con.c_str(), file_con.length(), 0);
-    		if (error == -1) {
-				error_send(fd, event, "Error in send for the content of the fd");
-				return;
-			}
-        return;
-		}
-	}
-	std::ifstream file(_path_file.c_str());
-    std::string file_content;
-	std::cout << "path --> " << _path_file << std::endl;
-    if (file.good()) {
-        std::ostringstream ss;
-        ss << file.rdbuf();
-        file_content = ss.str();
-    } else {
-        std::string error_response = "HTTP/1.1 404 Not Found\r\nContent-Length: 23\r\n\r\n<h1>404 Not Found</h1>";
-        error = send(fd, error_response.c_str(), error_response.length(), 0);
-		if (error == -1)
-			error_send(fd, event, "Error in send for error");
-        return;
-    }
-
-    std::ostringstream oss;
-    oss << file_content.length();
-
-    std::string response_header = "HTTP/1.1 200 OK\r\n";
-    response_header += "Content-Length: " + oss.str() + "\r\n";
-    response_header += "Content-Type: text/html\r\n"; // forma html
-    response_header += "\r\n";  // Fine dell'header
-
-    error = send(fd, response_header.c_str(), response_header.length(), 0);
-    if (error == -1) {
-		error_send(fd, event, "Error in send for header");
-        return;
-    }
-
-    error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
-    if (error == -1)
-		error_send(fd, event, "Error in send for the content of the fd");
+	if (stat(_path_file.c_str(), &buffer) != 0 || (_err == 404)) 
+		buildErrorPage(fd, _err, event);
 }
 
 Response::~Response(void) {	return ; }

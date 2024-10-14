@@ -21,8 +21,13 @@ class Response: public Request {
 		~Response(void);
 
 		void							BuildGet(int fd, struct epoll_event & event);
-
+		void							BuildPage(int fd, struct epoll_event & event);
+		void							buildAutoindex(int fd, struct epoll_event & event);
+		void							buildErrorPage(int fd, int statusCode, struct epoll_event & event);
+		std::string						_Ip;
+		std::string						_Port;
 		std::map<std::string, Location>  _Location;
+		std::string						_serverName;
 		std::vector<std::string>		_indexPages;
 		std::string						_path_file;
 		std::string						_root;
@@ -33,6 +38,10 @@ class Response: public Request {
 		int								_autoInxPrint;
 		std::string						_tmpForInx;
 		std::string						_finalUri;
+		std::string						_startUri;
+		int								_found; // found the good Uri;
+		size_t							_maxBodySize;
+		int								_statusCode;
 };
 
 #endif

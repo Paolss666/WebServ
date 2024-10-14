@@ -14,7 +14,7 @@
 # define UTILS_HPP
 
 # include "webserv.hpp"
-
+void	fillContentTypes();
 void			Check_extension(const std::string & str, const std::string & ext);
 void			Print_map_code_errors(std::map<int, std::string> PagesError);
 void			printVector(const std::vector<std::string> & vec);
@@ -28,6 +28,18 @@ int 			IsARepertory(std::string filename);
 std::string		trim(std::string & str);
 void			ft_print_coucou(int i);
 void			error_send(int fd, struct epoll_event & event, std::string message);
+template <typename T>
+std::string convertToStr(T value) {
+    std::ostringstream oss;
+    oss << value;  // Scrivi il valore nel flusso
+    return oss.str();  // Restituisci la stringa
+}
+
+
+// void	SendUltra(std::string path_file, int fd, struct stat &event);
+void	SendUltra(int fd, struct stat &event, Response response);
+std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Location);
+// std::string FoundMatchLocation(std::string uri, std::map<std::string, Location> _Location);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black

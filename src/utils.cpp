@@ -11,6 +11,19 @@
 /* ************************************************************************** */
 
 #include "webserv.hpp"
+// #include "Location.hpp"
+
+void	fillContentTypes()
+{
+	CONTENT_TYPES["txt"] = "text/plain";
+	CONTENT_TYPES["html"] = "text/html";
+	CONTENT_TYPES["htm"] = "text/html";
+	CONTENT_TYPES["png"] = "image/png";
+	CONTENT_TYPES["jpg"] = "image/jpeg";
+	CONTENT_TYPES["jpeg"] = "image/jpeg";
+	CONTENT_TYPES["xpm"] = "image/x-xpixmap";
+	CONTENT_TYPES["css"] = "text/css";
+}
 
 void	Check_extension(const std::string & str, const std::string & ext) {
 	if (str.size() >= ext.size() && !str.compare(str.size() - ext.size(), ext.size(), ext))
@@ -73,12 +86,103 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 		std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
 
+std::string FoundMatchLocation(std::string uri, std::map<std::string, Location> _Location)
+{
+	while (true) {
+		bool found = false;
+        for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
+			std::cout << "it->first" << it->first << std::endl;
+            if (it->first == uri) {                
+				std::cout << "Found matching URI: " << it->first << std::endl;
+                found = true;
+                break;
+            }
+        }
+        if (found)
+            break;
+
+        std::size_t pos = uri.find_last_of('/');
+		uri = uri.substr(0, uri.find_last_of('/'));
+		std::cout << " --------->  uri    ->" << uri << std::endl;
+        if (pos == std::string::npos || pos == 0) {
+            uri = "/";
+			break;
+        } else
+            uri = uri.substr(0, pos);
+	}
+	return (uri);
+}
+
+std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Location)
+{
+
+	while (true) {
+	bool found = false;
+    for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
+		std::cout << "it->first" << it->first << std::endl;
+        if (it->first == uri) {                
+			std::cout << "Found matching URI: " << it->first << std::endl;
+            found = true;
+			// _found = 1;
+            break;
+        }
+    }
+    if (found)
+        break;
+    std::size_t pos = uri.find_last_of('/');
+	uri = uri.substr(0, uri.find_last_of('/'));
+	std::cout << " --------->  uri    ->" << uri << std::endl;
+    if (pos == std::string::npos || pos == 0) {
+        uri = "/";
+		break;
+    } else
+        uri = uri.substr(0, pos);
+	}
+	return (uri);
+}
+
+
+void	SendUltra(int fd, struct stat &event, Response response)
+{
+	std::ifstream file(reponse._path_file.c_str());
+    std::string file_content;
+	int error = 0;
+	std::cout << "path --> " << reponse._path_file<< std::endl;
+    if (file.good()) {
+        std::ostringstream ss;
+        ss << file.rdbuf();
+        file_content = ss.str();
+    } else {
+		response.buildErrorPage(fd, 404, event);
+        return;
+    }
+
+    std::ostringstream oss;
+    oss << file_content.length();
+
+
+	std::string response_header = "HTTP/1.1 200 OK\r\n";
+	response_header += "Content-Length: " + oss.str() + "\r\n";
+    response_header += "Content-Type: text/html\r\n"; // forma html
+    // response_header += "Content-Type: text/css\r\n"; // forma html
+    response_header += "\r\n";  // Fine dell'header
+    error = send(fd, response_header.c_str(), response_header.length(), 0);
+    if (error == -1) {
+		error_send(fd, event, "Error in send for header");
+        return;
+    }
+
+    error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
+    if (error == -1)
+		error_send(fd, event, "Error in send for the content of the fd");
+}
+
 int	IsARepertory(std::string filename)
 {
 	struct stat buffer;
 	if (stat(filename.c_str(), &buffer) < 0) {
 		std::cout << "404\n"; // 404 request not found;
-		return (404);
+		return (0);
 	}
 	if (S_ISREG(buffer.st_mode)) {
 		std::cout << "is a fichier return 1\n";

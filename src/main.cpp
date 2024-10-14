@@ -13,6 +13,8 @@
 #include "webserv.hpp"
 
 int	g_sig;
+// std::map<std::string, std::string>	CONTENT_TYPES;
+
 
 std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     std::string				line;
@@ -54,7 +56,6 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 		Host tmp(server[i]);
 		hosts.push_back(tmp);
 	}
-
 	// Print the details of the hosts and epoll watchlist
 	std::cout << "Detail of hosts and epoll watchlist:" << std::endl;
 	for (size_t i = 0; i < hosts.size(); ++i)
@@ -73,9 +74,12 @@ void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 		hosts[i].close_everything();
 }
 
+std::map<std::string, std::string>	CONTENT_TYPES;
+
 int main(int ac, char **av) {
 	std::vector<ServerConf> server;
 	std::vector<Host> hosts;
+
 	signal(SIGINT, sig_handler);
 	try {
 		if (ac != 2)
