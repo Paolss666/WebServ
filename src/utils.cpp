@@ -6,15 +6,14 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 18:07:43 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/15 18:51:15 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 // #include "Location.hpp"
 
-void	fillContentTypes()
-{
+void	fillContentTypes() {
 	CONTENT_TYPES["txt"] = "text/plain";
 	CONTENT_TYPES["html"] = "text/html";
 	CONTENT_TYPES["htm"] = "text/html";
@@ -86,135 +85,71 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 		std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
 
-std::string FoundMatchLocation(std::string uri, std::map<std::string, Location> _Location)
-{
-	while (true) {
-		bool found = false;
-        for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
-			std::cout << "it->first" << it->first << std::endl;
-            if (it->first == uri) {                
-				std::cout << "Found matching URI: " << it->first << std::endl;
-                found = true;
-                break;
-            }
-        }
-        if (found)
-            break;
 
-        std::size_t pos = uri.find_last_of('/');
-		uri = uri.substr(0, uri.find_last_of('/'));
-		std::cout << " --------->  uri    ->" << uri << std::endl;
-        if (pos == std::string::npos || pos == 0) {
-            uri = "/";
-			break;
-        } else
-            uri = uri.substr(0, pos);
-	}
-	return (uri);
-}
+// void	SendUltra(int fd, struct epoll_event &event, Response response)
+// {
+// 	/* std::ifstream file(response._startUri.c_str()); */
+//     std::string file_content;
+// 	std::cout << "path --> " << response._finalUri<< std::endl;
+// /*     if (file.good()) {
+//         std::ostringstream ss;
+//         ss << file.rdbuf();
+//         file_content = ss.str();
+//     } else {
+// 		response.buildErrorPage(fd, 404, event);
+//         return;
+//     }
 
-std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Location)
-{
+//     std::ostringstream oss;
+//     oss << file_content.length(); */
 
-	while (true) {
-	bool found = false;
-    for (std::map<std::string, Location>::iterator it = _Location.begin(); it != _Location.end(); ++it) {
-		std::cout << "it->first" << it->first << std::endl;
-        if (it->first == uri) {                
-			std::cout << "Found matching URI: " << it->first << std::endl;
-            found = true;
-			// _found = 1;
-            break;
-        }
-    }
-    if (found)
-        break;
-    std::size_t pos = uri.find_last_of('/');
-	uri = uri.substr(0, uri.find_last_of('/'));
-	std::cout << " --------->  uri    ->" << uri << std::endl;
-    if (pos == std::string::npos || pos == 0) {
-        uri = "/";
-		break;
-    } else
-        uri = uri.substr(0, pos);
-	}
-	return (uri);
-}
-
-
-void	SendUltra(int fd, struct epoll_event &event, Response response)
-{
-	/* std::ifstream file(response._startUri.c_str()); */
-    std::string file_content;
-	std::cout << "path --> " << response._finalUri<< std::endl;
-/*     if (file.good()) {
-        std::ostringstream ss;
-        ss << file.rdbuf();
-        file_content = ss.str();
-    } else {
-		response.buildErrorPage(fd, 404, event);
-        return;
-    }
-
-    std::ostringstream oss;
-    oss << file_content.length(); */
-
-	std::cout <<  " < ----, ====================" << std::endl;
-	std::string response_header = "HTTP/1.1 " + convertToStr(response._statusCode) + " \r\n";
-	response_header += "Content-Length: " + convertToStr(response._body.size()) + "\r\n";
-    response_header += "Content-Type: text/html\r\n"; // forma html
-    // response_header += "Content-Type: text/css\r\n"; // forma html
-    response_header += "\r\n";  // Fine dell'header
-	std::cout << response_header << " < ----, ====================" << std::endl;
-	std::cout << response._body << ", ============"<< std::endl;
-   int error = send(fd, response_header.c_str(), response_header.length(), 0);
+// 	std::cout <<  " < ----, ====================" << std::endl;
+// 	std::string response_header = "HTTP/1.1 " + convertToStr(response._statusCode) + " \r\n";
+// 	response_header += "Content-Length: " + convertToStr(response._body.size()) + "\r\n";
+//     response_header += "Content-Type: text/html\r\n"; // forma html
+//     // response_header += "Content-Type: text/css\r\n"; // forma html
+//     response_header += "\r\n";  // Fine dell'header
+// 	std::cout << response_header << " < ----, ====================" << std::endl;
+// 	std::cout << response._body << ", ============"<< std::endl;
+//    int error = send(fd, response_header.c_str(), response_header.length(), 0);
     
-	if (error == -1) {
-		error_send(fd, event, "Error in send for header");
-        return;
-    }
-	 error = send(fd, response_header.c_str(), response_header.size(), 0);
-        if (error == -1) {
-            // Gestione dell'errore
-            return ;
-        }
+// 	if (error == -1) {
+// 		error_send(fd, event, "Error in send for header");
+//         return;
+//     }
+// 	 error = send(fd, response_header.c_str(), response_header.size(), 0);
+//         if (error == -1) {
+//             // Gestione dell'errore
+//             return ;
+//         }
 
-        // Invio del corpo della risposta (_body)
-        size_t bytesSent = 0;
-        size_t tmpSent = 0;
-        tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, 0);
-        if (tmpSent <= 0) {
-                // Gestione dell'errore
-                return ;
-            }
-		close(fd);
-		return;
-/* 
+//         // Invio del corpo della risposta (_body)
+//         size_t bytesSent = 0;
+//         size_t tmpSent = 0;
+//         tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, 0);
+//         if (tmpSent <= 0) {
+//                 // Gestione dell'errore
+//                 return ;
+//             }
+// 		close(fd);
+// 		return;
+// /* 
 
-    error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
-    if (error == -1)
-		error_send(fd, event, "Error in send for the content of the fd"); */
-}
+//     error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
+//     if (error == -1)
+// 		error_send(fd, event, "Error in send for the content of the fd"); */
+// }
 
-int	IsARepertory(std::string root, std::string filename)
-{
+int	isRepertory(std::string root, std::string filename) {
 	struct stat buffer;
-/* 	std::string root = "www";
-	filename = root + filename; */
-	std::cout << "file name in IsARepertory > " << filename << std::endl;
+
 	filename = root + filename;
-	if (stat(filename.c_str(), &buffer) < 0) {
-		std::cout << "404\n"; // 404 request not found;
-		return (0);
-	}
-	if (S_ISREG(buffer.st_mode)) {
-		std::cout << "is a fichier return 1\n";
-		return (1);
-	}
-	if (S_ISDIR(buffer.st_mode)) {
-		std::cout << "is a dossier return 3\n";
-		return (3);
-	}
+	if (stat(filename.c_str(), &buffer) < 0)
+		return (0); // 404 request not found;
+	if (S_ISREG(buffer.st_mode))
+		return (1); // is a file
+	if (S_ISDIR(buffer.st_mode))
+		return (3); // is a directory
 	return(0);
 }
 
@@ -226,31 +161,4 @@ std::string	trim(std::string & str) {
 
 void	ft_print_coucou(int i) {
 	std::cout << "COUCOU " << i << std::endl;
-}
-
-void	error_send(int fd, struct epoll_event & event, std::string message) {
-	epoll_ctl(event.data.fd, EPOLL_CTL_DEL, fd, NULL);
-	ft_perror(message.c_str());
-	ft_close(fd);
-}
-
-bool	readContent(std::string root, std::string &uri, std::string &content)
-{
-	// std::cerr << "readContent 0\n";
-	if (IsARepertory(root, uri) >= 3)
-	{
-		// std::cerr << "readContent 1\n";
-		return false;
-	}
-	std::ifstream	file(uri.c_str());
-	if (!file.good())
-	{
-		// std::cerr << "readContent 2\n";
-		return false;
-	}
-	std::stringstream	buf;
-	buf << file.rdbuf();
-	content = buf.str();
-
-	return true;
 }

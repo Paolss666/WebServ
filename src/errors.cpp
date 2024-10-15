@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 16:30:08 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/15 19:44:47 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,13 +40,16 @@ const char *ErrorRequest::what() const throw() {
 
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
 
-void	send_error_page(Host & request, int fd, int code) {
-	std::string status, response, body, line;
+void	send_error_page(Host & host, int fd, int code) {
+	std::string status, response, body, line, image;
 	std::fstream file;
 	std::ostringstream oss, str_code, str_port;
 
 	// Set the status
 	switch (code) {
+		case ERR_CODE_MOVE_PERM:
+			status = ERR_NAME_MOVE_PERM;
+			break;
 		case ERR_CODE_BAD_REQUEST:
 			status = ERR_NAME_BAD_REQUEST;
 			break;
@@ -95,18 +98,36 @@ void	send_error_page(Host & request, int fd, int code) {
 	}
 
 	str_code << code;
+	
+	// Set the body
 	if (status == "Unkown")
-		body = "<html><head><title>" + status + "</title></head><body><center><img src=\"https://http.cat/450.jpg\"></html>";
+		image = "<img src=\"https://http.cat/450.jpg\">";
 	else
-		body = "<html><head><title>" + status + "</title></head><body><center><img src=\"https://http.cat/" + str_code.str() + ".jpg\"></html>";
+		image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+	body = "<!DOCTYPE html>\
+			<html lang=\"en\">\
+			<head>\
+			<meta charset=\"UTF-8\">\
+			<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+			<link href=\"style.css\" rel=\"stylesheet\">\
+			<link href=\"../../style.css\" rel=\"stylesheet\">\
+			<title>" + status + "</title>\
+			</head>\
+			<body>\
+			<div class=\"img\">" + image + "</div>\
+			<div class=\"index\">\
+			<a class=\"indexButton\" href=\"/\">go back to home page</a>\
+			</div>\
+			</body>\
+			</html>";
 
 	// Set the response
 	oss << "HTTP/1.1 " << code << " " << status << "\r\n";
-	if (request._name.empty()) {
-		str_port << request._port;
-		oss << "Server: " << request._raw_ip << ":" << str_port.str() << "\r\n";	
+	if (host._name.empty()) {
+		str_port << host._port;
+		oss << "Server: " << host._raw_ip << ":" << str_port.str() << "\r\n";	
 	} else
-		oss << "Server: " << request._name << "\r\n";
+		oss << "Server: " << host._name << "\r\n";
 	oss << "Content-Type: text/html\r\n";
 	oss << "Content-Length: " << body.size() << "\r\n";
 	oss << "Connection: close\r\n";
@@ -116,11 +137,12 @@ void	send_error_page(Host & request, int fd, int code) {
 	response = oss.str();
 
 	// Send the response
-	if (send(request._events[fd].data.fd, response.c_str(), response.size(), 0) < 0)
+	if (send(host._events[fd].data.fd, response.c_str(), response.size(), 0) < 0)
 		ft_perror(("Error in the send of error page: " + str_code.str()).c_str());
 	
 	// Close the connection
-	epoll_ctl(request._fdEpoll, EPOLL_CTL_DEL, request._events[fd].data.fd, NULL);
-	ft_close(request._events[fd].data.fd);
-	request._requests.erase(request._events[fd].data.fd);
+	epoll_ctl(host._fdEpoll, EPOLL_CTL_DEL, host._events[fd].data.fd, NULL);
+	ft_close(host._events[fd].data.fd);
+	host._requests.erase(host._events[fd].data.fd);
+	host._responses.erase(host._events[fd].data.fd);
 }

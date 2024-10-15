@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 17:13:02 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/15 19:48:03 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,35 +14,20 @@
 # define UTILS_HPP
 
 # include "webserv.hpp"
-void	fillContentTypes();
-void			Check_extension(const std::string & str, const std::string & ext);
-void			Print_map_code_errors(std::map<int, std::string> PagesError);
-void			printVector(const std::vector<std::string> & vec);
-void			Print_map_code_return(std::map<int, std::string> errorPages);
-void			ft_perror(const char * message);
-void			sig_handler(int signal);
-void			ft_close(int fd);
-void			print_with_hex(const std::string & str);
-void			print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
-int 			IsARepertory(std::string root, std::string filename);
-std::string		trim(std::string & str);
-void			ft_print_coucou(int i);
-void			error_send(int fd, struct epoll_event & event, std::string message);
+void		fillContentTypes(void);
+void		Check_extension(const std::string & str, const std::string & ext);
+void		Print_map_code_errors(std::map<int, std::string> PagesError);
+void		printVector(const std::vector<std::string> & vec);
+void		Print_map_code_return(std::map<int, std::string> errorPages);
+void		ft_perror(const char * message);
+void		sig_handler(int signal);
+void		ft_close(int fd);
+void		print_with_hex(const std::string & str);
+void		print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
+int 		isRepertory(std::string root, std::string filename);
+std::string	trim(std::string & str);
+void		ft_print_coucou(int i);
 
-template <typename T>
-std::string convertToStr(T value) {
-    std::ostringstream oss;
-    oss << value;  // Scrivi il valore nel flusso
-    return oss.str();  // Restituisci la stringa
-}
-
-
-bool	readContent(std::string root, std::string &uri, std::string &content);
-
-// void	SendUltra(std::string path_file, int fd, struct stat &event);
-void	SendUltra(int fd, struct epoll_event &event, Response response);
-std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Location);
-// std::string FoundMatchLocation(std::string uri, std::map<std::string, Location> _Location);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black
@@ -61,7 +46,7 @@ std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Loca
 # define PORT				8080
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
-# define BUFFER_SIZE		8
+# define BUFFER_SIZE		1024
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB

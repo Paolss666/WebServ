@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 16:29:36 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/15 18:22:52 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,10 @@ class ErrorRequest: public std::exception {
 };
 
 void	ft_perror(const char * message);
+void	send_error_page(Host & host, int fd, int code);
 
-void	send_error_page(Host & request, int fd, int code);
+# define ERR_CODE_MOVE_PERM			301
+# define ERR_NAME_MOVE_PERM			"Moved Permanently"
 
 # define ERR_CODE_BAD_REQUEST		400
 # define ERR_NAME_BAD_REQUEST		"Bad Request"
