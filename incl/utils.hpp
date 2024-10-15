@@ -28,6 +28,7 @@ int 			IsARepertory(std::string filename);
 std::string		trim(std::string & str);
 void			ft_print_coucou(int i);
 void			error_send(int fd, struct epoll_event & event, std::string message);
+
 template <typename T>
 std::string convertToStr(T value) {
     std::ostringstream oss;
@@ -36,8 +37,10 @@ std::string convertToStr(T value) {
 }
 
 
+bool	readContent(std::string &uri, std::string &content);
+
 // void	SendUltra(std::string path_file, int fd, struct stat &event);
-void	SendUltra(int fd, struct stat &event, Response response);
+void	SendUltra(int fd, struct epoll_event &event, Response response);
 std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Location);
 // std::string FoundMatchLocation(std::string uri, std::map<std::string, Location> _Location);
 // macros ------------------------------

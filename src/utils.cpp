@@ -142,13 +142,12 @@ std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Loca
 }
 
 
-void	SendUltra(int fd, struct stat &event, Response response)
+void	SendUltra(int fd, struct epoll_event &event, Response response)
 {
-	std::ifstream file(reponse._path_file.c_str());
+	/* std::ifstream file(response._startUri.c_str()); */
     std::string file_content;
-	int error = 0;
-	std::cout << "path --> " << reponse._path_file<< std::endl;
-    if (file.good()) {
+	std::cout << "path --> " << response._finalUri<< std::endl;
+/*     if (file.good()) {
         std::ostringstream ss;
         ss << file.rdbuf();
         file_content = ss.str();
@@ -158,23 +157,43 @@ void	SendUltra(int fd, struct stat &event, Response response)
     }
 
     std::ostringstream oss;
-    oss << file_content.length();
+    oss << file_content.length(); */
 
-
-	std::string response_header = "HTTP/1.1 200 OK\r\n";
-	response_header += "Content-Length: " + oss.str() + "\r\n";
+	std::cout <<  " < ----, ====================" << std::endl;
+	std::string response_header = "HTTP/1.1 " + convertToStr(response._statusCode) + " \r\n";
+	response_header += "Content-Length: " + convertToStr(response._body.size()) + "\r\n";
     response_header += "Content-Type: text/html\r\n"; // forma html
     // response_header += "Content-Type: text/css\r\n"; // forma html
     response_header += "\r\n";  // Fine dell'header
-    error = send(fd, response_header.c_str(), response_header.length(), 0);
-    if (error == -1) {
+	std::cout << response_header << " < ----, ====================" << std::endl;
+	std::cout << response._body << ", ============"<< std::endl;
+   int error = send(fd, response_header.c_str(), response_header.length(), 0);
+    
+	if (error == -1) {
 		error_send(fd, event, "Error in send for header");
         return;
     }
+	 error = send(fd, response_header.c_str(), response_header.size(), 0);
+        if (error == -1) {
+            // Gestione dell'errore
+            return ;
+        }
+
+        // Invio del corpo della risposta (_body)
+        size_t bytesSent = 0;
+        size_t tmpSent = 0;
+        tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, 0);
+        if (tmpSent <= 0) {
+                // Gestione dell'errore
+                return ;
+            }
+		close(fd);
+		return;
+/* 
 
     error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
     if (error == -1)
-		error_send(fd, event, "Error in send for the content of the fd");
+		error_send(fd, event, "Error in send for the content of the fd"); */
 }
 
 int	IsARepertory(std::string filename)
@@ -209,4 +228,25 @@ void	error_send(int fd, struct epoll_event & event, std::string message) {
 	epoll_ctl(event.data.fd, EPOLL_CTL_DEL, fd, NULL);
 	ft_perror(message.c_str());
 	ft_close(fd);
+}
+
+bool	readContent(std::string &uri, std::string &content)
+{
+	// std::cerr << "readContent 0\n";
+	if (IsARepertory(uri) >= 3)
+	{
+		// std::cerr << "readContent 1\n";
+		return false;
+	}
+	std::ifstream	file(uri.c_str());
+	if (!file.good())
+	{
+		// std::cerr << "readContent 2\n";
+		return false;
+	}
+	std::stringstream	buf;
+	buf << file.rdbuf();
+	content = buf.str();
+
+	return true;
 }
