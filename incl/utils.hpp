@@ -24,7 +24,7 @@ void			sig_handler(int signal);
 void			ft_close(int fd);
 void			print_with_hex(const std::string & str);
 void			print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body);
-int 			IsARepertory(std::string filename);
+int 			IsARepertory(std::string root, std::string filename);
 std::string		trim(std::string & str);
 void			ft_print_coucou(int i);
 void			error_send(int fd, struct epoll_event & event, std::string message);
@@ -37,7 +37,7 @@ std::string convertToStr(T value) {
 }
 
 
-bool	readContent(std::string &uri, std::string &content);
+bool	readContent(std::string root, std::string &uri, std::string &content);
 
 // void	SendUltra(std::string path_file, int fd, struct stat &event);
 void	SendUltra(int fd, struct epoll_event &event, Response response);

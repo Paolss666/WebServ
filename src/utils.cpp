@@ -196,9 +196,13 @@ void	SendUltra(int fd, struct epoll_event &event, Response response)
 		error_send(fd, event, "Error in send for the content of the fd"); */
 }
 
-int	IsARepertory(std::string filename)
+int	IsARepertory(std::string root, std::string filename)
 {
 	struct stat buffer;
+/* 	std::string root = "www";
+	filename = root + filename; */
+	std::cout << "file name in IsARepertory > " << filename << std::endl;
+	filename = root + filename;
 	if (stat(filename.c_str(), &buffer) < 0) {
 		std::cout << "404\n"; // 404 request not found;
 		return (0);
@@ -230,10 +234,10 @@ void	error_send(int fd, struct epoll_event & event, std::string message) {
 	ft_close(fd);
 }
 
-bool	readContent(std::string &uri, std::string &content)
+bool	readContent(std::string root, std::string &uri, std::string &content)
 {
 	// std::cerr << "readContent 0\n";
-	if (IsARepertory(uri) >= 3)
+	if (IsARepertory(root, uri) >= 3)
 	{
 		// std::cerr << "readContent 1\n";
 		return false;

@@ -106,7 +106,7 @@ void	Response::buildErrorPage(int fd, int statusCode,  struct epoll_event & even
 			std::cout << "STATUSCODE = " << errorPageUri << std::endl;
 		}
 	}
-	if (errorPageUri.empty() || ! readContent(errorPageUri, _body)) 
+	if (errorPageUri.empty() || ! readContent(_root, errorPageUri, _body)) 
 	{
 		// if (RESPONSE)
 		// 	std::cerr << "PAS DE PAGE ERROR RECORDED\n";
@@ -149,6 +149,7 @@ void	Response::buildAutoindex(int fd, struct epoll_event & event)
 			ft_perror("ERROR");
 
 		struct dirent *fileRead;
+		_startUri  = _root + _startUri;
 		while ((fileRead = readdir(dir)) != NULL)
 			if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 				filesList.push_back(fileRead->d_name);
@@ -165,64 +166,6 @@ void	Response::buildAutoindex(int fd, struct epoll_event & event)
                 "<title>Auto index</title>\n"
                 "</head>\n"
                 "<body>\n"
-                "<style>\n"
-                "    body {\n"
-                "        font-family: 'Arial', sans-serif;\n"
-                "        display: flex;\n"
-                "        flex-direction: column;\n"
-                "        justify-content: center;\n"
-                "        align-items: center;\n"
-                "        height: 100vh;\n"
-                "        margin: 0;\n"
-                "        background-color: #f4f7f6;\n"
-                "    }\n"
-                "    h1 {\n"
-                "        font-size: 48px;\n"
-                "        color: #333;\n"
-                "        margin-bottom: 20px;\n"
-                "    }\n"
-				"    h2 {\n"
-                "        font-size: 48px;\n"
-                "        color: #330;\n"
-                "        margin-bottom: 10px;\n"
-                "    }\n"
-                "    p {\n"
-                "        font-size: 18px;\n"
-                "        color: #777;\n"
-                "        margin-bottom: 40px;\n"
-                "    }\n"
-                "    .button-container {\n"
-                "        display: flex;\n"
-                "        gap: 20px;\n"
-                "    }\n"
-                "    button, .link-button {\n"
-                "        padding: 15px 30px;\n"
-                "        font-size: 18px;\n"
-                "        cursor: pointer;\n"
-                "        border: none;\n"
-                "        border-radius: 50px;\n"
-                "        transition: background-color 0.3s, box-shadow 0.3s;\n"
-                "    }\n"
-                "    button {\n"
-                "        background-color: #3498db;\n"
-                "        color: white;\n"
-                "    }\n"
-                "    button:hover {\n"
-                "        background-color: #2980b9;\n"
-                "        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
-                "    }\n"
-                "    .link-button {\n"
-                "        background-color: #2ecc71;\n"
-                "        color: white;\n"
-                "        text-decoration: none;\n"
-                "        display: inline-block;\n"
-                "        line-height: 1.5;\n"
-                "    }\n"
-                "    .link-button:hover {\n"
-                "        background-color: #03eb63;\n"
-                "        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
-                "    }\n"
-                "</style>\n"
                 "<h1 class=\"title1\"> Auto index </h1>\n"
                 "<h2 class=\"autoindex\">\n" + _startUri + "\n"
                 "</h2>\n"
@@ -254,7 +197,7 @@ void	Response::BuildPage(int fd, struct epoll_event & event)
 {
 	// std::map<std::string, std::string>	CONTENT_TYPES;
 	// fillContentTypes();
-	
+	_startUri = _root + _startUri;
 	std::ifstream fileRequested(_startUri.c_str());
 	if (fileRequested.good() == false)
 	{
@@ -300,6 +243,7 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 /* 	std::string uri = foundUriInLoc(_startUri, this->_Location); */
 
 	/* std::cout  << "uri -> " << uri << std::endl; */
+	std::cout << "URI --> " << _startUri<< std::endl;
 	if (_Location[_startUri].getFlagIndex())
 		_indexPages = _Location[_startUri].getIndexPages();
 	if (_Location[_startUri].getFlagAutoInx())
@@ -311,47 +255,44 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 	if (_Location[_startUri].getFlagErrorPages())
 		_pagesError = _Location[_startUri].getPagesError();
 	std::cout << "FINAL URI -> " << _startUri << std::endl;
-	if (IsARepertory(_startUri) == 3)
+	if (IsARepertory(_root, _startUri) == 3)
 	{
 		if (_startUri[_startUri.size() -1] != '/')
 		{
-			// request.statusCode = STATUS_MOVED_PERMANENTLY;
+			// What i have to do ? 
 			_statusCode = 301;
 			std::string serverName(_serverName);
 			if (serverName.empty())
 				serverName = _Ip + ":" + convertToStr(_Port);
 			else
 				serverName += ":" + convertToStr(_Port);
-			_headers["location"] = "http://" + serverName + _startUri + "/"; //A mettre ici ou dans builHeaders ?
+			_headers["location"] = "http://" + serverName + _startUri + "/";
 			return ;
 		}
 		else
 		{
-			if (_indexPages.empty())
+			if (!_indexPages.empty())
 			{
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++)
 					{
 						std::string index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
 						std::string path;
 						path = _startUri + index;
-						// if (RESPONSE)
-						// 	std::cerr << "path = " << path << std::endl;
-						if (IsARepertory(path) == 1)
+						if (IsARepertory(_root, path) == 1)
 						{
-							// if (RESPONSE)
-							// 	std::cerr << "path regular"<< std::endl;
 							_startUri = path;
 							return (std::cout << "IM HERE 2" << std::endl, BuildPage(fd, event));
 						}
 
 					}
 			}
-			if (_autoInxPrint)
-				buildAutoindex(fd, event);
-			return(std::cout << "IM HERE" << std::endl, buildErrorPage(fd, 404, event));
+			if (_autoIndex)
+				return (buildAutoindex(fd, event));
+			else
+				return(std::cout << "IM HERE 1" << std::endl, buildErrorPage(fd, 404, event));
 		}
 	}
-	if (IsARepertory(_path_file) == 1)
+	if (IsARepertory(_root, _startUri) == 1)
 		return (std::cout << "IM HERE" << std::endl, BuildPage(fd, event));
 	else
 	{
