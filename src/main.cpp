@@ -14,7 +14,7 @@
 
 int	g_sig;
 // std::map<std::string, std::string>	CONTENT_TYPES;
-
+int nb_it = 0;
 
 std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     std::string				line;

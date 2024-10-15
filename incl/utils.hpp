@@ -61,7 +61,7 @@ std::string foundUriInLoc(std::string uri, std::map<std::string, Location> _Loca
 # define PORT				8080
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
-# define BUFFER_SIZE		8
+# define BUFFER_SIZE		1024
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB

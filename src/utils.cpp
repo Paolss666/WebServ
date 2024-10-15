@@ -165,28 +165,32 @@ void	SendUltra(int fd, struct epoll_event &event, Response response)
     response_header += "Content-Type: text/html\r\n"; // forma html
     // response_header += "Content-Type: text/css\r\n"; // forma html
     response_header += "\r\n";  // Fine dell'header
-	std::cout << response_header << " < ----, ====================" << std::endl;
-	std::cout << response._body << ", ============"<< std::endl;
-   int error = send(fd, response_header.c_str(), response_header.length(), 0);
+	// std::cout << response_header << " < ----, ====================" << std::endl;
+	// std::cout << response._body << ", ============"<< std::endl;
+   
+	response_header += response._body;
+   
+   int error = send(fd, response_header.c_str(), response_header.length(),MSG_NOSIGNAL | MSG_MORE );
     
 	if (error == -1) {
 		error_send(fd, event, "Error in send for header");
         return;
     }
-	 error = send(fd, response_header.c_str(), response_header.size(), 0);
-        if (error == -1) {
-            // Gestione dell'errore
-            return ;
-        }
+	//  error = send(fd, response_header.c_str(), response_header.size(), MSG_NOSIGNAL | MSG_MORE);
+    //     if (error == -1) {
+    //         // Gestione dell'errore
+    //         return ;
+    //     }
 
-        // Invio del corpo della risposta (_body)
-        size_t bytesSent = 0;
-        size_t tmpSent = 0;
-        tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, 0);
-        if (tmpSent <= 0) {
-                // Gestione dell'errore
-                return ;
-            }
+    //     // Invio del corpo della risposta (_body)
+    //     size_t bytesSent = 0;
+    //     size_t tmpSent = 0;
+    //     tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, MSG_NOSIGNAL);
+    //     if (tmpSent <= 0) {
+                
+    //             return ;
+    //         }
+	
 		close(fd);
 		return;
 /* 

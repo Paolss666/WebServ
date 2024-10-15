@@ -47,6 +47,7 @@
 
 // global variables ------------------------------
 extern int g_sig;
+extern int nb_it;
 	extern std::map<std::string, std::string> CONTENT_TYPES;
 // std::map<std::string, std::string>	CONTENT_TYPES;
 # include "Location.hpp"

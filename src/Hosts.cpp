@@ -169,6 +169,7 @@ void	Host::act_on_request(int fd) {
 		std::cout << "Connection kept alive" << std::endl;
 		_events[fd].events = EPOLLIN;
 		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[fd].data.fd, &_events[fd]);
+		_requests.erase(_events[fd].data.fd);
 	}
 
 	std::cout << YELLOW "---> Request answered" RESET << std::endl << std::endl;

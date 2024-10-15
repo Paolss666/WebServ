@@ -106,7 +106,7 @@ void	Response::buildErrorPage(int fd, int statusCode,  struct epoll_event & even
 			std::cout << "STATUSCODE = " << errorPageUri << std::endl;
 		}
 	}
-	if (errorPageUri.empty() || ! readContent(_root, errorPageUri, _body)) 
+	if (errorPageUri.empty() || !readContent(_root, errorPageUri, _body)) 
 	{
 		// if (RESPONSE)
 		// 	std::cerr << "PAS DE PAGE ERROR RECORDED\n";
@@ -144,12 +144,12 @@ void	Response::buildErrorPage(int fd, int statusCode,  struct epoll_event & even
 void	Response::buildAutoindex(int fd, struct epoll_event & event)
 {
 		std::vector<std::string> filesList;
+		_startUri  = _root + _startUri;
 		DIR *dir = opendir(_startUri.c_str());
 		if (!dir)
 			ft_perror("ERROR");
 
 		struct dirent *fileRead;
-		_startUri  = _root + _startUri;
 		while ((fileRead = readdir(dir)) != NULL)
 			if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 				filesList.push_back(fileRead->d_name);
@@ -259,6 +259,7 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 	{
 		if (_startUri[_startUri.size() -1] != '/')
 		{
+			// continue;
 			// What i have to do ? 
 			_statusCode = 301;
 			std::string serverName(_serverName);
@@ -286,7 +287,7 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 
 					}
 			}
-			if (_autoIndex)
+			if (_autoIndex == 1)
 				return (buildAutoindex(fd, event));
 			else
 				return(std::cout << "IM HERE 1" << std::endl, buildErrorPage(fd, 404, event));
@@ -297,8 +298,12 @@ void	Response::BuildGet(int fd, struct epoll_event & event) {
 	else
 	{
 		std::cout << "IM HERE 404" << std::endl;
-		buildErrorPage(fd, 404, event);
+		// return (send_error_page(_host, fd, ERR_CODE_NOT_FOUND));
+		return (buildErrorPage(fd, ERR_CODE_NOT_FOUND, event));
 	}
 }
 
-Response::~Response(void) {	return ; }
+Response::~Response(void) {
+	return ;
+	// std::cout << "I am closing" << std::endl;
+}
