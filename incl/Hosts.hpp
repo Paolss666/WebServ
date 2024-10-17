@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 17:51:48 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 16:21:41 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/15 19:41:26 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "webserv.hpp"
 
 class Request;
+class Response;
 
 class Host: public ServerConf {
 	public:
@@ -25,6 +26,7 @@ class Host: public ServerConf {
 
 		std::vector<struct epoll_event>	_events;
 		std::map<int, Request>			_requests;
+		std::map<int, Response>			_responses;
 		std::vector<int>				_partials;
 		int								_nfds;
 		time_t							_keep_alive_time;

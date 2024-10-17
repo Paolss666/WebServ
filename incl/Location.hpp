@@ -65,9 +65,9 @@ class Location
         int             getReturnFlag(void);
         int             getFlagErrorPages(void);
         int             getRootFlag(void);
-        std::map<int, std::string> getReturnPages();
-        std::map<int, std::string> getPagesError();
-        std::vector<std::string> getIndexPages();
+        std::map<int, std::string> &getReturnPages();
+        std::map<int, std::string> &getPagesError();
+        std::vector<std::string> &getIndexPages();
         std::string             getRoot();
         bool                    getAutoIndex();
 };

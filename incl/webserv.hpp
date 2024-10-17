@@ -47,14 +47,15 @@
 
 // global variables ------------------------------
 extern int g_sig;
-
-// hpp files ------------------------------
-# include "utils.hpp"
-# include "errors.hpp"
+	extern std::map<std::string, std::string> CONTENT_TYPES;
+// std::map<std::string, std::string>	CONTENT_TYPES;
 # include "Location.hpp"
+// hpp files ------------------------------
+# include "errors.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
 # include "ServerConf.hpp"
 # include "Hosts.hpp"
+# include "utils.hpp"
 
 #endif

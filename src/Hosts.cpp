@@ -120,6 +120,7 @@ void	Host::parse_request(int fd) {
 	} catch (const ErrorFdManipulation & e) {
 		ft_perror(e.what());
 		send_error_page(*this, fd, e._code);
+		_nb_keepalive--;
 		return ;
 	}
 
@@ -139,36 +140,47 @@ void	Host::parse_request(int fd) {
 	} catch (const ErrorRequest & e) {
 		ft_perror(e.what());
 		send_error_page(*this, fd, e._code);
+		_nb_keepalive--;
 	}
 }
 
-void	Host::act_on_request(int fd) {
+void	Host::act_on_request(int i) {
 
-	std::cout << YELLOW "Acting on request" RESET << std::endl;
-
-	// Send data to client
-	Response response(_requests.find(_events[fd].data.fd)->second, *this);
-	if (response._request_line["method"] == "GET")
-		response.BuildGet(_events[fd].data.fd, _events[fd]);
-	else {
-		send_error_page(*this, fd, ERR_CODE_MET_NOT_ALLOWED);
-		return ;
+	// Build the response
+	if (_responses.find(_events[i].data.fd) == _responses.end()) {
+		Response tmp(_requests.find(_events[i].data.fd)->second, *this);
+		_responses.insert(std::pair<int, Response>(_events[i].data.fd, tmp));
+	}
+	if (!_responses.find(_events[i].data.fd)->second._response_ready) {
+		if (_responses.find(_events[i].data.fd)->second._request_line["method"] == "GET")
+			_responses.find(_events[i].data.fd)->second.buildGet(_events[i].data.fd);
+		else
+			return send_error_page(*this, _events[i].data.fd, ERR_CODE_MET_NOT_ALLOWED);
 	}
 	
+	// Send the response
+	if (_responses.find(_events[i].data.fd)->second._response_ready && _requests.find(_events[i].data.fd) != _requests.end())
+		if (!_responses.find(_events[i].data.fd)->second.send_response(_events[i].data.fd))
+			return;
+
 	// Close the connection if needed
-	if (!_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
-		|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("keep-alive"))) {
+	if (_requests.find(_events[i].data.fd) != _requests.end()
+		&& (!_requests.find(_events[i].data.fd)->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
+		|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !_requests.find(_events[i].data.fd)->second._headers["Connection"].compare("keep-alive")))) {
 		std::cout << "Closing connection" << std::endl;
-		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[fd].data.fd, NULL);
-		ft_close(_events[fd].data.fd);
-		_requests.erase(_events[fd].data.fd);
+		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[i].data.fd, NULL);
+		ft_close(_events[i].data.fd);
+		_requests.erase(_events[i].data.fd);
+		_responses.erase(_events[i].data.fd);
 		_nb_keepalive--;
-	} else {
-		if (_requests.find(_events[fd].data.fd)->second._headers["Connection"].compare("keep-alive"))
+	} else if (_requests.find(_events[i].data.fd) != _requests.end()) {
+		if (_requests.find(_events[i].data.fd)->second._headers["Connection"].compare("keep-alive"))
 			_keep_alive_time = time(NULL);
 		std::cout << "Connection kept alive" << std::endl;
-		_events[fd].events = EPOLLIN;
-		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[fd].data.fd, &_events[fd]);
+		_events[i].events = EPOLLIN;
+		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
+		_requests.erase(_events[i].data.fd);
+		_responses.erase(_events[i].data.fd);
 	}
 
 	std::cout << YELLOW "---> Request answered" RESET << std::endl << std::endl;
@@ -207,11 +219,10 @@ void	Host::run_server(void) {
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
 				}
 			}
-		}
-		else if (_events[i].events == EPOLLOUT)
+		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
-		// else
-			// std::cout << "Unknown event detected" << std::endl;
+		else
+			std::cout << "Unknown event detected" << std::endl;
 	}
 }
 

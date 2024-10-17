@@ -266,7 +266,7 @@ int		Location::getFlagIndex()
 	return (this->_indexFlag);
 }
 
-std::vector<std::string> Location::getIndexPages()
+std::vector<std::string>& Location::getIndexPages()
 {
 	return (this->_Indx);
 }
@@ -286,7 +286,7 @@ int		Location::getReturnFlag()
 	return (this->_ReturnFlag);
 }
 
-std::map<int, std::string> Location::getReturnPages()
+std::map<int, std::string>& Location::getReturnPages()
 {
 	return (this->_Retourn);
 }
@@ -296,7 +296,7 @@ int		Location::getFlagErrorPages()
 	return (this->_ErPages);
 }
 
-std::map<int, std::string> Location::getPagesError()
+std::map<int, std::string>& Location::getPagesError()
 {
 	return (this->_PageError);
 }
