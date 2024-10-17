@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/15 19:48:32 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/17 12:07:55 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 		_root = _root.substr(0,_root.size() - 1);
 }
 
-bool	Response::send_response(int fd) {
+void	Response::send_response(int fd, bool *done) {
 	int	sent;
 
 	if (_response_message.size() > BUFFER_SIZE)
@@ -49,22 +49,22 @@ bool	Response::send_response(int fd) {
 		sent = send(fd, _response_message.c_str(), _response_message.size(), MSG_NOSIGNAL);
 	
 	if (sent == -1)
-		return (send_error_page(_host, fd, ERR_CODE_INTERNAL_ERROR), true);
+		throw ErrorResponse("Error in the send of the response", ERR_CODE_INTERNAL_ERROR);
 	else
 		_response_message = _response_message.substr(sent);
 	
 	if (_response_message.empty())
-		return true;
+		*done = true;
 	else
-		return false;
+		return ;
 }
 
-void	Response::buildAutoindex(int fd) {
+void	Response::buildAutoindex(void) {
 	std::cout << "Building autoindex" << std::endl;
 	std::vector<std::string> filesList;
 	DIR *dir = opendir(_startUri.c_str());
 	if (!dir)
-		return send_error_page(_host, fd, ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("Error in the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
 
 	struct dirent *fileRead;
 	_startUri  = _root + _startUri;
@@ -111,7 +111,7 @@ void	Response::buildAutoindex(int fd) {
 	_response_ready = true;
 }
 
-void	Response::buildPage(int fd) {
+void	Response::buildPage(void) {
 	std::stringstream	buffer;
 	std::string			resourceName, fileExtension;
 	size_t				pos;
@@ -121,14 +121,14 @@ void	Response::buildPage(int fd) {
 	_startUri = _root + _startUri;
 	std::ifstream fileRequested(_startUri.c_str());
 	if (fileRequested.good() == false)
-		return (send_error_page(_host, fd, ERR_CODE_NOT_FOUND));
+		throw ErrorResponse("Error in the opening of the file requested", ERR_CODE_NOT_FOUND);
 	
 	buffer << fileRequested.rdbuf();
 	
 	_response_body = buffer.str();
 	if (_response_body.size() > _maxBodySize) {
 		_response_body = "";
-		return  (send_error_page(_host, fd, ERR_CODE_NOT_FOUND));
+		throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
 	}
 
 	pos = _startUri.find_last_of("/");
@@ -162,7 +162,7 @@ void	Response::buildPage(int fd) {
 	_response_ready = true;
 }
 
-void	Response::buildGet(int fd) {
+void	Response::buildGet(void) {
 	std::string	index, path;
 	
 	// Set the default values for the response
@@ -180,7 +180,7 @@ void	Response::buildGet(int fd) {
 	// Check if the URI is a directory
 	if (isRepertory(_root, _startUri) == 3) {
 		if (_startUri[_startUri.size() -1] != '/')
-			send_error_page(_host, fd, ERR_CODE_MOVE_PERM);
+			throw ErrorResponse("Error in the request: URI is not correctly written", ERR_CODE_MOVE_PERM);
 		else {
 			if (!_indexPages.empty()) {
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
@@ -188,19 +188,75 @@ void	Response::buildGet(int fd) {
 					path = _startUri + index;
 					if (isRepertory(_root, path) == 1) {
 						_startUri = path;
-						buildPage(fd);
+						buildPage();
 					}
 				}
 			}
 			else if (_autoIndex)
-				buildAutoindex(fd);
+				buildAutoindex();
 			else
-				send_error_page(_host, fd, ERR_CODE_FORBIDDEN);
+				throw ErrorResponse("Error in the request: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	} else if (isRepertory(_root, _startUri) == 1)
-		buildPage(fd);
+		buildPage();
 	else
-		send_error_page(_host, fd, ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
+}
+
+void	Response::buildPost(void) {
+	std::istringstream	iss(_headers["Content-Type"]);
+	std::string			boundary_start, boundary_end, line, filename, response_header;
+	std::size_t 		pos;
+	std::ostringstream	file_data;
+
+	if (!std::getline(iss, boundary_start, '=') || !std::getline(iss, boundary_start) || boundary_start.empty())
+		throw ErrorRequest("Error in the request: content-type not well formatted", ERR_CODE_INTERNAL_ERROR);
+	boundary_start = "--" + boundary_start;
+	boundary_end = "--" + boundary_start + "--";
+	
+	// Go to the start of the boundary
+	pos = _body.find(boundary_start);
+	iss.clear();
+	iss.str(_body);
+	iss.seekg(pos + boundary_start.size());
+	
+	// Parse the multipart form data
+	while (std::getline(iss, line) && line != boundary_end) {
+		if (line.find("Content-Disposition: form-data;") != std::string::npos) {
+			
+			// Extract filename
+			pos = line.find("filename=\"");
+			if (pos != std::string::npos) {
+				pos += 10; // Move past 'filename="'
+				filename = line.substr(pos, line.find("\"", pos) - pos);
+			}
+		}
+
+		// Skip headers
+		while (std::getline(iss, line) && !line.empty() && line != "\r");
+
+		// Extract file data
+		while (std::getline(iss, line) && line != boundary_start && line != boundary_end) {
+			file_data << line << "\n";
+		}
+
+		// Save the file
+		std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
+		if (!outfile.is_open())
+			throw ErrorRequest("Error in the request: cannot open the file", ERR_CODE_INTERNAL_ERROR);
+		outfile << file_data.str();
+		outfile.close();
+
+		// // Send a response to the client
+		// response_header = "HTTP/1.1 200 OK\r\n";
+		// response_header += "Content-Length: 0\r\n";
+		// response_header += "Content-Type: text/plain\r\n";
+		// response_header += "\r\n";
+
+		// int error = send(fd, response_header.c_str(), response_header.length(), MSG_NOSIGNAL);
+		// if (error == -1)
+		// 	throw ErrorRequest("Error in the request: cannot send the response", ERR_CODE_INTERNAL_ERROR);
+	}
 }
 
 Response::~Response(void) {	return ; }

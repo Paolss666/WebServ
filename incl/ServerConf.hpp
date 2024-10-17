@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/08 16:45:22 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/17 12:32:15 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class ServerConf {
 		int								_max_keepalive;
 		int								_fdSetSock;
 		int								_fdEpoll;
-		int								_fdAcceptSock;
+		std::vector<int>				_fdAcceptSock;
 		int								_address_len;
 		int								_NotBind;
 		int								_port;

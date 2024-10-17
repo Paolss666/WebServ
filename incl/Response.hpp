@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:22:37 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/15 19:25:13 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/17 12:04:34 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,11 @@ class Response: public Request {
 		Response(const Request & src, const Host &host);
 		~Response(void);
 
-		void								buildGet(int fd);
-		void								buildPage(int fd);
-		void								buildAutoindex(int fd);
-		bool								send_response(int fd);
+		void								buildGet(void);
+		void								buildPost(void);
+		void								buildPage(void);
+		void								buildAutoindex(void);
+		void								send_response(int fd, bool *done);
 
 		std::map<std::string, std::string>	_response_header;
 		std::string							_response_body;
