@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/15 19:44:47 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/17 13:36:05 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,15 +38,31 @@ const char *ErrorRequest::what() const throw() {
 	return _errorMsg.c_str();
 }
 
+ErrorResponse::ErrorResponse(std::string msg, int code) throw(): _errorMsg(msg), _code(code) { return ; }
+ErrorResponse::~ErrorResponse() throw() { return ; }
+const char *ErrorResponse::what() const throw() {
+	std::ostringstream oss;
+
+	oss << _code;
+	_errorMsg += " | Response code: ";
+	_errorMsg += oss.str();
+	return _errorMsg.c_str();
+}
+
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
 
-void	send_error_page(Host & host, int fd, int code) {
+template <typename T>
+void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 	std::string status, response, body, line, image;
 	std::fstream file;
 	std::ostringstream oss, str_code, str_port;
 
+	ft_perror(e.what());
+	if (_nb_keepalive)
+		*_nb_keepalive -= 1;
+
 	// Set the status
-	switch (code) {
+	switch (e._code) {
 		case ERR_CODE_MOVE_PERM:
 			status = ERR_NAME_MOVE_PERM;
 			break;
@@ -97,7 +113,7 @@ void	send_error_page(Host & host, int fd, int code) {
 			break;
 	}
 
-	str_code << code;
+	str_code << e._code;
 	
 	// Set the body
 	if (status == "Unkown")
@@ -116,13 +132,13 @@ void	send_error_page(Host & host, int fd, int code) {
 			<body>\
 			<div class=\"img\">" + image + "</div>\
 			<div class=\"index\">\
-			<a class=\"indexButton\" href=\"/\">go back to home page</a>\
+			<a class=\"indexButton\" href=\"/index.html\">go back to home page</a>\
 			</div>\
 			</body>\
 			</html>";
 
 	// Set the response
-	oss << "HTTP/1.1 " << code << " " << status << "\r\n";
+	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";
 	if (host._name.empty()) {
 		str_port << host._port;
 		oss << "Server: " << host._raw_ip << ":" << str_port.str() << "\r\n";	
@@ -137,12 +153,18 @@ void	send_error_page(Host & host, int fd, int code) {
 	response = oss.str();
 
 	// Send the response
-	if (send(host._events[fd].data.fd, response.c_str(), response.size(), 0) < 0)
+	if (send(host._events[i].data.fd, response.c_str(), response.size(), 0) < 0)
 		ft_perror(("Error in the send of error page: " + str_code.str()).c_str());
 	
 	// Close the connection
-	epoll_ctl(host._fdEpoll, EPOLL_CTL_DEL, host._events[fd].data.fd, NULL);
-	ft_close(host._events[fd].data.fd);
-	host._requests.erase(host._events[fd].data.fd);
-	host._responses.erase(host._events[fd].data.fd);
+	ft_close(host._events[i].data.fd);
+	epoll_ctl(host._fdEpoll, EPOLL_CTL_DEL, host._events[i].data.fd, NULL);
+	if (host._requests.find(host._events[i].data.fd) != host._requests.end()) {
+		host._requests.erase(host._events[i].data.fd);
+		host._responses.erase(host._events[i].data.fd);
+	}
 }
+
+template void send_error_page<ErrorFdManipulation>(Host&, int, const ErrorFdManipulation&, int*);
+template void send_error_page<ErrorRequest>(Host&, int, const ErrorRequest&, int*);
+template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, int*);

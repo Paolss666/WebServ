@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 18:12:16 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/17 12:32:21 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ ServerConf::ServerConf(void) {
 	_address_len = sizeof(_address);
 	_fdSetSock = -1;
 	_fdEpoll = -1;
-	_fdAcceptSock = -1;
 	_nb_keepalive = 0;
 	_max_keepalive = KEEP_ALIVE;
 	_IndexPages = 0;
