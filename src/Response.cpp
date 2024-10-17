@@ -26,6 +26,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_err = 0; // 4 error 404 etc etc 
 	_autoInxPrint = 0;
 	_autoIndex = host._Autoindex;
+	// std::cout << _autoIndex << " < ------ costructo\n";
 	_found = 0;
 	_serverName = host._name;
 	_maxBodySize= host._maxBodySize;
@@ -43,6 +44,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 void	Response::send_response(int fd, bool *done) {
 	int	sent;
 
+	
 	if (_response_message.size() > BUFFER_SIZE)
 		sent = send(fd, _response_message.c_str(), BUFFER_SIZE, MSG_MORE | MSG_NOSIGNAL);
 	else
@@ -61,13 +63,15 @@ void	Response::send_response(int fd, bool *done) {
 
 void	Response::buildAutoindex(void) {
 	std::cout << "Building autoindex" << std::endl;
+
 	std::vector<std::string> filesList;
+	_startUri  = _root + _startUri;
 	DIR *dir = opendir(_startUri.c_str());
 	if (!dir)
 		throw ErrorResponse("Error in the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
 
 	struct dirent *fileRead;
-	_startUri  = _root + _startUri;
+	std::cout << _startUri << "<<<<<< ======================= \n";
 	while ((fileRead = readdir(dir)) != NULL)
 		if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 			filesList.push_back(fileRead->d_name);
@@ -99,7 +103,14 @@ void	Response::buildAutoindex(void) {
 			filename = "<< COME BACK TO HOME ";
 		else
 			filename = (*it);
-		hyperlink = (*it);
+		_root = _root + "/";
+		if (isRepertory(_root , filename) == 3)
+		{
+			hyperlink = (*it) + "/";
+			// std::cout <<  hyperlink << " < ---\n";
+		}
+		else
+			hyperlink = (*it);
 		this->_body += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
 	}
 
@@ -107,7 +118,24 @@ void	Response::buildAutoindex(void) {
 	this->_body += "</html>";
 
 	closedir(dir);
+	// Add remainig headers
+	std::ostringstream 	oss;
+	oss << this->_body.size();
+	_response_header.insert(std::make_pair("Content-Length",oss.str()));
+	if (_response_header.find("Content-Type") == _response_header.end())
+		_response_header.insert(std::make_pair("Content-Type", "text/html"));
+	
+	// Merge everything in the final message to send
+	oss.str("");
+	oss << "HTTP/1.1 " << this->_statusCode << " OK" << "\r\n";
+	this->_response_message = oss.str();
+	this->_response_message += "Server: " + this->_serverName + "\r\n";
+	for (std::map<std::string, std::string>::iterator it = this->_response_header.begin(); it != _response_header.end(); it++)
+		this->_response_message += it->first + ": " + it->second + "\r\n";
+	this->_response_message += "\r\n";
+	this->_response_message += this->_body;
 
+	// Set the response ready
 	_response_ready = true;
 }
 
@@ -163,22 +191,30 @@ void	Response::buildPage(void) {
 }
 
 void	Response::buildGet(void) {
-	std::string	index, path;
+	std::string	index, path, uri;
 	
-	// Set the default values for the response
-	if (_Location[_startUri].getFlagIndex())
-		_indexPages = _Location[_startUri].getIndexPages();
-	if (_Location[_startUri].getFlagAutoInx())
-		_autoIndex = _Location[_startUri].getAutoIndex();
-	if (_Location[_startUri].getRootFlag())
-		_root = _Location[_startUri].getRoot();
-	if (_Location[_startUri].getReturnFlag())
-		_returnPages = _Location[_startUri].getReturnPages();
-	if (_Location[_startUri].getFlagErrorPages())
-		_pagesError = _Location[_startUri].getPagesError();
-	
+	// std::cout << _startUri.size() << " size uristart \n";
+	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
+		uri = _startUri.substr(0, _startUri.size() - 1);
+	else
+		uri = _startUri;
+	//  _startUri = _root + _startUri;
+	// std::cout << ".....> " << uri << std::endl;
+	if (_Location[uri].getFlagIndex())
+		_indexPages = _Location[uri].getIndexPages();
+	// std::cout << "Index before ..> " << _autoIndex << std::endl;
+	if (_Location[uri].getFlagAutoInx())
+		_autoIndex = _Location[uri].getAutoIndex();
+	// std::cout << "Index after ..> " << _autoIndex << std::endl;
+	if (_Location[uri].getRootFlag())
+		_root = _Location[uri].getRoot();
+	if (_Location[uri].getReturnFlag())
+		_returnPages = _Location[uri].getReturnPages();
+	if (_Location[uri].getFlagErrorPages())
+		_pagesError = _Location[uri].getPagesError();
 	// Check if the URI is a directory
-	if (isRepertory(_root, _startUri) == 3) {
+	if (isRepertory(_root, _startUri) == 3)
+	{
 		if (_startUri[_startUri.size() -1] != '/')
 			throw ErrorResponse("Error in the request: URI is not correctly written", ERR_CODE_MOVE_PERM);
 		else {
