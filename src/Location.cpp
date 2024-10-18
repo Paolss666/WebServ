@@ -34,6 +34,16 @@ void      Location::setUri(std::string uri)
     this->_Uri = uri;
 }
 
+int				Location::getFlagCgi()
+{
+	return (this->_CgiFlag);
+}
+
+std::string			Location::getCgiPath()
+{
+	return (this->_CgiPath);
+}
+
 std::string     Location::getUri(void)
 {
     return(this->_Uri);

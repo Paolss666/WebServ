@@ -26,7 +26,6 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_err = 0; // 4 error 404 etc etc 
 	_autoInxPrint = 0;
 	_autoIndex = host._Autoindex;
-	// std::cout << _autoIndex << " < ------ costructo\n";
 	_found = 0;
 	_serverName = host._name;
 	_maxBodySize= host._maxBodySize;
@@ -62,7 +61,6 @@ void	Response::send_response(int fd, bool *done) {
 }
 
 void	Response::buildAutoindex(void) {
-	std::cout << "Building autoindex" << std::endl;
 
 	std::vector<std::string> filesList;
 	_startUri  = _root + _startUri;
@@ -71,7 +69,6 @@ void	Response::buildAutoindex(void) {
 		throw ErrorResponse("Error in the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
 
 	struct dirent *fileRead;
-	std::cout << _startUri << "<<<<<< ======================= \n";
 	while ((fileRead = readdir(dir)) != NULL)
 		if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 			filesList.push_back(fileRead->d_name);
@@ -86,6 +83,68 @@ void	Response::buildAutoindex(void) {
 			"<link href='../home/css/style.css' rel='stylesheet' type='text/css'>\n"
 			"<link href=\"../../style_autoindex.css\" rel=\"stylesheet\" />\n"
 			"<title>Auto index</title>\n"
+			"<style>\n"
+			"    body {\n"
+			"        font-family: 'Arial', sans-serif;\n"
+			"        display: flex;\n"
+			"        flex-direction: column;\n"
+			"        justify-content: center;\n"
+			"        align-items: center;\n"
+			"        height: 100vh;\n"
+			"        margin: 0;\n"
+			"        background-color: #f4f7f6;\n"
+			"    }\n"
+			"\n"
+			"    h1 {\n"
+			"        font-size: 48px;\n"
+			"        color: #333;\n"
+			"        margin-bottom: 40px;\n"
+			"    }\n"
+			"\n"
+			"    p {\n"
+			"        font-size: 18px;\n"
+			"        color: #777;\n"
+			"        margin-bottom: 50px;\n"
+			"    }\n"
+			"\n"
+			"    .button-container {\n"
+			"        display: flex;\n"
+			"        gap: 20px;\n"
+			"    }\n"
+			"\n"
+			"    button, .link-button {\n"
+			"        padding: 15px 30px;\n"
+			"        font-size: 18px;\n"
+			"        cursor: pointer;\n"
+			"        border: none;\n"
+			"        margin-bottom: 20px;\n"
+			"        border-radius: 50px;\n"
+			"        transition: background-color 0.3s, box-shadow 0.3s;\n"
+			"    }\n"
+			"\n"
+			"    button {\n"
+			"        background-color: #3498db;\n"
+			"        color: white;\n"
+			"    }\n"
+			"\n"
+			"    button:hover {\n"
+			"        background-color: #2980b9;\n"
+			"        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
+			"    }\n"
+			"\n"
+			"    .link-button {\n"
+			"        background-color: #2ecc71;\n"
+			"        color: white;\n"
+			"        text-decoration: none;\n"
+			"        display: inline-block;\n"
+			"        line-height: 1.5;\n"
+			"    }\n"
+			"\n"
+			"    .link-button:hover {\n"
+			"        background-color: #03eb63;\n"
+			"        box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);\n"
+			"    }\n"
+			"</style>\n"
 			"</head>\n"
 			"<body>\n"
 			"<h1 class=\"title1\"> Auto index </h1>\n"
@@ -105,10 +164,7 @@ void	Response::buildAutoindex(void) {
 			filename = (*it);
 		_root = _root + "/";
 		if (isRepertory(_root , filename) == 3)
-		{
 			hyperlink = (*it) + "/";
-			// std::cout <<  hyperlink << " < ---\n";
-		}
 		else
 			hyperlink = (*it);
 		this->_body += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
@@ -190,33 +246,72 @@ void	Response::buildPage(void) {
 	_response_ready = true;
 }
 
+void	Response::buildCgi()
+{
+	std::string root_Uri = _root + _startUri;
+
+	std::cout << " ---> rootUri -> inside Cgi -> " << root_Uri << std::endl;
+	if (access(root_Uri.c_str(), F_OK))
+		throw ErrorResponse("Error in the request: URI CGI", ERR_CODE_NOT_FOUND);
+
+	std::cout << " ---> startUri -> inside Cgi -> " << _startUri << std::endl;
+
+	
+	_response_ready = true;
+}
+
 void	Response::buildGet(void) {
+	
 	std::string	index, path, uri;
 	
-	// std::cout << _startUri.size() << " size uristart \n";
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
 		uri = _startUri;
-	//  _startUri = _root + _startUri;
-	// std::cout << ".....> " << uri << std::endl;
 	if (_Location[uri].getFlagIndex())
 		_indexPages = _Location[uri].getIndexPages();
-	// std::cout << "Index before ..> " << _autoIndex << std::endl;
 	if (_Location[uri].getFlagAutoInx())
 		_autoIndex = _Location[uri].getAutoIndex();
-	// std::cout << "Index after ..> " << _autoIndex << std::endl;
 	if (_Location[uri].getRootFlag())
 		_root = _Location[uri].getRoot();
 	if (_Location[uri].getReturnFlag())
 		_returnPages = _Location[uri].getReturnPages();
 	if (_Location[uri].getFlagErrorPages())
 		_pagesError = _Location[uri].getPagesError();
-	// Check if the URI is a directory
+	if (_Location[uri].getFlagCgi())
+		_Cgi = _Location[uri].getCgiPath();
+
 	if (isRepertory(_root, _startUri) == 3)
 	{
 		if (_startUri[_startUri.size() -1] != '/')
-			throw ErrorResponse("Error in the request: URI is not correctly written", ERR_CODE_MOVE_PERM);
+		{
+			this->_statusCode = 301;
+			std::vector<std::string> filesList;
+			std::string tmp  = _root + _startUri;
+			DIR *dir = opendir(tmp.c_str());
+			if (!dir)
+				throw ErrorResponse("Error in the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
+			struct dirent *fileRead;
+			while ((fileRead = readdir(dir)) != NULL)
+				if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
+					filesList.push_back(fileRead->d_name);
+			for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++) {
+				if (*it == ".")
+					continue ;
+				if (*it == "..")
+					continue ;
+				std::string file = (*it);
+				if (isRepertory(_root, _startUri + "/"+ file) == 1 && file[file.size() - 5] == '.')
+				{
+					_startUri = _startUri + "/"+ (*it);
+					closedir(dir);
+					buildPage();
+					return;
+				}
+			}
+			closedir(dir);
+			throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
+		}
 		else {
 			if (!_indexPages.empty()) {
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
@@ -233,13 +328,17 @@ void	Response::buildGet(void) {
 			else
 				throw ErrorResponse("Error in the request: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
-	} else if (isRepertory(_root, _startUri) == 1)
+	}
+	else if (_startUri.find("/cgi/print_response.php") != std::string::npos)
+		buildCgi();
+	else if (isRepertory(_root, _startUri) == 1)
 		buildPage();
 	else
 		throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
 }
 
 void	Response::buildPost(void) {
+
 	std::istringstream	iss(_headers["Content-Type"]);
 	std::string			boundary_start, boundary_end, line, filename, response_header;
 	std::size_t 		pos;

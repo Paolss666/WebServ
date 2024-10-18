@@ -21,6 +21,7 @@ class Response: public Request {
 		~Response(void);
 
 		void								buildGet(void);
+		void								buildCgi(void);
 		void								buildPost(void);
 		void								buildPage(void);
 		void								buildAutoindex(void);
@@ -48,6 +49,7 @@ class Response: public Request {
 		int									_found; // found the good Uri;
 		size_t								_maxBodySize;
 		int									_statusCode;
+		std::string							_Cgi;
 };
 
 #endif
