@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 02:36:09 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/19 12:07:26 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,9 @@ Request::Request(Request const & src): _host(src._host), _event(src._event) {
 
 Request::~Request(void) { return ; }
 
-void	Request::append(std::string const & data) { _raw.append(data); }
+void	Request::append(std::string const & data) {
+	_raw += data;
+}
 
 void	Request::pnc_request_line(std::istringstream & iss) {
 	std::string	line, method, uri, protocol;
@@ -100,10 +102,8 @@ void	Request::pnc_headers(std::istringstream & iss) {
 	}
 }
 
-void	Request::pnc_body(std::istringstream & iss) {
-	char			ch;
-	size_t			len = iss.str().size();
-	size_t			len_max = std::atof(_headers["Content-Length"].c_str());
+void	Request::pnc_body(void) {
+	size_t			body_start, len = _raw.size(), len_max = std::atof(_headers["Content-Length"].c_str());
 	std::string		line;
 	std::streampos	last_pos;
 
@@ -115,22 +115,19 @@ void	Request::pnc_body(std::istringstream & iss) {
 		return ;
 
 	// Skip the empty lines and get back at the start of the body
-	last_pos = iss.tellg();
-	while (std::getline(iss, line, '\n') && line == "\r")
-		last_pos = iss.tellg();
-	iss.seekg(last_pos);
+	body_start = _raw.find_first_of("\r\n\r\n");
+    while (body_start != std::string::npos && body_start < _raw.find_first_not_of("\r\n\r\n")) {
+        body_start += 4;
+        body_start = _raw.find("\r\n\r\n", body_start);
+    }
+	std::cout << "PNC BODY" << std::endl;
+	std::cout << "body_start: " << body_start + 2 << std::endl;
 
-	while (iss.get(ch))
-		_body += ch;
+	// Parse the body
+	_body = _raw.substr(body_start + 2);
 
-	iss.clear();
-	iss.str(_body);
-	_body.clear();
-
-	while (std::getline(iss, line)) {
-		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-		_body += line + '\n';
-	}
+	// Remove the \r from the body
+	_body.erase(std::remove(_body.begin(), _body.end(), '\r'), _body.end());
 
 	_stage = BODY_DONE;
 }
@@ -190,12 +187,10 @@ void	Request::parse() {
 
 	// Parse the body
 	if (_stage == HEADERS_DONE) {
-		iss.clear();
-		iss.str(_raw);
 
 		// Check if a body is expected
 		if (_request_line["method"] == "POST")
-			pnc_body(iss);
+			pnc_body();
 		else
 			_stage = BODY_DONE;
 	}

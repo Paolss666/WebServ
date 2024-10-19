@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 02:50:08 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/19 12:16:00 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,16 +232,22 @@ void	Response::buildPost(void) {
 		}
 	}
 
+	// Go to the start of the file data
+	pos = _body.find("\r\n\r\n");
+	_body = _body.substr(pos + 4);
+
+	std::cout << YELLOW "Body: " << _body << RESET << std::endl;
+
 	// Extract file data
-	while (std::getline(iss, line) && line != boundary_start && line != boundary_end)
-		file_data << line << "\n";
+	for (std::size_t i = 0; i < _body.size(); i++)
+		file_data << _body[i];
 
 	// Save the file
 	// filename = _host._rootPath + "Uploads/medias" + filename;
 	// path = "../www/uploads/medias/" + filename; // Change at 42 !!
 	// std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
-	filename = "test.jpeg";
-	path = "../www/uploads/medias/" + filename; // Change at 42 !!
+	filename = "test.png";
+	path = "../www/uploads/" + filename; // Change at 42 !!
 	std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
 
 	std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);

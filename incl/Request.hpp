@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 01:28:59 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/19 11:39:13 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Request {
 		void								append(std::string const & data);
 		void								pnc_request_line(std::istringstream & iss);
 		void								pnc_headers(std::istringstream & iss);
-		void								pnc_body(std::istringstream & iss);
+		void								pnc_body(void);
 
 		Host &								_host;
 		struct epoll_event &				_event;

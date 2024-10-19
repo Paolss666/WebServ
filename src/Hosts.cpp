@@ -106,8 +106,8 @@ void	Host::new_connection(void) {
 
 void	Host::parse_request(int i) {
 	char								buffer[BUFFER_SIZE] = { 0 };
+	std::string							line;
 	int									valread, fd = _events[i].data.fd;
-	std::string							raw;
 	std::map<int, Request>::iterator	it = _requests.find(fd);
 
 	// Read data from client
@@ -115,18 +115,15 @@ void	Host::parse_request(int i) {
 		valread = read(fd, buffer, BUFFER_SIZE - 1);
 		if (valread < 0)
 			throw ErrorFdManipulation("Error in the read", ERR_CODE_INTERNAL_ERROR);
-		buffer[valread] = '\0';
+		line = buffer;
 	} catch (const ErrorFdManipulation & e) {
 		return send_error_page(*this, i, e, NULL);
 	}
 
-	// Append the data to the request
-	raw = buffer;
-
 	if (it != _requests.end())
-		it->second.append(raw);
+		it->second.append(line);
 	else {
-		Request tmp(*this, _events[i], raw);
+		Request tmp(*this, _events[i], line);
 		_requests.insert(std::pair<int, Request>(fd, tmp));
 		it = _requests.find(fd);
 	}
@@ -222,7 +219,7 @@ void	Host::run_server(void) {
 				it = _requests.find(_events[i].data.fd);
 				if (it->second._stage == BODY_DONE) {
 					std::cout << YELLOW "New request cought" RESET << std::endl;
-					print_request(it->second._request_line, it->second._headers, it->second._body);
+					// print_request(it->second._request_line, it->second._headers, it->second._body);
 					std::cout << std::endl;
 					_events[i].events = EPOLLOUT;
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);
