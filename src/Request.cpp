@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 17:07:18 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/19 02:36:09 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,13 @@
 
 Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1), _eof(1) { return ; }
 
-Request::Request(Request const & src): _host(src._host), _event(src._event), _stage(-1), _eof(1) {
+Request::Request(Request const & src): _host(src._host), _event(src._event) {
 	_raw = src._raw;
 	_request_line = src._request_line;
 	_headers = src._headers;
 	_body = src._body;
+	_stage = src._stage;
+	_eof = src._eof;
 }
 
 Request::~Request(void) { return ; }
@@ -92,7 +94,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 		if (_headers.find("Content-Length") == _headers.end())
 			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_LENGTH_REQUIRED);
 		if (_headers.find("Content-Type") == _headers.end() || _headers["Content-Type"].empty())
-			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_UNSUPPORTED_MEDIA);
+			throw ErrorRequest("Error in the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
 		if (_headers["Content-Length"].empty() || _headers["Content-Length"].find_first_not_of("0123456789") != std::string::npos)
 			throw ErrorRequest("Error in the request: content-length mismatch", ERR_CODE_BAD_REQUEST);
 	}
@@ -100,13 +102,13 @@ void	Request::pnc_headers(std::istringstream & iss) {
 
 void	Request::pnc_body(std::istringstream & iss) {
 	char			ch;
-	long			len, max_content_len;
+	size_t			len = iss.str().size();
+	size_t			len_max = std::atof(_headers["Content-Length"].c_str());
 	std::string		line;
 	std::streampos	last_pos;
 
-	// Check the body size
-	if (iss.str().size() > MAX_BODY_SIZE || iss.str().size() > _host._maxBodySize
-		|| iss.str().size() > size_t(std::atof(_headers["Content-Length"].c_str())))
+	// Check the body size during reading
+	if (len > MAX_BODY_SIZE || len > _host._maxBodySize	|| len > len_max)
 		throw ErrorRequest("Error in the request: body too long", ERR_CODE_BAD_REQUEST);
 
 	if (_eof > 0)
@@ -118,17 +120,16 @@ void	Request::pnc_body(std::istringstream & iss) {
 		last_pos = iss.tellg();
 	iss.seekg(last_pos);
 
-	if (_headers.find("Content-Length") != _headers.end()) {
-		if (_request_line["method"] == "POST") {
-			max_content_len = long(std::atof(_headers["Content-Length"].c_str()));
-			len = 0;
-			while (iss.get(ch)) {
-				len++;
-				_body.append(1, ch);
-			}
-			if (len != max_content_len)
-				throw ErrorRequest("Error in the request: body not complete", ERR_CODE_BAD_REQUEST);	
-		}
+	while (iss.get(ch))
+		_body += ch;
+
+	iss.clear();
+	iss.str(_body);
+	_body.clear();
+
+	while (std::getline(iss, line)) {
+		line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+		_body += line + '\n';
 	}
 
 	_stage = BODY_DONE;

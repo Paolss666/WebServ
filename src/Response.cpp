@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/17 12:07:55 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/19 02:50:08 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ void	Response::buildGet(void) {
 	// Check if the URI is a directory
 	if (isRepertory(_root, _startUri) == 3) {
 		if (_startUri[_startUri.size() -1] != '/')
-			throw ErrorResponse("Error in the request: URI is not correctly written", ERR_CODE_MOVE_PERM);
+			throw ErrorResponse("Error in the response: URI is not correctly written", ERR_CODE_MOVE_PERM);
 		else {
 			if (!_indexPages.empty()) {
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
@@ -195,35 +195,34 @@ void	Response::buildGet(void) {
 			else if (_autoIndex)
 				buildAutoindex();
 			else
-				throw ErrorResponse("Error in the request: URI points nowhere", ERR_CODE_FORBIDDEN);
+				throw ErrorResponse("Error in the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	} else if (isRepertory(_root, _startUri) == 1)
 		buildPage();
 	else
-		throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("Error in the response: URI is not a directory", ERR_CODE_NOT_FOUND);
 }
 
 void	Response::buildPost(void) {
 	std::istringstream	iss(_headers["Content-Type"]);
-	std::string			boundary_start, boundary_end, line, filename, response_header;
+	std::string			boundary_start, boundary_end, line, filename, path;
 	std::size_t 		pos;
 	std::ostringstream	file_data;
 
 	if (!std::getline(iss, boundary_start, '=') || !std::getline(iss, boundary_start) || boundary_start.empty())
-		throw ErrorRequest("Error in the request: content-type not well formatted", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("Error in the response: content-type not well formatted", ERR_CODE_INTERNAL_ERROR);
 	boundary_start = "--" + boundary_start;
-	boundary_end = "--" + boundary_start + "--";
+	boundary_end = boundary_start + "--";
 	
 	// Go to the start of the boundary
 	pos = _body.find(boundary_start);
 	iss.clear();
 	iss.str(_body);
 	iss.seekg(pos + boundary_start.size());
-	
+
 	// Parse the multipart form data
-	while (std::getline(iss, line) && line != boundary_end) {
+	while (std::getline(iss, line) && line.find("Content-Type:") == std::string::npos) {
 		if (line.find("Content-Disposition: form-data;") != std::string::npos) {
-			
 			// Extract filename
 			pos = line.find("filename=\"");
 			if (pos != std::string::npos) {
@@ -231,32 +230,38 @@ void	Response::buildPost(void) {
 				filename = line.substr(pos, line.find("\"", pos) - pos);
 			}
 		}
-
-		// Skip headers
-		while (std::getline(iss, line) && !line.empty() && line != "\r");
-
-		// Extract file data
-		while (std::getline(iss, line) && line != boundary_start && line != boundary_end) {
-			file_data << line << "\n";
-		}
-
-		// Save the file
-		std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
-		if (!outfile.is_open())
-			throw ErrorRequest("Error in the request: cannot open the file", ERR_CODE_INTERNAL_ERROR);
-		outfile << file_data.str();
-		outfile.close();
-
-		// // Send a response to the client
-		// response_header = "HTTP/1.1 200 OK\r\n";
-		// response_header += "Content-Length: 0\r\n";
-		// response_header += "Content-Type: text/plain\r\n";
-		// response_header += "\r\n";
-
-		// int error = send(fd, response_header.c_str(), response_header.length(), MSG_NOSIGNAL);
-		// if (error == -1)
-		// 	throw ErrorRequest("Error in the request: cannot send the response", ERR_CODE_INTERNAL_ERROR);
 	}
+
+	// Extract file data
+	while (std::getline(iss, line) && line != boundary_start && line != boundary_end)
+		file_data << line << "\n";
+
+	// Save the file
+	// filename = _host._rootPath + "Uploads/medias" + filename;
+	// path = "../www/uploads/medias/" + filename; // Change at 42 !!
+	// std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
+	filename = "test.jpeg";
+	path = "../www/uploads/medias/" + filename; // Change at 42 !!
+	std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
+
+	std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
+	if (!outfile.is_open())
+		throw ErrorResponse("Error in the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
+	outfile << file_data.str();
+	outfile.close();
+
+	// Send a response to the client
+	_response_body = "HTTP/1.1 200 OK\r\n";
+	_response_body += "Content-Length: 0\r\n";
+	_response_body += "Content-Type: text/plain\r\n";
+	_response_body += "\r\n";
+	_response_body += "File uploaded successfully.\n";
+    _response_body += "File URL: " + path + "\n";
+
+	_response_ready = true;
+
+	if (line.find(boundary_end) == std::string::npos)
+		throw ErrorResponse("Error in the response: body not complete", ERR_CODE_BAD_REQUEST);
 }
 
 Response::~Response(void) {	return ; }

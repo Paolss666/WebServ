@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/13 17:07:23 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/19 01:28:59 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,7 @@ class Request {
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
 		int									_stage;
-		int									_eof;
-		
+		int									_eof;	
 };
 
 #endif
