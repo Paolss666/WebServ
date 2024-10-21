@@ -1,9 +1,11 @@
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entrer un URI</title>
-    <style>
+#!/usr/bin/php-cgi
+<?php
+// header("Content-Type: text/html; charset=UTF-8");
+// file_put_contents('log.txt', print_r($_GET, true));
+if (isset($_GET['?uri'])) {
+    $uri = htmlspecialchars($_GET['?uri']);
+    echo "<head>";
+    echo ' <style>
         body {
             font-family: "Arial", sans-serif;
             display: flex;
@@ -64,26 +66,23 @@
             box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-    </style>
-</head>
-<body>
-    <h2>Entrez un URI pour l'afficher sur une autre page</h2>
-    <form action="/cgi/print_response.php" method="GET">
-        <label for="uri">URI :</label>
-        <input type="text" id="uri" name="uri" required>
-        <input type="submit" value="Envoyer">
-    </form>
-    <div class="button-container">
-        <button onclick="showMessage()">Show Message</button>
-        <a href="/home/index.html" class="link-button">Go to Page</a>
-        <a href="/bla/index2.html" class="link-button">Go to Page bla</a>
-        <a href="/cgi/basic.html" class="link-button">Go to CGI</a>
-    </div>
-
-    <script>
+    </style>';
+    echo "</head>";
+    echo '<html><body>';
+    echo '<h1>Résultat is: ' . $uri . '</h1>';
+    echo '<div class="button-container">';
+    echo '<button onclick="showMessage()">Show Message</button>';
+    echo '<a href="/home/index.html" class="link-button">Go to Page</a>';
+    echo '<a href="/bla/index2.html" class="link-button">Go to Page bla</a>';
+    echo '<a href="/cgi/basic.html" class="link-button">Go to CGI</a>';
+    echo '</div>';
+    echo '<script>
         function showMessage() {
-            alert('Hello! You clicked the button.');
+            alert("Hello! You clicked the button.");
         }
-    </script>
-</body>
-</html>
+    </script>';
+    echo "</body></html>";
+} else {
+    echo "Aucun URI fourni !";
+}
+?>

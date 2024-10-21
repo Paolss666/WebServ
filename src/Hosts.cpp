@@ -229,8 +229,8 @@ void	Host::run_server(void) {
 			}
 		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
-		else
-			std::cout << "Unknown event detected" << std::endl;
+		// else
+		// 	std::cout << "Unknown event detected" << std::endl;
 	}
 }
 

@@ -246,18 +246,219 @@ void	Response::buildPage(void) {
 	_response_ready = true;
 }
 
+std::vector<std::string>	Response::MakeEnvCgi(std::string &cgi)
+{
+	std::vector<std::string> env;
+	std::stringstream	buffer;
+
+	// std::cout << "_cgi --- >>>>>>>>>>>>>>>>>>>>> " << _Cgi << std::endl;
+	std::ifstream fileRequested(cgi.c_str());
+	if (fileRequested.good() == false)
+		throw ErrorResponse("Error in the opening of the file requested", ERR_CODE_NOT_FOUND);
+	
+	buffer  << fileRequested.rdbuf();
+
+	// std::string			resourceName, fileExtension;
+	// size_t				pos;
+
+
+
+	std::ostringstream 	oss;
+	_response_body = buffer.str();
+	if (_response_body.size() > _maxBodySize) {
+		_response_body = "";
+		throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
+	}
+	oss << _response_body;
+	exportENV(env, "CONTENT_LENGTH", oss.str());
+	exportENV(env, "CONTENT_TYPE", "text/html");
+	std::string pathInfo = "/home/npaolett/42/WebServerGet/" + cgi; // Assicurati che sia corretto
+	exportENV(env, "GATEWAY_INTERFACE", "CGI/1.1");
+	for (std::map<std::string, std::string>::iterator it = _response_header.begin(); it != _response_header.end(); it++)
+	{
+		std::string keyWord = it->first;
+		int i = 0;
+		while (keyWord[i])
+		{
+			keyWord[i] = toupper(keyWord[i]);
+			if (keyWord[i] == '-')
+				keyWord[i] = '_';
+			i++;
+		}
+		keyWord.insert(0, "HTTP_");
+		if (keyWord != "HTTP_CONNECTION")
+			exportENV(env, keyWord, it->second);
+	}
+	size_t pos = _startUri.find_last_of('?');
+	std::string query = _startUri.substr(pos, _startUri.size());
+;	exportENV(env, "QUERY_STRING",query);
+	exportENV(env, "REDIRECT_STATUS", "200");// 200 to indicate the requesst was hande correctly
+	exportENV(env, "REQUEST_METHOD", _request_line["method"]);
+	exportENV(env, "SCRIPT_NAME", _startUri);
+	exportENV(env, "SCRIPT_FILENAME", pathInfo);
+	exportENV(env, "SERVER_PROTOCOL", "HTTP/1.1");
+	exportENV(env, "SERVER_SOFTWARE", "webserv");
+	return (env);
+}
+
 void	Response::buildCgi()
 {
 	std::string root_Uri = _root + _startUri;
 
 	std::cout << " ---> rootUri -> inside Cgi -> " << root_Uri << std::endl;
-	if (access(root_Uri.c_str(), F_OK))
-		throw ErrorResponse("Error in the request: URI CGI", ERR_CODE_NOT_FOUND);
+	size_t extention = _startUri.find_last_of('.');
+	// if (extention == ".php")
+	// 	_Cgi += ".php";
+	std::string _Cgi = _startUri.substr(0, extention);
+	_Cgi += ".php";
+	_Cgi = _root + _Cgi;
+	std::cout << _Cgi << " <--- FILE URI -------------------------------\n";
+	std::string uri_for_cgi = _startUri.substr(extention, _startUri.size());
+	std::string cgi;
+	std::cout << uri_for_cgi << " <----------------------------------\n";
+	if (access(_Cgi.c_str(), F_OK))
+		throw ErrorResponse("Error in the request: access URI CGI", ERR_CODE_NOT_FOUND);
 
-	std::cout << " ---> startUri -> inside Cgi -> " << _startUri << std::endl;
+	std::cout << " <<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>." << std::endl;
 
-	
+	int writeStatus; 
+	// generate a fd_out 4 the cgi 
+
+	int	cgiFdOut = open(".cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFdOut == -1)
+	if (chmod(".cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+	{
+		close(cgiFdOut);
+		throw ErrorResponse("Error in the request: FILE CGI", ERR_CODE_NOT_FOUND);
+	}
+	// generate a fd_in 4 the cgi
+	int	cgiFdIn = open(".body_cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
+	if (cgiFdIn == -1)
+	{
+		close(cgiFdOut);
+		close(cgiFdOut);
+		throw ErrorResponse("Error in the request: FILE CGI", ERR_CODE_NOT_FOUND);
+	}
+	if (chmod(".body_cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
+		throw ErrorResponse("Error in the request: FILE_body CGI", ERR_CODE_NOT_FOUND);
+
+	}
+	int	fd[2];
+	if (pipe(fd) == - 1)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
+		throw ErrorResponse("Error in the request: PIPE CGI", ERR_CODE_NOT_FOUND);
+	}
+
+
+
+	// HERE I ll put or build the find version 4 Different CGI php or PY
+
+
+	std::vector<std::string> vecEnv = MakeEnvCgi(_Cgi);
+
+	char * finalUriChar = const_cast<char*>(_startUri.c_str());
+	_cgi = const_cast<char*>(_Cgi.c_str());
+
+	time_t	start = time(NULL);
+	pid_t	pid = fork();
+	if (pid == -1)
+	{
+		(close(cgiFdOut), close(cgiFdIn));
+		throw ErrorResponse("Error in the request: FILE FORK CGI", 500);
+	}
+	if (pid == 0)//child
+	{
+		close(fd[1]);
+		dup2(fd[0], STDIN_FILENO);//stdin devient pipe[0]
+		close(fd[0]);
+		dup2(cgiFdOut, STDOUT_FILENO);//stdout devient pipe[1]
+		close(cgiFdOut);
+		char *av[] = {_cgi,finalUriChar,  NULL};
+		char **env = vectorStringToChar(vecEnv);
+		close(cgiFdIn);
+		execve(_cgi, av, env);
+		// FAIL EXECVE 
+		perror("execve");
+		sleep(3);
+		exit(EXIT_FAILURE);
+	}
+	close(fd[0]);
+	std::ofstream writeInPipe;
+	writeInPipe.open(".body_cgi.txt");
+	if (!writeInPipe.is_open())
+	{
+		close(fd[1]);
+		throw ErrorResponse("Error in the request: FILE OPEN body CGI", 500);
+	}
+	writeInPipe << _response_body;
+	writeInPipe.close();
+	close(fd[1]);
+	while (true)
+	{
+		pid_t	pid_result = waitpid(pid, &writeStatus, WNOHANG);
+		if (pid_result > 0)// success
+			break;
+		if (pid_result == 0)// no state change detected
+		{
+			time_t	end = time(NULL);
+			if (end - start >= 10)
+			{
+				close(cgiFdOut);
+				close(cgiFdIn);
+				if (kill(pid, SIGKILL) == -1)
+					perror("kill");
+				pid_result = waitpid(pid, &writeStatus, WNOHANG);
+				_statusCode = 500;
+				remove(".cgi.txt");
+				remove(".body_cgi.txt");
+				throw ErrorResponse("Error in the request: FILE_____ CGI", 500);
+			}
+		}
+		else// waitpid failed
+		{
+			perror("waitpid");
+			close(cgiFdOut);
+			close(cgiFdIn);
+			throw ErrorResponse("Error in the request: waitPID CGI", 500);
+		}
+	}
+	close(cgiFdOut);
+	close(cgiFdIn);
+
+	std::ifstream ifs(".cgi.txt");
+	if (!ifs.is_open()) {
+	    throw ErrorResponse("Error in the request: Open FILE CGI", 404);
+	}
+	remove(".body_cgi.txt");
+	remove(".cgi.txt");
+	std::stringstream responseStream;
+	responseStream << ifs.rdbuf();
+	_response_body = responseStream.str(); 
+	if (_response_body.size() > _maxBodySize) {
+	    _response_body = "";
+	    throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
+	}
+
+	std::ostringstream responseHeaders;
+	responseHeaders << "HTTP/1.1 " << _statusCode << " OK\r\n";
+	responseHeaders << "Content-Type: text/html; charset=UTF-8\r\n";
+	responseHeaders << "Content-Length: " << _response_body.size() << "\r\n"; // Imposta Content-Length
+	responseHeaders << "\r\n";
+
+	_response_message = responseHeaders.str() + _response_body;
 	_response_ready = true;
+}
+
+
+
+
+
+void	Response::exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value)
+{
+	env.push_back(key + "=" + value);
 }
 
 void	Response::buildGet(void) {

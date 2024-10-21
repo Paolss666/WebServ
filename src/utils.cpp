@@ -162,3 +162,28 @@ std::string	trim(std::string & str) {
 void	ft_print_coucou(int i) {
 	std::cout << "COUCOU " << i << std::endl;
 }
+
+// std::string	getAbsPath(std::string &path)
+// {
+// 	// on compare le debut de path si c'est pas ./ on renvoie /
+// 	if (!(path.size() >= 2 && path.compare(0,  2, "./")))
+// 		return ("/");
+// 	char	buffer[PATH_MAX];
+// 	char *buf = getcwd(buffer, sizeof(buffer));
+// 	if (buf)
+// 		return (buf);
+// 	return ("/");
+// }
+
+char	**vectorStringToChar(std::vector<std::string> &vector)
+{
+	char** tab = new char*[vector.size() + 1];
+	for (size_t i = 0; i < vector.size(); i++)
+	{
+		tab[i] = new char[vector[i].size() + 1];
+		std::copy(vector[i].begin(), vector[i].end(), tab[i]);
+		tab[i][vector[i].size()] = '\0';
+	}
+	tab[vector.size()] = NULL;
+	return (tab);
+}

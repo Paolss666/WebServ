@@ -28,6 +28,9 @@ int 		isRepertory(std::string root, std::string filename);
 std::string	trim(std::string & str);
 void		ft_print_coucou(int i);
 
+std::string	getAbsPath(std::string &path);
+
+char	**vectorStringToChar(std::vector<std::string> &vector);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black
