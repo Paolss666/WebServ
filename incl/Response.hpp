@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:22:37 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/17 12:04:34 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/21 18:38:54 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class Response: public Request {
 
 		void								buildGet(void);
 		void								buildPost(void);
+		void								buildDelete(void);
 		void								buildPage(void);
 		void								buildAutoindex(void);
 		void								send_response(int fd, bool *done);
@@ -31,7 +32,7 @@ class Response: public Request {
 		std::string							_response_message;
 		std::string							_Ip;
 		std::string							_Port;
-		std::map<std::string, Location> 	 _Location;
+		std::map<std::string, Location>		_Location;
 		std::string							_serverName;
 		std::vector<std::string>			_indexPages;
 		std::string							_path_file;

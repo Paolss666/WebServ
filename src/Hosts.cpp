@@ -70,6 +70,26 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 }
 Host::~Host() { return ; }
 
+void	Host::json_update(void) {
+	std::ostringstream	oss;
+	std::string			json;
+
+	oss << "[";
+	for (size_t i = 0; i < _files.size(); ++i) {
+		oss << "\"" << _files[i] << "\"";
+		if (i < _files.size() - 1)
+			oss << ",";
+	}
+	oss << "]";
+	json = oss.str();
+
+	std::ofstream file((_rootPath + "/uploads/files.json").c_str());
+	if (!file.is_open())
+		throw ErrorFdManipulation("Error in the opening of the file", ERR_CODE_INTERNAL_ERROR);
+	file << json;
+	file.close();
+}
+
 void	Host::new_connection(void) {
 	int					res;
 	std::ostringstream	oss;
@@ -106,7 +126,6 @@ void	Host::new_connection(void) {
 
 void	Host::parse_request(int i) {
 	char								buffer[BUFFER_SIZE] = { 0 };
-	std::string							line;
 	int									valread, fd = _events[i].data.fd;
 	std::map<int, Request>::iterator	it = _requests.find(fd);
 
@@ -115,15 +134,14 @@ void	Host::parse_request(int i) {
 		valread = read(fd, buffer, BUFFER_SIZE - 1);
 		if (valread < 0)
 			throw ErrorFdManipulation("Error in the read", ERR_CODE_INTERNAL_ERROR);
-		line = buffer;
 	} catch (const ErrorFdManipulation & e) {
 		return send_error_page(*this, i, e, NULL);
 	}
 
 	if (it != _requests.end())
-		it->second.append(line);
+		it->second.append(buffer, valread);
 	else {
-		Request tmp(*this, _events[i], line);
+		Request tmp(*this, _events[i], static_cast<std::string>(buffer));
 		_requests.insert(std::pair<int, Request>(fd, tmp));
 		it = _requests.find(fd);
 	}
@@ -153,8 +171,15 @@ void	Host::act_on_request(int i) {
 		if (!it_resp->second._response_ready) {
 			if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
-			else if (it_resp->second._request_line["method"] == "POST")
+			else if (it_resp->second._request_line["method"] == "POST") {
 				it_resp->second.buildPost();
+				_files.push_back(it_resp->second._filename);
+			}
+			else if (it_resp->second._request_line["method"] == "DELETE") {
+				it_resp->second.buildDelete();
+				if (it_resp->second._filename != "is a directory")
+					_files.erase(std::remove(_files.begin(), _files.end(), it_resp->second._filename), _files.end());
+			}
 			else
 				throw ErrorResponse("Error in the request: method not implemented", ERR_CODE_MET_NOT_ALLOWED);
 		}
@@ -166,6 +191,9 @@ void	Host::act_on_request(int i) {
 				return ;
 		}
 		
+		// Update files list JSON
+		json_update();
+
 		// Close the connection if needed
 		if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
 			|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !it_req->second._headers["Connection"].compare("keep-alive"))) {
@@ -217,9 +245,9 @@ void	Host::run_server(void) {
 				parse_request(i);
 				// Change the event to EPOLLOUT
 				it = _requests.find(_events[i].data.fd);
-				if (it->second._stage == BODY_DONE) {
+				if (it != _requests.end() && it->second._stage == BODY_DONE) {
 					std::cout << YELLOW "New request cought" RESET << std::endl;
-					// print_request(it->second._request_line, it->second._headers, it->second._body);
+					print_request(it->second._request_line, it->second._headers, it->second._body);
 					std::cout << std::endl;
 					_events[i].events = EPOLLOUT;
 					epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, _events[i].data.fd, &_events[i]);

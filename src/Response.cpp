@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 12:16:00 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/21 19:40:13 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	Response::send_response(int fd, bool *done) {
 		sent = send(fd, _response_message.c_str(), BUFFER_SIZE, MSG_MORE | MSG_NOSIGNAL);
 	else
 		sent = send(fd, _response_message.c_str(), _response_message.size(), MSG_NOSIGNAL);
-	
+
 	if (sent == -1)
 		throw ErrorResponse("Error in the send of the response", ERR_CODE_INTERNAL_ERROR);
 	else
@@ -204,70 +204,105 @@ void	Response::buildGet(void) {
 }
 
 void	Response::buildPost(void) {
-	std::istringstream	iss(_headers["Content-Type"]);
-	std::string			boundary_start, boundary_end, line, filename, path;
-	std::size_t 		pos;
-	std::ostringstream	file_data;
+	std::istringstream	iss;
+	std::string			line, path;
+	size_t 				pos, start = 0;
 
-	if (!std::getline(iss, boundary_start, '=') || !std::getline(iss, boundary_start) || boundary_start.empty())
-		throw ErrorResponse("Error in the response: content-type not well formatted", ERR_CODE_INTERNAL_ERROR);
-	boundary_start = "--" + boundary_start;
-	boundary_end = boundary_start + "--";
+	// Get the boundary
+	iss.str(_headers["Content-Type"]);
+	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
+		throw ErrorResponse("Error in the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);
+	_boundary += "--";
 	
-	// Go to the start of the boundary
-	pos = _body.find(boundary_start);
-	iss.clear();
-	iss.str(_body);
-	iss.seekg(pos + boundary_start.size());
-
-	// Parse the multipart form data
-	while (std::getline(iss, line) && line.find("Content-Type:") == std::string::npos) {
-		if (line.find("Content-Disposition: form-data;") != std::string::npos) {
-			// Extract filename
-			pos = line.find("filename=\"");
-			if (pos != std::string::npos) {
-				pos += 10; // Move past 'filename="'
-				filename = line.substr(pos, line.find("\"", pos) - pos);
-			}
+	// Get the end of preliminary binary information
+	for (std::size_t i = 0; i < _binary_body.size(); i++) {
+		line += _binary_body[i];
+		if (line.size() >= 4 && line.size() < _binary_body.size() && line.substr(line.size() - 4) == "\r\n\r\n") {
+			start = i + 1;
+			break;
 		}
 	}
+	if (!start)
+		throw ErrorResponse("Error in the response: missing opening body information", ERR_CODE_BAD_REQUEST);
 
-	// Go to the start of the file data
-	pos = _body.find("\r\n\r\n");
-	_body = _body.substr(pos + 4);
-
-	std::cout << YELLOW "Body: " << _body << RESET << std::endl;
-
-	// Extract file data
-	for (std::size_t i = 0; i < _body.size(); i++)
-		file_data << _body[i];
+	// Parse the multipart form data
+	pos = line.find("filename=\"");
+	if (pos != std::string::npos) {
+		pos += 10; // Move past 'filename="'
+		_filename = line.substr(pos, line.find("\"", pos) - pos);
+	} else
+		throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
+	
+	// Check the end of file string is present
+	line.clear();
+	for (size_t i = _binary_body.size() - _boundary.size() - 2; i < _binary_body.size(); i++)
+		line += _binary_body[i];
+	if (line.find(_boundary) == std::string::npos)
+		throw ErrorResponse("Error in the response: missing closing body information", ERR_CODE_BAD_REQUEST);
 
 	// Save the file
-	// filename = _host._rootPath + "Uploads/medias" + filename;
-	// path = "../www/uploads/medias/" + filename; // Change at 42 !!
-	// std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
-	filename = "test.png";
-	path = "../www/uploads/" + filename; // Change at 42 !!
-	std::cout << "Saving file: " << filename << " to location: " << path << std::endl;
+	path = _host._rootPath + "/uploads/";
+	std::cout << "Saving file: " << _filename << " to location: " << path << std::endl;
 
-	std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
+	std::ofstream outfile((path + _filename).c_str(), std::ios::binary);
 	if (!outfile.is_open())
 		throw ErrorResponse("Error in the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
-	outfile << file_data.str();
+	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++)
+		outfile.put(_binary_body[i]);
 	outfile.close();
 
 	// Send a response to the client
-	_response_body = "HTTP/1.1 200 OK\r\n";
-	_response_body += "Content-Length: 0\r\n";
-	_response_body += "Content-Type: text/plain\r\n";
-	_response_body += "\r\n";
-	_response_body += "File uploaded successfully.\n";
-    _response_body += "File URL: " + path + "\n";
+	_response_message = "HTTP/1.1 200 OK\r\n";
+	_response_message += "Server: " + _serverName + "\r\n";
+	_response_message += "\r\n";
 
 	_response_ready = true;
+}
 
-	if (line.find(boundary_end) == std::string::npos)
-		throw ErrorResponse("Error in the response: body not complete", ERR_CODE_BAD_REQUEST);
+void Response::buildDelete(void) {
+	int			res;
+	struct stat	check;
+	std::string	file;
+
+	// Check if the URI exists
+	file = _root + _request_line["uri"];
+	res = stat(file.c_str(), &check);
+	if (res == -1)
+		throw ErrorResponse("Error in the response: file not found", ERR_CODE_NOT_FOUND);
+	
+	// Check if the URI is a directory
+	if (S_ISDIR(check.st_mode)) {
+		_filename = "is a directory";
+
+		// Check if the URI is a directory with correct ending
+		if (_request_line["uri"].substr(_request_line["uri"].size() - 1) != "/")
+			throw ErrorResponse("Error in the response: URI for directory does not end with /", ERR_CODE_CONFLICT);
+		
+		// Check for write permission
+		if (access(file.c_str(), W_OK) == -1)
+			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+
+		// Attempt to remove the directory
+		if (rmdir(file.c_str()) == -1)
+			throw ErrorResponse("Error in the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
+	} else {
+		_filename = _request_line["uri"];
+
+		// // Check for write permission
+		if (access(file.c_str(), W_OK) == -1)
+			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+
+		// Attempt to remove the file
+		if (unlink(file.c_str()) == -1)
+			throw ErrorResponse("Error in the response: file not removed", ERR_CODE_INTERNAL_ERROR);
+	}
+
+	// Send a response to the client
+	_response_message = "HTTP/1.1 204 No Content\r\n";
+	_response_message += "Server: " + _serverName + "\r\n";
+	_response_message += "\r\n";
+
+	_response_ready = true;
 }
 
 Response::~Response(void) {	return ; }

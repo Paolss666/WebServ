@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 11:39:13 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/21 19:02:27 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ class Request {
 		~Request(void);
 
 		void								parse(void);
-		void								append(std::string const & data);
+		void								append(const char * buffer, int valread);
 		void								pnc_request_line(std::istringstream & iss);
 		void								pnc_headers(std::istringstream & iss);
 		void								pnc_body(void);
@@ -32,11 +32,15 @@ class Request {
 		Host &								_host;
 		struct epoll_event &				_event;
 		std::string							_raw;
+		std::string							_body_info;
+		std::string							_boundary;
+		std::string							_body;
+		std::string							_filename;
 		std::map<std::string, std::string>	_request_line;
 		std::map<std::string, std::string>	_headers;
-		std::string							_body;
+		std::vector<char>					_binary_body;
 		int									_stage;
-		int									_eof;	
+		int									_eof;
 };
 
 #endif

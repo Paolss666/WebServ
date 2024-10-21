@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 12:07:26 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/21 18:57:46 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,12 +21,18 @@ Request::Request(Request const & src): _host(src._host), _event(src._event) {
 	_body = src._body;
 	_stage = src._stage;
 	_eof = src._eof;
+
+	for (size_t i = 0; i < src._binary_body.size(); i++)
+		_binary_body.push_back(src._binary_body[i]);
 }
 
 Request::~Request(void) { return ; }
 
-void	Request::append(std::string const & data) {
-	_raw += data;
+void	Request::append(const char * buffer, int valread) {
+	if (_stage == HEADERS_DONE)
+		_binary_body.insert(_binary_body.end(), buffer, buffer + valread);
+	else
+		_raw += std::string(buffer, valread);
 }
 
 void	Request::pnc_request_line(std::istringstream & iss) {
@@ -103,31 +109,23 @@ void	Request::pnc_headers(std::istringstream & iss) {
 }
 
 void	Request::pnc_body(void) {
-	size_t			body_start, len = _raw.size(), len_max = std::atof(_headers["Content-Length"].c_str());
-	std::string		line;
-	std::streampos	last_pos;
+	size_t				len, len_max = std::atof(_headers["Content-Length"].c_str());
+	std::string			line;
+	std::istringstream	iss;
+
+	len = _binary_body.size();
 
 	// Check the body size during reading
-	if (len > MAX_BODY_SIZE || len > _host._maxBodySize	|| len > len_max)
+	if (len > MAX_BODY_SIZE + 1 || len > _host._maxBodySize + 1	|| len > len_max + 1)
 		throw ErrorRequest("Error in the request: body too long", ERR_CODE_BAD_REQUEST);
 
+	// Is the body complete?
 	if (_eof > 0)
 		return ;
 
-	// Skip the empty lines and get back at the start of the body
-	body_start = _raw.find_first_of("\r\n\r\n");
-    while (body_start != std::string::npos && body_start < _raw.find_first_not_of("\r\n\r\n")) {
-        body_start += 4;
-        body_start = _raw.find("\r\n\r\n", body_start);
-    }
-	std::cout << "PNC BODY" << std::endl;
-	std::cout << "body_start: " << body_start + 2 << std::endl;
-
-	// Parse the body
-	_body = _raw.substr(body_start + 2);
-
-	// Remove the \r from the body
-	_body.erase(std::remove(_body.begin(), _body.end(), '\r'), _body.end());
+	// Check body's length
+	if (len != len_max && len != len_max + 1)
+		std::cout << YELLOW "Body size: " << len << " | Expected: " << len_max << RESET << std::endl;
 
 	_stage = BODY_DONE;
 }
@@ -179,19 +177,18 @@ void	Request::parse() {
 		pnc_headers(iss);
 
 		// Mark the headers as done & store the end of the request line
+		if (_request_line["method"] != "POST") {
+			_stage = BODY_DONE;
+			return ;
+		}
 		_stage = HEADERS_DONE;
 		if (iss.tellg() < 0)
 			return ;
 		_raw = _raw.substr(static_cast<std::string::size_type>(iss.tellg()));
+		_binary_body.insert(_binary_body.end(), _raw.begin(), _raw.end());
 	}
 
 	// Parse the body
-	if (_stage == HEADERS_DONE) {
-
-		// Check if a body is expected
-		if (_request_line["method"] == "POST")
-			pnc_body();
-		else
-			_stage = BODY_DONE;
-	}
+	if (_stage == HEADERS_DONE)
+		pnc_body();
 }

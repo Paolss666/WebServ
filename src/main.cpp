@@ -6,15 +6,13 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/17 13:37:29 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/21 15:02:49 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
 int	g_sig;
-// std::map<std::string, std::string>	CONTENT_TYPES;
-
 
 std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     std::string				line;
