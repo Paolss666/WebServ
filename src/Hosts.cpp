@@ -171,17 +171,13 @@ void	Host::act_on_request(int i) {
 		if (!it_resp->second._response_ready) {
 			if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
-			else if (it_resp->second._request_line["method"] == "POST") {
+			else if (it_resp->second._request_line["method"] == "POST")
 				it_resp->second.buildPost();
-				_files.push_back(it_resp->second._filename);
-			}
-			else if (it_resp->second._request_line["method"] == "DELETE") {
+			else if (it_resp->second._request_line["method"] == "DELETE")
 				it_resp->second.buildDelete();
-				if (it_resp->second._filename != "is a directory")
-					_files.erase(std::remove(_files.begin(), _files.end(), it_resp->second._filename), _files.end());
-			}
 			else
 				throw ErrorResponse("Error in the request: method not implemented", ERR_CODE_MET_NOT_ALLOWED);
+			json_update();
 		}
 
 		// Send the response
@@ -190,9 +186,6 @@ void	Host::act_on_request(int i) {
 			if (!done)
 				return ;
 		}
-		
-		// Update files list JSON
-		json_update();
 
 		// Close the connection if needed
 		if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
@@ -255,13 +248,23 @@ void	Host::run_server(void) {
 			}
 		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
-		else
-			std::cout << "Unknown event detected" << std::endl;
+		else {
+			std::cout << "Unknown event detected on fd " << _events[i].data.fd << std::endl;
+			char buffer[1024];
+			int i = read(_events[i].data.fd, buffer, 1024);
+			buffer[i] = 0;
+			std::cout << buffer << std::endl;
+		}
 	}
 	std::fill(_events.begin(), _events.end(), epoll_event());
 }
 
 void	Host::close_everything(void) {
+	// Remove all files
+	for (size_t i = 0; i < _files.size(); i++)
+		unlink((_rootPath + "/uploads/" + _files[i]).c_str());
+	
+	// Close all sockets
 	for (size_t i = 0; i < _fdAcceptSock.size(); i++)
 		ft_close(_fdAcceptSock[i]);
 	ft_close(_fdSetSock);

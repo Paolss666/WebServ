@@ -32,6 +32,7 @@
 		.button-container {
 			display: flex;
 			gap: 20px;
+			position: relative;
 		}
 
 		button,
@@ -66,6 +67,26 @@
 			background-color: #03eb63;
 			box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
 		}
+
+		.loading-spinner {
+			display: none; /* Hidden by default */
+			position: fixed;
+			z-index: 999;
+			top: 50%;
+			left: 50%;
+			width: 50px;
+			height: 50px;
+			margin: -25px 0 0 -25px; /* Center the spinner */
+			border: 8px solid rgba(0, 0, 0, 0.1);
+			border-top: 8px solid #3498db;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
 	</style>
 </head>
 
@@ -79,6 +100,7 @@
 			<input class="link-button" type="file" name="file1">
 			<input class="link-button" type="submit" value="Upload">
 		</form>
+		<div class="loading-spinner" id="loadingSpinner"></div>
 	</div>
 	<div class="file-list" id="fileList"></div>
 	<a href="/index.html" class="link-button" style="margin-top: 20px;">Go Home</a>
@@ -87,6 +109,10 @@
             event.preventDefault(); // Prevent the default form submission
 
             const formData = new FormData(this);
+			const loadingSpinner = document.getElementById('loadingSpinner');
+
+			// Show the loading spinner
+			loadingSpinner.style.display = 'block';
 
             fetch(this.action, {
                 method: 'POST',
@@ -96,18 +122,20 @@
             .then(data => {
                 console.log('Success:', data);
                 // Optionally, you can update the page content or show a success message
-				setTimeout(() => {
-                    alert('File uploaded successfully!');
-                    document.getElementById('uploadForm').reset();
-                }, 1000);
+				document.getElementById('uploadForm').reset();
+				loadFileList();
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('File upload failed.');
-            });
+            })
+			.finally(() => {
+            // Hide the loading spinner
+            loadingSpinner.style.display = 'none';
+			});
         });
 		function loadFileList() {
-            fetch('/uploads')
+            fetch('/uploads/files.json')
             .then(response => response.json())
             .then(files => {
                 const fileList = document.getElementById('fileList');

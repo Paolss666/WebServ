@@ -6,13 +6,16 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/21 18:57:46 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/22 18:32:45 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1), _eof(1) { return ; }
+Request::Request(Host & host, struct epoll_event & event, std::string const & raw): _host(host), _event(event), _raw(raw), _stage(-1), _eof(1) {
+	if (raw =="\n")
+		_raw = "";
+}
 
 Request::Request(Request const & src): _host(src._host), _event(src._event) {
 	_raw = src._raw;
@@ -40,7 +43,7 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 
 	// Skip the empty lines
 	while (std::getline(iss, line, '\n') && line == "\r");
-
+	
 	// Check again if there is a whole line
 	if (line.find("\r") == std::string::npos)
 		return ;
@@ -82,6 +85,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 		
 		if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
 			throw ErrorRequest("Error in the request: header not well formatted", ERR_CODE_BAD_REQUEST);
+		
 		// Remove leading and trailing whitespaces
 		key = trim(key);
 		value = trim(value);
@@ -94,6 +98,12 @@ void	Request::pnc_headers(std::istringstream & iss) {
 
 	// Check host
 	oss << _host._port;
+	// if (!_host._name.empty()
+	// 	&& (_headers.find("Host") == _headers.end()
+	// 	|| (_headers["Host"] != _host._name
+	// 	&& _headers["Host"] != _host._raw_ip + ":" + oss.str()
+	// 	&& _headers["Host"] != "localhost:" + oss.str())))
+	// 	throw ErrorRequest("Error in the request: host error", 666);
 	if (!_host._name.empty() && (_headers.find("Host") == _headers.end() || (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
 		throw ErrorRequest("Error in the request: host error", 666);
 
@@ -143,7 +153,7 @@ void	Request::parse() {
 			return ;
 		else if (_raw.length() >= MAX_URI_SIZE + 16)
 			throw ErrorRequest("Error in the request: request line too long", ERR_CODE_URI_TOO_LONG);
-		
+
 		// Parse & Check the request line
 		pnc_request_line(iss);
 

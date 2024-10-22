@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/21 19:40:13 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/22 17:35:14 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -230,6 +230,8 @@ void	Response::buildPost(void) {
 	if (pos != std::string::npos) {
 		pos += 10; // Move past 'filename="'
 		_filename = line.substr(pos, line.find("\"", pos) - pos);
+		if (_filename.empty())
+			throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
 	} else
 		throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
 	
@@ -242,7 +244,10 @@ void	Response::buildPost(void) {
 
 	// Save the file
 	path = _host._rootPath + "/uploads/";
-	std::cout << "Saving file: " << _filename << " to location: " << path << std::endl;
+
+	// Check if the file exists
+	if (access((path + _filename).c_str(), F_OK) != -1)
+		throw ErrorResponse("Error in the response: file already exists", ERR_CODE_CONFLICT);
 
 	std::ofstream outfile((path + _filename).c_str(), std::ios::binary);
 	if (!outfile.is_open())
@@ -250,11 +255,14 @@ void	Response::buildPost(void) {
 	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++)
 		outfile.put(_binary_body[i]);
 	outfile.close();
+	_host._files.push_back(_filename);
 
 	// Send a response to the client
 	_response_message = "HTTP/1.1 200 OK\r\n";
-	_response_message += "Server: " + _serverName + "\r\n";
+	_response_message += "Content-Type: text/plain\r\n";
+	_response_message += "Content-Length: 19\r\n";
 	_response_message += "\r\n";
+	_response_message += "File uploaded successfully!";
 
 	_response_ready = true;
 }
@@ -272,7 +280,6 @@ void Response::buildDelete(void) {
 	
 	// Check if the URI is a directory
 	if (S_ISDIR(check.st_mode)) {
-		_filename = "is a directory";
 
 		// Check if the URI is a directory with correct ending
 		if (_request_line["uri"].substr(_request_line["uri"].size() - 1) != "/")
@@ -286,8 +293,7 @@ void Response::buildDelete(void) {
 		if (rmdir(file.c_str()) == -1)
 			throw ErrorResponse("Error in the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
 	} else {
-		_filename = _request_line["uri"];
-
+		
 		// // Check for write permission
 		if (access(file.c_str(), W_OK) == -1)
 			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
@@ -295,8 +301,10 @@ void Response::buildDelete(void) {
 		// Attempt to remove the file
 		if (unlink(file.c_str()) == -1)
 			throw ErrorResponse("Error in the response: file not removed", ERR_CODE_INTERNAL_ERROR);
-	}
 
+		_host._files.erase(std::remove(_host._files.begin(), _host._files.end(), _request_line["uri"].substr(9)), _host._files.end());
+	}
+	
 	// Send a response to the client
 	_response_message = "HTTP/1.1 204 No Content\r\n";
 	_response_message += "Server: " + _serverName + "\r\n";
