@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/17 12:07:55 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/22 17:35:14 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void	Response::send_response(int fd, bool *done) {
 		sent = send(fd, _response_message.c_str(), BUFFER_SIZE, MSG_MORE | MSG_NOSIGNAL);
 	else
 		sent = send(fd, _response_message.c_str(), _response_message.size(), MSG_NOSIGNAL);
-	
+
 	if (sent == -1)
 		throw ErrorResponse("Error in the send of the response", ERR_CODE_INTERNAL_ERROR);
 	else
@@ -180,7 +180,7 @@ void	Response::buildGet(void) {
 	// Check if the URI is a directory
 	if (isRepertory(_root, _startUri) == 3) {
 		if (_startUri[_startUri.size() -1] != '/')
-			throw ErrorResponse("Error in the request: URI is not correctly written", ERR_CODE_MOVE_PERM);
+			throw ErrorResponse("Error in the response: URI is not correctly written", ERR_CODE_MOVE_PERM);
 		else {
 			if (!_indexPages.empty()) {
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
@@ -195,68 +195,122 @@ void	Response::buildGet(void) {
 			else if (_autoIndex)
 				buildAutoindex();
 			else
-				throw ErrorResponse("Error in the request: URI points nowhere", ERR_CODE_FORBIDDEN);
+				throw ErrorResponse("Error in the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	} else if (isRepertory(_root, _startUri) == 1)
 		buildPage();
 	else
-		throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("Error in the response: URI is not a directory", ERR_CODE_NOT_FOUND);
 }
 
 void	Response::buildPost(void) {
-	std::istringstream	iss(_headers["Content-Type"]);
-	std::string			boundary_start, boundary_end, line, filename, response_header;
-	std::size_t 		pos;
-	std::ostringstream	file_data;
+	std::istringstream	iss;
+	std::string			line, path;
+	size_t 				pos, start = 0;
 
-	if (!std::getline(iss, boundary_start, '=') || !std::getline(iss, boundary_start) || boundary_start.empty())
-		throw ErrorRequest("Error in the request: content-type not well formatted", ERR_CODE_INTERNAL_ERROR);
-	boundary_start = "--" + boundary_start;
-	boundary_end = "--" + boundary_start + "--";
+	// Get the boundary
+	iss.str(_headers["Content-Type"]);
+	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
+		throw ErrorResponse("Error in the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);
+	_boundary += "--";
 	
-	// Go to the start of the boundary
-	pos = _body.find(boundary_start);
-	iss.clear();
-	iss.str(_body);
-	iss.seekg(pos + boundary_start.size());
-	
-	// Parse the multipart form data
-	while (std::getline(iss, line) && line != boundary_end) {
-		if (line.find("Content-Disposition: form-data;") != std::string::npos) {
-			
-			// Extract filename
-			pos = line.find("filename=\"");
-			if (pos != std::string::npos) {
-				pos += 10; // Move past 'filename="'
-				filename = line.substr(pos, line.find("\"", pos) - pos);
-			}
+	// Get the end of preliminary binary information
+	for (std::size_t i = 0; i < _binary_body.size(); i++) {
+		line += _binary_body[i];
+		if (line.size() >= 4 && line.size() < _binary_body.size() && line.substr(line.size() - 4) == "\r\n\r\n") {
+			start = i + 1;
+			break;
 		}
-
-		// Skip headers
-		while (std::getline(iss, line) && !line.empty() && line != "\r");
-
-		// Extract file data
-		while (std::getline(iss, line) && line != boundary_start && line != boundary_end) {
-			file_data << line << "\n";
-		}
-
-		// Save the file
-		std::ofstream outfile(filename.c_str(), std::ios::out | std::ios::binary);
-		if (!outfile.is_open())
-			throw ErrorRequest("Error in the request: cannot open the file", ERR_CODE_INTERNAL_ERROR);
-		outfile << file_data.str();
-		outfile.close();
-
-		// // Send a response to the client
-		// response_header = "HTTP/1.1 200 OK\r\n";
-		// response_header += "Content-Length: 0\r\n";
-		// response_header += "Content-Type: text/plain\r\n";
-		// response_header += "\r\n";
-
-		// int error = send(fd, response_header.c_str(), response_header.length(), MSG_NOSIGNAL);
-		// if (error == -1)
-		// 	throw ErrorRequest("Error in the request: cannot send the response", ERR_CODE_INTERNAL_ERROR);
 	}
+	if (!start)
+		throw ErrorResponse("Error in the response: missing opening body information", ERR_CODE_BAD_REQUEST);
+
+	// Parse the multipart form data
+	pos = line.find("filename=\"");
+	if (pos != std::string::npos) {
+		pos += 10; // Move past 'filename="'
+		_filename = line.substr(pos, line.find("\"", pos) - pos);
+		if (_filename.empty())
+			throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
+	} else
+		throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
+	
+	// Check the end of file string is present
+	line.clear();
+	for (size_t i = _binary_body.size() - _boundary.size() - 2; i < _binary_body.size(); i++)
+		line += _binary_body[i];
+	if (line.find(_boundary) == std::string::npos)
+		throw ErrorResponse("Error in the response: missing closing body information", ERR_CODE_BAD_REQUEST);
+
+	// Save the file
+	path = _host._rootPath + "/uploads/";
+
+	// Check if the file exists
+	if (access((path + _filename).c_str(), F_OK) != -1)
+		throw ErrorResponse("Error in the response: file already exists", ERR_CODE_CONFLICT);
+
+	std::ofstream outfile((path + _filename).c_str(), std::ios::binary);
+	if (!outfile.is_open())
+		throw ErrorResponse("Error in the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
+	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++)
+		outfile.put(_binary_body[i]);
+	outfile.close();
+	_host._files.push_back(_filename);
+
+	// Send a response to the client
+	_response_message = "HTTP/1.1 200 OK\r\n";
+	_response_message += "Content-Type: text/plain\r\n";
+	_response_message += "Content-Length: 19\r\n";
+	_response_message += "\r\n";
+	_response_message += "File uploaded successfully!";
+
+	_response_ready = true;
+}
+
+void Response::buildDelete(void) {
+	int			res;
+	struct stat	check;
+	std::string	file;
+
+	// Check if the URI exists
+	file = _root + _request_line["uri"];
+	res = stat(file.c_str(), &check);
+	if (res == -1)
+		throw ErrorResponse("Error in the response: file not found", ERR_CODE_NOT_FOUND);
+	
+	// Check if the URI is a directory
+	if (S_ISDIR(check.st_mode)) {
+
+		// Check if the URI is a directory with correct ending
+		if (_request_line["uri"].substr(_request_line["uri"].size() - 1) != "/")
+			throw ErrorResponse("Error in the response: URI for directory does not end with /", ERR_CODE_CONFLICT);
+		
+		// Check for write permission
+		if (access(file.c_str(), W_OK) == -1)
+			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+
+		// Attempt to remove the directory
+		if (rmdir(file.c_str()) == -1)
+			throw ErrorResponse("Error in the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
+	} else {
+		
+		// // Check for write permission
+		if (access(file.c_str(), W_OK) == -1)
+			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+
+		// Attempt to remove the file
+		if (unlink(file.c_str()) == -1)
+			throw ErrorResponse("Error in the response: file not removed", ERR_CODE_INTERNAL_ERROR);
+
+		_host._files.erase(std::remove(_host._files.begin(), _host._files.end(), _request_line["uri"].substr(9)), _host._files.end());
+	}
+	
+	// Send a response to the client
+	_response_message = "HTTP/1.1 204 No Content\r\n";
+	_response_message += "Server: " + _serverName + "\r\n";
+	_response_message += "\r\n";
+
+	_response_ready = true;
 }
 
 Response::~Response(void) {	return ; }

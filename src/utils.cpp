@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/15 18:51:15 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/19 01:05:24 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,61 +84,6 @@ void	print_request(std::map<std::string, std::string> _request_line, std::map<st
 	if (_request_line["method"] == "POST")
 		std::cout << CYAN << "Body: " << WHITE << body << std::endl;
 }
-
-
-// void	SendUltra(int fd, struct epoll_event &event, Response response)
-// {
-// 	/* std::ifstream file(response._startUri.c_str()); */
-//     std::string file_content;
-// 	std::cout << "path --> " << response._finalUri<< std::endl;
-// /*     if (file.good()) {
-//         std::ostringstream ss;
-//         ss << file.rdbuf();
-//         file_content = ss.str();
-//     } else {
-// 		response.buildErrorPage(fd, 404, event);
-//         return;
-//     }
-
-//     std::ostringstream oss;
-//     oss << file_content.length(); */
-
-// 	std::cout <<  " < ----, ====================" << std::endl;
-// 	std::string response_header = "HTTP/1.1 " + convertToStr(response._statusCode) + " \r\n";
-// 	response_header += "Content-Length: " + convertToStr(response._body.size()) + "\r\n";
-//     response_header += "Content-Type: text/html\r\n"; // forma html
-//     // response_header += "Content-Type: text/css\r\n"; // forma html
-//     response_header += "\r\n";  // Fine dell'header
-// 	std::cout << response_header << " < ----, ====================" << std::endl;
-// 	std::cout << response._body << ", ============"<< std::endl;
-//    int error = send(fd, response_header.c_str(), response_header.length(), 0);
-    
-// 	if (error == -1) {
-// 		error_send(fd, event, "Error in send for header");
-//         return;
-//     }
-// 	 error = send(fd, response_header.c_str(), response_header.size(), 0);
-//         if (error == -1) {
-//             // Gestione dell'errore
-//             return ;
-//         }
-
-//         // Invio del corpo della risposta (_body)
-//         size_t bytesSent = 0;
-//         size_t tmpSent = 0;
-//         tmpSent = send(fd, response._body.c_str() + bytesSent, response._body.size() - bytesSent, 0);
-//         if (tmpSent <= 0) {
-//                 // Gestione dell'errore
-//                 return ;
-//             }
-// 		close(fd);
-// 		return;
-// /* 
-
-//     error = send(fd, file_content.c_str(), file_content.length(), MSG_NOSIGNAL);
-//     if (error == -1)
-// 		error_send(fd, event, "Error in send for the content of the fd"); */
-// }
 
 int	isRepertory(std::string root, std::string filename) {
 	struct stat buffer;

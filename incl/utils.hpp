@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/15 19:48:03 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/19 02:18:14 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void		ft_print_coucou(int i);
 # define PORT				8080
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
-# define BUFFER_SIZE		1024
+# define BUFFER_SIZE		16
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB
