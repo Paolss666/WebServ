@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 10:55:04 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/23 11:12:12 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,22 +51,22 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	// Parse the request line
 	std::istringstream	iss_line(line);
 	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
-		throw ErrorRequest("Error in the request: method not well formatted", ERR_CODE_BAD_REQUEST);
+		throw ErrorRequest("In the request: method not well formatted", ERR_CODE_BAD_REQUEST);
 	_request_line["method"] = method;
 	_request_line["uri"] = uri;
 	_request_line["protocol"] = protocol;
 
 	// Check the method
 	if (!(_request_line["method"] == "GET" || _request_line["method"] == "POST" || _request_line["method"] == "DELETE"))
-		throw ErrorRequest("Error in the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
+		throw ErrorRequest("In the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
 	
 	// Check the protocol
 	if (_request_line["protocol"] != "HTTP/1.1\r")
-		throw ErrorRequest("Error in the request: protocol not supported", ERR_CODE_HTTP_VERSION);
+		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);
 
 	// Check the uri
 	if (_request_line["uri"].empty())
-		throw ErrorRequest("Error in the request: uri not found", ERR_CODE_BAD_REQUEST);
+		throw ErrorRequest("In the request: uri not found", ERR_CODE_BAD_REQUEST);
 }
 
 void	Request::pnc_headers(std::istringstream & iss) {
@@ -84,7 +84,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 		std::istringstream	iss_line(line.erase(buffer.size() - 1));
 		
 		if (!(std::getline(iss_line, key, ':') && std::getline(iss_line, value)))
-			throw ErrorRequest("Error in the request: header not well formatted", ERR_CODE_BAD_REQUEST);
+			throw ErrorRequest("In the request: header not well formatted", ERR_CODE_BAD_REQUEST);
 		
 		// Remove leading and trailing whitespaces
 		key = trim(key);
@@ -94,23 +94,23 @@ void	Request::pnc_headers(std::istringstream & iss) {
 	}
 	
 	if (_headers.empty())
-		throw ErrorRequest("Error in the request: end of headers not found", ERR_CODE_BAD_REQUEST);
+		throw ErrorRequest("In the request: end of headers not found", ERR_CODE_BAD_REQUEST);
 
 	// Check host and retrieve the localhost ip if needed
 	oss << _host._port;
 	if (_headers["Host"] == "localhost:" + oss.str())
 		_headers["Host"] = collect_lh_ip() + ":" + oss.str();
 	if (!_host._name.empty() && (_headers.find("Host") == _headers.end() || (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
-		throw ErrorRequest("Error in the request: host error", 666);
+		throw ErrorRequest("In the request: host error", 666);
 
 	// Check content for POST
 	if (_request_line["method"] == "POST") {
 		if (_headers.find("Content-Length") == _headers.end())
-			throw ErrorRequest("Error in the request: content-length not found", ERR_CODE_LENGTH_REQUIRED);
+			throw ErrorRequest("In the request: content-length not found", ERR_CODE_LENGTH_REQUIRED);
 		if (_headers.find("Content-Type") == _headers.end() || _headers["Content-Type"].empty())
-			throw ErrorRequest("Error in the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
+			throw ErrorRequest("In the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
 		if (_headers["Content-Length"].empty() || _headers["Content-Length"].find_first_not_of("0123456789") != std::string::npos)
-			throw ErrorRequest("Error in the request: content-length mismatch", ERR_CODE_BAD_REQUEST);
+			throw ErrorRequest("In the request: content-length mismatch", ERR_CODE_BAD_REQUEST);
 	}
 }
 
@@ -123,7 +123,7 @@ void	Request::pnc_body(void) {
 
 	// Check the body size during reading
 	if (len > MAX_BODY_SIZE + 1 || len > _host._maxBodySize + 1	|| len > len_max + 1)
-		throw ErrorRequest("Error in the request: body too long", ERR_CODE_BAD_REQUEST);
+		throw ErrorRequest("In the request: body too long", ERR_CODE_BAD_REQUEST);
 
 	// Is the body complete?
 	if (_eof > 0)
@@ -148,7 +148,7 @@ void	Request::parse() {
 		if (_raw.find("\r\n") == std::string::npos && _raw.length() < MAX_URI_SIZE + 16)
 			return ;
 		else if (_raw.length() >= MAX_URI_SIZE + 16)
-			throw ErrorRequest("Error in the request: request line too long", ERR_CODE_URI_TOO_LONG);
+			throw ErrorRequest("In the request: request line too long", ERR_CODE_URI_TOO_LONG);
 
 		// Parse & Check the request line
 		pnc_request_line(iss);
@@ -170,10 +170,10 @@ void	Request::parse() {
 		while (std::getline(iss, line, '\n') && line != "\r") {
 			header_len += line.size();
 			if (header_len > MAX_HEADER_SIZE)
-				throw ErrorRequest("Error in the request: headers too long", ERR_CODE_REQ_HEADER_FIELDS);
+				throw ErrorRequest("In the request: headers too long", ERR_CODE_REQ_HEADER_FIELDS);
 		}
 		if (header_len == 0 && line == "\r")
-			throw ErrorRequest("Error in the request: end of headers not found", ERR_CODE_BAD_REQUEST);
+			throw ErrorRequest("In the request: end of headers not found", ERR_CODE_BAD_REQUEST);
 		if (line != "\r")
 			return ;
 		

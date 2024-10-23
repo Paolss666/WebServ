@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/22 17:35:14 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/23 11:12:12 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ void	Response::send_response(int fd, bool *done) {
 		sent = send(fd, _response_message.c_str(), _response_message.size(), MSG_NOSIGNAL);
 
 	if (sent == -1)
-		throw ErrorResponse("Error in the send of the response", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("In the send of the response", ERR_CODE_INTERNAL_ERROR);
 	else
 		_response_message = _response_message.substr(sent);
 	
@@ -64,7 +64,7 @@ void	Response::buildAutoindex(void) {
 	std::vector<std::string> filesList;
 	DIR *dir = opendir(_startUri.c_str());
 	if (!dir)
-		throw ErrorResponse("Error in the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("In the opening of the directory pointer by the URI", ERR_CODE_INTERNAL_ERROR);
 
 	struct dirent *fileRead;
 	_startUri  = _root + _startUri;
@@ -121,14 +121,14 @@ void	Response::buildPage(void) {
 	_startUri = _root + _startUri;
 	std::ifstream fileRequested(_startUri.c_str());
 	if (fileRequested.good() == false)
-		throw ErrorResponse("Error in the opening of the file requested", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
 	
 	buffer << fileRequested.rdbuf();
 	
 	_response_body = buffer.str();
 	if (_response_body.size() > _maxBodySize) {
 		_response_body = "";
-		throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("In the size of the file requested", ERR_CODE_NOT_FOUND);
 	}
 
 	pos = _startUri.find_last_of("/");
@@ -180,7 +180,7 @@ void	Response::buildGet(void) {
 	// Check if the URI is a directory
 	if (isRepertory(_root, _startUri) == 3) {
 		if (_startUri[_startUri.size() -1] != '/')
-			throw ErrorResponse("Error in the response: URI is not correctly written", ERR_CODE_MOVE_PERM);
+			throw ErrorResponse("In the response: URI is not correctly written", ERR_CODE_MOVE_PERM);
 		else {
 			if (!_indexPages.empty()) {
 				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
@@ -195,12 +195,12 @@ void	Response::buildGet(void) {
 			else if (_autoIndex)
 				buildAutoindex();
 			else
-				throw ErrorResponse("Error in the response: URI points nowhere", ERR_CODE_FORBIDDEN);
+				throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	} else if (isRepertory(_root, _startUri) == 1)
 		buildPage();
 	else
-		throw ErrorResponse("Error in the response: URI is not a directory", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("In the response: URI is not a directory", ERR_CODE_NOT_FOUND);
 }
 
 void	Response::buildPost(void) {
@@ -211,7 +211,7 @@ void	Response::buildPost(void) {
 	// Get the boundary
 	iss.str(_headers["Content-Type"]);
 	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
-		throw ErrorResponse("Error in the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);
+		throw ErrorResponse("In the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);
 	_boundary += "--";
 	
 	// Get the end of preliminary binary information
@@ -223,7 +223,7 @@ void	Response::buildPost(void) {
 		}
 	}
 	if (!start)
-		throw ErrorResponse("Error in the response: missing opening body information", ERR_CODE_BAD_REQUEST);
+		throw ErrorResponse("In the response: missing opening body information", ERR_CODE_BAD_REQUEST);
 
 	// Parse the multipart form data
 	pos = line.find("filename=\"");
@@ -231,27 +231,27 @@ void	Response::buildPost(void) {
 		pos += 10; // Move past 'filename="'
 		_filename = line.substr(pos, line.find("\"", pos) - pos);
 		if (_filename.empty())
-			throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
+			throw ErrorResponse("In the response: missing filename information", ERR_CODE_BAD_REQUEST);
 	} else
-		throw ErrorResponse("Error in the response: missing filename information", ERR_CODE_BAD_REQUEST);
+		throw ErrorResponse("In the response: missing filename information", ERR_CODE_BAD_REQUEST);
 	
 	// Check the end of file string is present
 	line.clear();
 	for (size_t i = _binary_body.size() - _boundary.size() - 2; i < _binary_body.size(); i++)
 		line += _binary_body[i];
 	if (line.find(_boundary) == std::string::npos)
-		throw ErrorResponse("Error in the response: missing closing body information", ERR_CODE_BAD_REQUEST);
+		throw ErrorResponse("In the response: missing closing body information", ERR_CODE_BAD_REQUEST);
 
 	// Save the file
 	path = _host._rootPath + "/uploads/";
 
 	// Check if the file exists
 	if (access((path + _filename).c_str(), F_OK) != -1)
-		throw ErrorResponse("Error in the response: file already exists", ERR_CODE_CONFLICT);
+		throw ErrorResponse("In the response: file already exists", ERR_CODE_CONFLICT);
 
 	std::ofstream outfile((path + _filename).c_str(), std::ios::binary);
 	if (!outfile.is_open())
-		throw ErrorResponse("Error in the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("In the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
 	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++)
 		outfile.put(_binary_body[i]);
 	outfile.close();
@@ -276,31 +276,31 @@ void Response::buildDelete(void) {
 	file = _root + _request_line["uri"];
 	res = stat(file.c_str(), &check);
 	if (res == -1)
-		throw ErrorResponse("Error in the response: file not found", ERR_CODE_NOT_FOUND);
+		throw ErrorResponse("In the response: file not found", ERR_CODE_NOT_FOUND);
 	
 	// Check if the URI is a directory
 	if (S_ISDIR(check.st_mode)) {
 
 		// Check if the URI is a directory with correct ending
 		if (_request_line["uri"].substr(_request_line["uri"].size() - 1) != "/")
-			throw ErrorResponse("Error in the response: URI for directory does not end with /", ERR_CODE_CONFLICT);
+			throw ErrorResponse("In the response: URI for directory does not end with /", ERR_CODE_CONFLICT);
 		
 		// Check for write permission
 		if (access(file.c_str(), W_OK) == -1)
-			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+			throw ErrorResponse("In the response: no write permission", ERR_CODE_FORBIDDEN);
 
 		// Attempt to remove the directory
 		if (rmdir(file.c_str()) == -1)
-			throw ErrorResponse("Error in the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
+			throw ErrorResponse("In the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
 	} else {
 		
 		// // Check for write permission
 		if (access(file.c_str(), W_OK) == -1)
-			throw ErrorResponse("Error in the response: no write permission", ERR_CODE_FORBIDDEN);
+			throw ErrorResponse("In the response: no write permission", ERR_CODE_FORBIDDEN);
 
 		// Attempt to remove the file
 		if (unlink(file.c_str()) == -1)
-			throw ErrorResponse("Error in the response: file not removed", ERR_CODE_INTERNAL_ERROR);
+			throw ErrorResponse("In the response: file not removed", ERR_CODE_INTERNAL_ERROR);
 
 		_host._files.erase(std::remove(_host._files.begin(), _host._files.end(), _request_line["uri"].substr(9)), _host._files.end());
 	}

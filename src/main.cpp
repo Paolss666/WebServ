@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/21 15:02:49 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/23 11:12:30 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,11 +38,11 @@ std::vector<ServerConf>	ft_conf_init(const char *fileName) {
         else if (line.empty())
             continue;
         else
-			throw ErrorConfFile("Error in the config file");
+			throw ErrorConfFile("In the conf file");
     }
 	for (size_t i = 0; i < server.size() - 1; i++)
 		if (server[i].getIp() == server[i + 1].getIp() && server[i].getPort() == server[i + 1].getPort())
-			throw ErrorConfFile("Error conf file: server : same Ip/Port");
+			throw ErrorConfFile("In conf file: server : same Ip/Port");
 
 	return server;
 }

@@ -21,7 +21,7 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 
 	// Create listening socket
 	if ((_fdSetSock = socket(_address.sin_family, SOCK_STREAM, 0)) <= 0) {
-		oss << "Error in the socket creation for server " << _nbServer;
+		oss << "In the socket creation for server " << _nbServer;
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	
@@ -29,27 +29,27 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 	int	opt = 1;
 	if (setsockopt(_fdSetSock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(int)) < 0) {
 		ft_close(_fdSetSock);
-		oss << "Error in the setsockopt for server " << _nbServer << " and socket " << _fdSetSock;
+		oss << "In the setsockopt for server " << _nbServer << " and socket " << _fdSetSock;
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	
 	// Set socket details (bind)
 	if (bind(_fdSetSock, (struct sockaddr *)&_address, sizeof(_address)) < 0) {
 		ft_close(_fdSetSock);
-		oss << "Error in the bind for server " << _nbServer << "with port " << _port << " and socket " << _fdSetSock;
+		oss << "In the bind for server " << _nbServer << "with port " << _port << " and socket " << _fdSetSock;
 			throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	
 	// Listen on the socket
 	if (listen(_fdSetSock, MAX_CONNECTIONS) < 0) {
 		ft_close(_fdSetSock);
-		throw ErrorFdManipulation("Error in the listen", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorFdManipulation("In the listen", ERR_CODE_INTERNAL_ERROR);
 	}
 	
 	// Make the socket non-blocking
 	if (fcntl(_fdSetSock, F_SETFL, O_NONBLOCK) < 0) {
 		ft_close(_fdSetSock);
-		oss << "Error in the listen for server " << _nbServer << " and socket " <<_fdSetSock;
+		oss << "In the listen for server " << _nbServer << " and socket " <<_fdSetSock;
 			throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	
@@ -57,13 +57,13 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 	_fdEpoll = epoll_create(1);
 	if (_fdEpoll < 0) {
 		ft_close(_fdSetSock);
-		oss << "Error in the epoll_create for server " << _nbServer << " and socket " <<_fdSetSock;
+		oss << "In the epoll_create for server " << _nbServer << " and socket " <<_fdSetSock;
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	event.events = EPOLLIN;
 	event.data.fd = _fdSetSock;
 	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, _fdSetSock, &event) < 0)
-		throw ErrorFdManipulation("Error in epoll_ctl for listening socket: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
+		throw ErrorFdManipulation("In epoll_ctl for listening socket: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
 
 	// Resize the events vector
 	_events.resize(MAX_CONNECTIONS);
@@ -85,7 +85,7 @@ void	Host::json_update(void) {
 
 	std::ofstream file((_rootPath + "/uploads/files.json").c_str());
 	if (!file.is_open())
-		throw ErrorFdManipulation("Error in the opening of the file", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorFdManipulation("In the opening of the file", ERR_CODE_INTERNAL_ERROR);
 	file << json;
 	file.close();
 }
@@ -99,7 +99,7 @@ void	Host::new_connection(void) {
 	res = accept(_fdSetSock, (struct sockaddr *)&_address, (socklen_t*)&_address_len);
 	if (res < 0) {
 		ft_close(_fdSetSock);
-		oss << "Error in the accept for server " << _nbServer << " and socket " << _fdSetSock << ": " << strerror(errno);
+		oss << "In the accept for server " << _nbServer << " and socket " << _fdSetSock << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 	_fdAcceptSock.push_back(res);
@@ -108,7 +108,7 @@ void	Host::new_connection(void) {
 	if (fcntl(_fdAcceptSock.back(), F_SETFL, O_NONBLOCK) < 0) {
 		ft_close(_fdSetSock);
 		ft_close(_fdAcceptSock.back());
-		oss << "Error in the fcntl for server " << _nbServer << " and socket " << _fdAcceptSock.back() << ": " << strerror(errno);
+		oss << "In the fcntl for server " << _nbServer << " and socket " << _fdAcceptSock.back() << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 
@@ -117,7 +117,7 @@ void	Host::new_connection(void) {
 	event.events = EPOLLIN;
 	event.data.fd = _fdAcceptSock.back();
 	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, _fdAcceptSock.back(), &event) < 0)
-		throw ErrorFdManipulation("Error in the epoll_ctl: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
+		throw ErrorFdManipulation("In the epoll_ctl: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
 
 	// Manage number of kept connections
 	_keep_alive_time = time(NULL);
@@ -133,7 +133,7 @@ void	Host::parse_request(int i) {
 	try {
 		valread = read(fd, buffer, BUFFER_SIZE - 1);
 		if (valread < 0)
-			throw ErrorFdManipulation("Error in the read", ERR_CODE_INTERNAL_ERROR);
+			throw ErrorFdManipulation("In the read", ERR_CODE_INTERNAL_ERROR);
 	} catch (const ErrorFdManipulation & e) {
 		return send_error_page(*this, i, e, NULL);
 	}
@@ -176,7 +176,7 @@ void	Host::act_on_request(int i) {
 			else if (it_resp->second._request_line["method"] == "DELETE")
 				it_resp->second.buildDelete();
 			else
-				throw ErrorResponse("Error in the request: method not implemented", ERR_CODE_MET_NOT_ALLOWED);
+				throw ErrorResponse("In the request: method not implemented", ERR_CODE_MET_NOT_ALLOWED);
 			json_update();
 		}
 
@@ -218,7 +218,7 @@ void	Host::run_server(void) {
 	_nfds = epoll_wait(_fdEpoll, _events.data(), _events.size(), 0);
 	if (_nfds < 0) {
 		std::ostringstream oss;
-		oss << "Error in the epoll_wait for server " << _nbServer << " and socket " << _fdSetSock << ": " << strerror(errno);
+		oss << "In the epoll_wait for server " << _nbServer << " and socket " << _fdSetSock << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 

@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/18 23:21:53 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/23 11:12:12 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,7 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 
 	// Send the response
 	if (send(host._events[i].data.fd, response.c_str(), response.size(), 0) < 0)
-		ft_perror(("Error in the send of error page: " + str_code.str()).c_str());
+		ft_perror(("In the send of error page: " + str_code.str()).c_str());
 	
 	// Close the connection
 	ft_close(host._events[i].data.fd);
