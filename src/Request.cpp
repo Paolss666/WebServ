@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/22 18:32:45 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/23 10:55:04 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,14 +96,10 @@ void	Request::pnc_headers(std::istringstream & iss) {
 	if (_headers.empty())
 		throw ErrorRequest("Error in the request: end of headers not found", ERR_CODE_BAD_REQUEST);
 
-	// Check host
+	// Check host and retrieve the localhost ip if needed
 	oss << _host._port;
-	// if (!_host._name.empty()
-	// 	&& (_headers.find("Host") == _headers.end()
-	// 	|| (_headers["Host"] != _host._name
-	// 	&& _headers["Host"] != _host._raw_ip + ":" + oss.str()
-	// 	&& _headers["Host"] != "localhost:" + oss.str())))
-	// 	throw ErrorRequest("Error in the request: host error", 666);
+	if (_headers["Host"] == "localhost:" + oss.str())
+		_headers["Host"] = collect_lh_ip() + ":" + oss.str();
 	if (!_host._name.empty() && (_headers.find("Host") == _headers.end() || (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
 		throw ErrorRequest("Error in the request: host error", 666);
 
