@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/19 01:05:24 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/23 10:53:37 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,9 +70,8 @@ void	print_with_hex(const std::string & str) {
 		else
 			std::cout << "\\x" << std::hex << std::setw(2) << std::setfill('0') << (int)(unsigned char)*it;
 	}
-	std::cout << std::dec; // Reset to decimal format
+	std::cout << std::dec;
 }
-
 
 void	print_request(std::map<std::string, std::string> _request_line, std::map<std::string, std::string> headers, std::string body) {
 	std::cout << CYAN << "Method: " << WHITE << _request_line["method"] << std::endl;
@@ -106,4 +105,33 @@ std::string	trim(std::string & str) {
 
 void	ft_print_coucou(int i) {
 	std::cout << "COUCOU " << i << std::endl;
+}
+
+const std::string & collect_lh_ip(void) {
+	static std::string	ip_address;
+	struct addrinfo		*res, *p, *hints = NULL;
+	struct sockaddr_in	*ipv4;
+	std::ostringstream	oss;
+	int					status;
+
+	if ((status = getaddrinfo("localhost", NULL, hints, &res)) != 0)
+		return (ft_perror("Warning, no localhost found"), ip_address);
+
+	for (p = res; p != NULL; p = p->ai_next) {
+		if (p->ai_family == AF_INET) {
+			ipv4 = (struct sockaddr_in *)p->ai_addr;
+			uint32_t ip = ntohl(ipv4->sin_addr.s_addr);
+
+			// Convert the IP to a string manually
+			oss << ((ip >> 24) & 0xFF) << '.'
+				<< ((ip >> 16) & 0xFF) << '.'
+				<< ((ip >> 8) & 0xFF) << '.'
+				<< (ip & 0xFF);
+			ip_address = oss.str();
+			break;
+		}
+	}
+
+	freeaddrinfo(res);
+	return ip_address;
 }
