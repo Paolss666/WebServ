@@ -25,6 +25,7 @@ class Response: public Request {
 		void								buildPost(void);
 		void								buildPage(void);
 		void								buildAutoindex(void);
+		void								buildReturnPage();
 		void								send_response(int fd, bool *done);
 		void								exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value);
 		std::vector<std::string> 			MakeEnvCgi(std::string &cgi);

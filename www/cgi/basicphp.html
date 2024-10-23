@@ -115,7 +115,15 @@
     </style>
 </head>
 <body>
-    <h2>PAGE FOR CGI</h2>
+    <h2>Credential for username</h2>
+    <h3>IN PHP</h3>
+    <form action="print_response.php" method="GET">
+        <label for="username">Username :</label>
+        <input type="text" id="username" name="username" required>
+        <label for="bio">Bio :</label>
+        <input type="text" id="bio" name="bio" required>
+        <input type="submit" value="Envoyer" class="link-button">
+    </form>
     <div class="button-container">
         <button onclick="showMessage()">Show Message</button>
         <a href="/cgi/basic.html" class="link-button">Go to CGI</a>

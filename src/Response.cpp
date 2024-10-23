@@ -307,15 +307,17 @@ void	Response::buildCgi()
 
 	std::cout << " ---> rootUri -> inside Cgi -> " << root_Uri << std::endl;
 	size_t extention = _startUri.find_last_of('.');
-	// if (extention == ".php")
-	// 	_Cgi += ".php";
+	std::string format = _startUri.substr(extention, _startUri.size());
+	size_t f_interr = format.find_last_of('?');
+	std::string vrai_f = format.substr(0, f_interr);
 	std::string _Cgi = _startUri.substr(0, extention);
-	_Cgi += ".php";
+	if (vrai_f == ".php")
+		_Cgi += ".php";
+	else if (vrai_f == ".py")
+		_Cgi += ".py";
 	_Cgi = _root + _Cgi;
-	std::cout << _Cgi << " <--- FILE URI -------------------------------\n";
 	std::string uri_for_cgi = _startUri.substr(extention, _startUri.size());
 	std::string cgi;
-	std::cout << uri_for_cgi << " <----------------------------------\n";
 	if (access(_Cgi.c_str(), F_OK))
 		throw ErrorResponse("Error in the request: access URI CGI", ERR_CODE_NOT_FOUND);
 
@@ -380,8 +382,9 @@ void	Response::buildCgi()
 		char **env = vectorStringToChar(vecEnv);
 		close(cgiFdIn);
 		execve(_cgi, av, env);
-		// FAIL EXECVE 
+		// execve failed
 		perror("execve");
+
 		sleep(3);
 		exit(EXIT_FAILURE);
 	}
@@ -461,10 +464,53 @@ void	Response::exportENV(std::vector<std::string> &env, const std::string &key, 
 	env.push_back(key + "=" + value);
 }
 
+void	Response::buildReturnPage()
+{
+	int	returnCode;
+	std::string redirUri;
+	for (std::map<int, std::string>::iterator i = _returnPages.begin(); i != _returnPages.end(); i++)
+	{
+		// std::cerr << i->first << " " << i->second << "\n";
+		returnCode = i->first;
+		redirUri = i->second;
+	}
+	if (returnCode == 300)
+		_statusCode = 300;
+	else if (returnCode == 301)
+		_statusCode = 301 ;//STATUS_MOVED_PERMANENTLY;
+	else if (returnCode == 302)
+		_statusCode = 302; // STATUS_FOUND;
+	else if (returnCode == 303)
+		_statusCode = 303; //STATUS_SEE_OTHER;
+	else if (returnCode == 304)
+		_statusCode = 304; //STATUS_NOT_MODIFIED;
+	else if (returnCode == 305)
+		_statusCode = 305; //STATUS_USE_PROXY;
+	else if (returnCode == 306)
+		_statusCode = 306; //STATUS_SWITCH_PROXY;
+	else if (returnCode == 307)
+		_statusCode = 307; //STATUS_TEMPORARY_REDIRECT;
+	else if (returnCode == 308)
+		_statusCode = 308; //STATUS_PERMANENT_REDIRECT;
+	if ((_startUri.size() -1 ) == '/' && redirUri[0] == '/')
+	{
+		redirUri  = redirUri.substr(1, redirUri.size());
+		_startUri += redirUri;
+	}
+	else if ((_startUri.size() -1 ) == '/' && redirUri[0] != '/')
+		_startUri +=  redirUri;
+	else if ((_startUri.size() -1 ) != '/' && redirUri[0] == '/')
+		_startUri +=  redirUri;
+	else if ((_startUri.size() -1 ) != '/' && redirUri[0] != '/')
+		_startUri = _startUri + "/" + redirUri;
+	_headers["location"] = _startUri;
+	// std::cout << "_startUri" << _startUri<< std::endl;
+	buildPage();
+}
+
 void	Response::buildGet(void) {
 	
 	std::string	index, path, uri;
-	
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
@@ -481,7 +527,11 @@ void	Response::buildGet(void) {
 		_pagesError = _Location[uri].getPagesError();
 	if (_Location[uri].getFlagCgi())
 		_Cgi = _Location[uri].getCgiPath();
-
+	if (!_returnPages.empty())
+	{
+		buildReturnPage();
+		return ;
+	}
 	if (isRepertory(_root, _startUri) == 3)
 	{
 		if (_startUri[_startUri.size() -1] != '/')
@@ -531,6 +581,8 @@ void	Response::buildGet(void) {
 		}
 	}
 	else if (_startUri.find("/cgi/print_response.php") != std::string::npos)
+		buildCgi();
+	else if (_startUri.find("/cgi/print_res_py.py") != std::string::npos)
 		buildCgi();
 	else if (isRepertory(_root, _startUri) == 1)
 		buildPage();

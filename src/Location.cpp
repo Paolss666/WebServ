@@ -120,7 +120,7 @@ int	Location::InLoc_p_Return(std::string &codeRetrn)
 	{
 		int errorCode = strtol(codeRetrn.c_str(), NULL, 10);
 		if (errorCode < 300 || errorCode > 308)
-			throw ErrorConfFile("Error in the conf file : error_page  x < 100 || x > 599 ");
+			throw ErrorConfFile("Error in the conf file : error_page  x < 300 || x > 308 ");
 		return (errorCode);
 	}
 	else
