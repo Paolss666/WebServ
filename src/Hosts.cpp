@@ -84,8 +84,13 @@ void	Host::json_update(void) {
 	json = oss.str();
 
 	std::ofstream file((_rootPath + "/uploads/files.json").c_str());
-	if (!file.is_open())
-		throw ErrorFdManipulation("In the opening of the file", ERR_CODE_INTERNAL_ERROR);
+	try {
+		if (!file.is_open())
+			throw ErrorFdManipulation("In the opening of the file", ERR_CODE_INTERNAL_ERROR);
+	} catch (const ErrorFdManipulation & e) {
+		ft_perror(e.what());
+		return ;
+	}
 	file << json;
 	file.close();
 }
@@ -190,8 +195,8 @@ void	Host::act_on_request(int i) {
 		// Close the connection if needed
 		if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
 			|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !it_req->second._headers["Connection"].compare("keep-alive"))) {
-			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, fd, NULL);
 			ft_close(fd);
+			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, fd, NULL);
 			std::cout << "Closing connection" << std::endl;
 			_nb_keepalive--;
 		} else {
@@ -249,11 +254,9 @@ void	Host::run_server(void) {
 		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
 		else {
-			std::cout << "Unknown event detected on fd " << _events[i].data.fd << std::endl;
-			char buffer[1024];
-			int i = read(_events[i].data.fd, buffer, 1024);
-			buffer[i] = 0;
-			std::cout << buffer << std::endl;
+			std::cout << "Unknown event" << std::endl;
+			ft_close(_events[i].data.fd);
+			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[i].data.fd, NULL);
 		}
 	}
 	std::fill(_events.begin(), _events.end(), epoll_event());
