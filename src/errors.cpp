@@ -73,11 +73,10 @@ std::string build_error_page(int code, std::string image) {
 }
 
 template <typename T>
-void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
+void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri) {
 	std::string status, response, body, line, image;
 	std::fstream file;
 	std::ostringstream oss, str_code, str_port;
-
 	ft_perror(e.what());
 	if (_nb_keepalive)
 		*_nb_keepalive -= 1;
@@ -133,17 +132,95 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 			status = "Unknown";
 			break;
 	}
+	std::string found = foundGoodUri(host, uri);
+	// std::cout << "FOUND  --> " << found << std::endl;
+	if(host._errorFlag)
+	{
+		if (host._Location[found].getFlagErrorPages())
+		{
+			const std::map<int, std::string>& pagesError = host._Location[found].getPagesError();  // Store the map in a local variable
+			std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
+			// std::map<int, std::string>::iterator it = host._Location[found].getPagesError().find(e._code);
+			if (it != host._Location[found].getPagesError().end()) {
+				std::ifstream fileRequested(it->second.c_str());
+				if (fileRequested.good() == false)
+					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
 
-	str_code << e._code;
-	
-	// Set the body
-	if (status == "Unkown")
-		image = "<img src=\"https://http.cat/450.jpg\">";
+				std::stringstream	 buffer;
+				buffer << fileRequested.rdbuf();
+
+				body = buffer.str(); // Print the value // Print the value
+				
+			} 
+		}
+		else
+		{
+			const std::map<int, std::string>& pagesError = host.getPagesError();  // Store the map in a local variable
+			std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
+			// std::map<int, std::string>::iterator it = host.getPagesError().find(e._code);
+			if (it != host.getPagesError().end()) {
+			    // std::cout << it->second << " <-- found file\n"; 
+				std::ifstream fileRequested(it->second.c_str());
+				if (fileRequested.good() == false)
+					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+
+				std::stringstream	 buffer;
+				buffer << fileRequested.rdbuf();
+
+				body = buffer.str(); // Print the value
+			} 
+		}
+
+	}
+	else if (host._Location[found].getFlagErrorPages())
+	{
+		const std::map<int, std::string>& pagesError = host._Location[found].getPagesError();  // Store the map in a local variable
+		std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
+			// std::map<int, std::string>::iterator it= host._Location[found].getPagesError().find(e._code);
+		if (it != host._Location[found].getPagesError().end()) {
+		    // std::cout << it->second << " <-- found file\n";
+				std::ifstream fileRequested(it->second.c_str());
+				if (fileRequested.good() == false)
+					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+
+				std::stringstream	 buffer;
+				buffer << fileRequested.rdbuf();
+
+				body = buffer.str();  // Print the value
+		}
+		else
+		{
+			str_code << e._code;
+			if (status == "Unkown")
+				image = "<img src=\"https://http.cat/450.jpg\">";
+			else
+				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+			body = "<!DOCTYPE html>\
+					<html lang=\"en\">\
+					<head>\
+					<meta charset=\"UTF-8\">\
+					<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
+					<title>" + status + "</title>\
+					</head>\
+					<body>\
+					<div class=\"img\">" + image + "</div>\
+					<div class=\"index\">\
+					<a class=\"indexButton\" href=\"/index.html\">go back to home page</a>\
+					</div>\
+					</body>\
+					</html>";
+		}
+	}
 	else
-		image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";
-	body = build_error_page(e._code, image);
-
-	// Set the response
+	{
+		str_code << e._code;
+		if (status == "Unkown")
+			image = "<img src=\"https://http.cat/450.jpg\">";
+		else
+			image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+		body = body = build_error_page(e._code, image);
+	}
+		// Set the response
 	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";
 	if (host._name.empty()) {
 		str_port << host._port;
@@ -155,13 +232,10 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 	oss << "Connection: close\r\n";
 	oss << "\r\n";
 	oss << body;
-
 	response = oss.str();
-
 	// Send the response
 	if (send(host._events[i].data.fd, response.c_str(), response.size(), 0) < 0)
 		ft_perror(("In the send of error page: " + str_code.str()).c_str());
-	
 	// Close the connection
 	ft_close(host._events[i].data.fd);
 	epoll_ctl(host._fdEpoll, EPOLL_CTL_DEL, host._events[i].data.fd, NULL);
@@ -171,6 +245,33 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 	}
 }
 
-template void send_error_page<ErrorFdManipulation>(Host&, int, const ErrorFdManipulation&, int*);
-template void send_error_page<ErrorRequest>(Host&, int, const ErrorRequest&, int*);
-template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, int*);
+template void send_error_page<ErrorFdManipulation>(Host&, int, const ErrorFdManipulation&, int*, std::string);
+template void send_error_page<ErrorRequest>(Host&, int, const ErrorRequest&, int*, std::string);
+template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, int*, std::string);
+
+
+std::string foundGoodUri(Host & host, std::string uri)
+{
+	// std::cout << "URI -> " << uri << std::endl;
+	int i = 1;
+	while (i)
+	{
+        for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it) {
+			// std::cout << "it->first" << it->first << std::endl;
+            if (it->first == uri)
+			{                
+				// std::cout << "Found matching URI: " << uri << std::endl;
+            	i = 0;
+				break;
+			}
+        }
+        	std::size_t pos = uri.find_last_of('/');
+			uri = uri.substr(0, uri.find_last_of('/'));
+			// std::cout << " --------->  uri    ->" << uri << std::endl;
+        	if (pos == std::string::npos || pos == 0) {
+        	    uri = "/";
+				break;
+			}
+	}
+	return (uri);
+}

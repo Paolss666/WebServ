@@ -74,7 +74,7 @@ class ServerConf {
 		
 		//SETEUR -------------------//	
 		void							set_fdEpoll(int _fdEpoll);
-		void							setDefaultErrorPages(void);
+		// void							setDefaultErrorPages(void);
 		//GETEUR ------------------//
 		int								get_fdEpoll(void);
 		std::map<int, std::string>		getPagesError(void);

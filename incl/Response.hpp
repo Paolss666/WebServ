@@ -35,7 +35,6 @@ class Response: public Request {
 		std::string							_response_message;
 		std::string							_Ip;
 		std::string							_Port;
-		std::map<std::string, Location>		_Location;
 		std::string							_serverName;
 		std::vector<std::string>			_indexPages;
 		std::string							_path_file;

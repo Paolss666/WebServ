@@ -140,7 +140,10 @@ void	Host::parse_request(int i) {
 		if (valread < 0)
 			throw ErrorFdManipulation("In the read", ERR_CODE_INTERNAL_ERROR);
 	} catch (const ErrorFdManipulation & e) {
-		return send_error_page(*this, i, e, NULL);
+		if (it != _requests.end())
+			return send_error_page(*this, i, e, NULL, it->second._request_line["uri"]);
+		else
+			return send_error_page(*this, i, e, NULL, "");
 	}
 
 	if (it != _requests.end())
@@ -156,7 +159,7 @@ void	Host::parse_request(int i) {
 		it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
 		it->second.parse();
 	} catch (const ErrorRequest & e) {
-		send_error_page(*this, i, e, NULL);
+		send_error_page(*this, i, e, NULL, it->second._request_line["uri"]);
 	}
 }
 
@@ -212,7 +215,7 @@ void	Host::act_on_request(int i) {
 		_responses.erase(fd);
 
 	} catch (const ErrorResponse & e) {
-		send_error_page(*this, i, e, &_nb_keepalive);
+		send_error_page(*this, i, e, &_nb_keepalive, it_req->second._request_line["uri"]);
 	}
 	
 	std::cout << YELLOW "---> Request answered" RESET << std::endl << std::endl;

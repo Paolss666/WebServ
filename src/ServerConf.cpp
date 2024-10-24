@@ -338,13 +338,6 @@ void	ServerConf::p_DefaultServer(std::istringstream& iss) {
 	_CheckDefaultServer = true;
 }
 
-void	ServerConf::setDefaultErrorPages(void) {
-	_PageError[400] = "www/error_pages/400_badrequest.html";
-	_PageError[403] = "www/error_pages/403_forbidden.html";
-	_PageError[404] = "www/error_pages/404_notfound.html";
-	_PageError[500] = "www/error_pages/500_internal_server.html";
-}
-
 void    ServerConf::initWServer(std::istream &file) {
 	std::string	line, kw;
 	int			i = 0;
@@ -395,8 +388,6 @@ void    ServerConf::initWServer(std::istream &file) {
 				throw ErrorConfFile("In conf file: missing listen address");
 			if (!_isServerName)
 				throw ErrorConfFile("In conf file: missing server name");
-			if (!_errorFlag)
-				setDefaultErrorPages();
 			break;
 		} else
 			throw ErrorConfFile("In conf file: server section");

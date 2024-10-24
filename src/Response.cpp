@@ -19,7 +19,6 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 	_headers = src._headers;
 	_body = src._body;
 	_indexPages = host._IndexFile;
-	_Location =  host._Location;
 	_root = host._rootPath;
 	_pagesError = host._PageError;
 	_returnPages = host._CodeReturn;
@@ -43,6 +42,7 @@ Response::Response(const Request & src, const Host &host): Request(src) {
 void	Response::send_response(int fd, bool *done) {
 	int	sent;
 
+	
 	if (_response_message.size() > BUFFER_SIZE)
 		sent = send(fd, _response_message.c_str(), BUFFER_SIZE, MSG_MORE | MSG_NOSIGNAL);
 	else
@@ -271,7 +271,7 @@ std::vector<std::string>	Response::MakeEnvCgi(std::string &cgi)
 	oss << _response_body;
 	exportENV(env, "CONTENT_LENGTH", oss.str());
 	exportENV(env, "CONTENT_TYPE", "text/html");
-	std::string pathInfo = "/home/npaolett/42/WebServerGet/" + cgi; // Assicurati che sia corretto
+	std::string pathInfo = "./" + cgi;
 	exportENV(env, "GATEWAY_INTERFACE", "CGI/1.1");
 	for (std::map<std::string, std::string>::iterator it = _response_header.begin(); it != _response_header.end(); it++)
 	{
@@ -310,6 +310,7 @@ void	Response::buildCgi()
 	size_t f_interr = format.find_last_of('?');
 	std::string vrai_f = format.substr(0, f_interr);
 	std::string _Cgi = _startUri.substr(0, extention);
+	std::cout << vrai_f << " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ---- \n";
 	if (vrai_f == ".php")
 		_Cgi += ".php";
 	else if (vrai_f == ".py")
@@ -349,6 +350,8 @@ void	Response::buildCgi()
 	int	fd[2];
 	if (pipe(fd) == - 1)
 	{
+		remove(".cgi.txt");
+		remove(".body_cgi.txt");
 		(close(cgiFdOut), close(cgiFdIn));
 		throw ErrorResponse("Error in the request: PIPE CGI", ERR_CODE_NOT_FOUND);
 	}
@@ -384,7 +387,7 @@ void	Response::buildCgi()
 		// execve failed
 		perror("execve");
 
-		sleep(3);
+		sleep(2);
 		exit(EXIT_FAILURE);
 	}
 	close(fd[0]);
@@ -446,6 +449,7 @@ void	Response::buildCgi()
 	}
 
 	std::ostringstream responseHeaders;
+
 	responseHeaders << "HTTP/1.1 " << _statusCode << " OK\r\n";
 	responseHeaders << "Content-Type: text/html; charset=UTF-8\r\n";
 	responseHeaders << "Content-Length: " << _response_body.size() << "\r\n"; // Imposta Content-Length
@@ -511,24 +515,27 @@ void	Response::buildGet(void) {
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
 		uri = _startUri;
-	if (_Location[uri].getFlagIndex())
-		_indexPages = _Location[uri].getIndexPages();
-	if (_Location[uri].getFlagAutoInx())
-		_autoIndex = _Location[uri].getAutoIndex();
-	if (_Location[uri].getRootFlag())
-		_root = _Location[uri].getRoot();
-	if (_Location[uri].getReturnFlag())
-		_returnPages = _Location[uri].getReturnPages();
-	if (_Location[uri].getFlagErrorPages())
-		_pagesError = _Location[uri].getPagesError();
-	if (_Location[uri].getFlagCgi())
-		_Cgi = _Location[uri].getCgiPath();
-	if (!_returnPages.empty()) {
+	if (_host._Location[uri].getFlagIndex())
+		_indexPages = _host._Location[uri].getIndexPages();
+	if (_host._Location[uri].getFlagAutoInx())
+		_autoIndex = _host._Location[uri].getAutoIndex();
+	if (_host._Location[uri].getRootFlag())
+		_root = _host._Location[uri].getRoot();
+	if (_host._Location[uri].getReturnFlag())
+		_returnPages = _host._Location[uri].getReturnPages();
+	if (_host._Location[uri].getFlagErrorPages())
+		_pagesError = _host._Location[uri].getPagesError();
+	if (_host._Location[uri].getFlagCgi())
+		_Cgi = _host._Location[uri].getCgiPath();
+	if (!_returnPages.empty())
+	{
 		buildReturnPage();
 		return ;
 	}
-	if (isRepertory(_root, _startUri) == 3) {
-		if (_startUri[_startUri.size() -1] != '/') {
+	if (isRepertory(_root, _startUri) == 3)
+	{
+		if (_startUri[_startUri.size() -1] != '/')
+		{
 			this->_statusCode = 301;
 			std::vector<std::string> filesList;
 			std::string tmp  = _root + _startUri;
@@ -572,10 +579,12 @@ void	Response::buildGet(void) {
 				throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	}
-	else if (_startUri.find("/cgi/print_response.php") != std::string::npos)
+	else if (_startUri.find("/cgi/print_response.php?") != std::string::npos)
 		buildCgi();
-	else if (_startUri.find("/cgi/print_res_py.py") != std::string::npos)
+	else if (_startUri.find("/cgi/print_res_py.py?") != std::string::npos)
 		buildCgi();
+	else if (_startUri == "/cgi/print_res_py.py" || _startUri == "/cgi/print_response.php")
+		throw ErrorResponse("In the reponse: URI IS NOT ALLOW", ERR_CODE_FORBIDDEN);
 	else if (isRepertory(_root, _startUri) == 1)
 		buildPage();
 	else
