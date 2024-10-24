@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 11:12:12 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/24 15:12:46 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,27 @@ const char *ErrorResponse::what() const throw() {
 }
 
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
+
+std::string build_error_page(int code, std::string image) {
+	std::string line, body;
+	std::ostringstream oss;
+	
+	std::ifstream file("www/error.html");
+	if (!file.is_open())
+		ft_perror("In the opening of the error page");
+	
+	oss << code;
+
+	while (std::getline(file, line)) {
+		if (line.find("<!-- status -->") != std::string::npos)
+			line.replace(line.find("<!-- status -->"), 15, oss.str());
+		if (line.find("<!-- image -->") != std::string::npos)
+			line.replace(line.find("<!-- image -->"), 14, image);
+		body += line;
+	}
+	file.close();
+	return body;
+}
 
 template <typename T>
 void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
@@ -119,23 +140,8 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 	if (status == "Unkown")
 		image = "<img src=\"https://http.cat/450.jpg\">";
 	else
-		image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
-	body = "<!DOCTYPE html>\
-			<html lang=\"en\">\
-			<head>\
-			<meta charset=\"UTF-8\">\
-			<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
-			<link href=\"style.css\" rel=\"stylesheet\">\
-			<link href=\"../../style.css\" rel=\"stylesheet\">\
-			<title>" + status + "</title>\
-			</head>\
-			<body>\
-			<div class=\"img\">" + image + "</div>\
-			<div class=\"index\">\
-			<a class=\"indexButton\" href=\"/index.html\">go back to home page</a>\
-			</div>\
-			</body>\
-			</html>";
+		image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";
+	body = build_error_page(e._code, image);
 
 	// Set the response
 	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";
