@@ -60,8 +60,10 @@ class ErrorResponse: public std::exception {
 		int					_code;
 };
 
+std::string foundGoodUri(Host & host, std::string uri);
+
 template <typename T>
-void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive);
+void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri);
 
 void	ft_perror(const char * message);
 

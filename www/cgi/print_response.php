@@ -1,7 +1,6 @@
 #!/usr/bin/php-cgi
 <?php
-// header("Content-Type: text/html; charset=UTF-8");
-file_put_contents('log.txt', print_r($_GET, true));
+// file_put_contents('log.txt', print_r($_GET, true));
 if (isset($_GET['?username']) && isset($_GET['bio'])) {
     $username = htmlspecialchars($_GET['?username']);
     $bio = htmlspecialchars($_GET['bio']);
@@ -112,6 +111,59 @@ if (isset($_GET['?username']) && isset($_GET['bio'])) {
 </body>
 </html>';
 } else {
-    echo "Aucun USERNAME AND BIO FORNI!";
-}
+    echo '<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error 404 - Page Not Found</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            font-size: 72px;
+            color: #e74c3c;
+        }
+        p {
+            font-size: 24px;
+            color: #555;
+        }
+        .error-container {
+            max-width: 600px;
+            margin: auto;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .back-home {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .back-home:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>404</h1>
+        <p>Oops! The page you are looking for cannot be found.</p>
+        <a href="/index.html" class="back-home">Go Back to Home</a>
+    </div>
+</body>
+</html>';
+    }
 ?>
