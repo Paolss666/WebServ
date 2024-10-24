@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 11:12:12 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/24 12:36:54 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -455,10 +455,6 @@ void	Response::buildCgi()
 	_response_ready = true;
 }
 
-
-
-
-
 void	Response::exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value)
 {
 	env.push_back(key + "=" + value);
@@ -527,16 +523,12 @@ void	Response::buildGet(void) {
 		_pagesError = _Location[uri].getPagesError();
 	if (_Location[uri].getFlagCgi())
 		_Cgi = _Location[uri].getCgiPath();
-	if (!_returnPages.empty())
-	{
+	if (!_returnPages.empty()) {
 		buildReturnPage();
 		return ;
 	}
-	if (isRepertory(_root, _startUri) == 3)
-	{
-		if (_startUri[_startUri.size() -1] != '/')
-		{
-	
+	if (isRepertory(_root, _startUri) == 3) {
+		if (_startUri[_startUri.size() -1] != '/') {
 			this->_statusCode = 301;
 			std::vector<std::string> filesList;
 			std::string tmp  = _root + _startUri;
@@ -553,12 +545,11 @@ void	Response::buildGet(void) {
 				if (*it == "..")
 					continue ;
 				std::string file = (*it);
-				if (isRepertory(_root, _startUri + "/"+ file) == 1 && file[file.size() - 5] == '.')
-				{
+				if (isRepertory(_root, _startUri + "/"+ file) == 1 && file[file.size() - 5] == '.') {
 					_startUri = _startUri + "/"+ (*it);
 					closedir(dir);
 					buildPage();
-					return;
+					return ;
 				}
 			}
 			closedir(dir);
@@ -658,11 +649,12 @@ void	Response::buildPost(void) {
 void Response::buildDelete(void) {
 	int			res;
 	struct stat	check;
-	std::string	file;
+	std::string	path, file;
 
-	// Check if the URI exists
-	file = _root + _request_line["uri"];
-	res = stat(file.c_str(), &check);
+	// Check if the URI exists and replace % encoding by their character
+	path = _root + _request_line["uri"].substr(0, _request_line["uri"].find_last_of("/") + 1);
+	file = replace_percentage(_request_line["uri"].substr(_request_line["uri"].find_last_of("/") + 1));
+	res = stat((path + file).c_str(), &check);
 	if (res == -1)
 		throw ErrorResponse("In the response: file not found", ERR_CODE_NOT_FOUND);
 	
@@ -674,23 +666,23 @@ void Response::buildDelete(void) {
 			throw ErrorResponse("In the response: URI for directory does not end with /", ERR_CODE_CONFLICT);
 		
 		// Check for write permission
-		if (access(file.c_str(), W_OK) == -1)
+		if (access((path + file).c_str(), W_OK) == -1)
 			throw ErrorResponse("In the response: no write permission", ERR_CODE_FORBIDDEN);
 
 		// Attempt to remove the directory
-		if (rmdir(file.c_str()) == -1)
+		if (rmdir((path + file).c_str()) == -1)
 			throw ErrorResponse("In the response: directory not removed", ERR_CODE_INTERNAL_ERROR);
 	} else {
 		
 		// // Check for write permission
-		if (access(file.c_str(), W_OK) == -1)
+		if (access((path + file).c_str(), W_OK) == -1)
 			throw ErrorResponse("In the response: no write permission", ERR_CODE_FORBIDDEN);
 
 		// Attempt to remove the file
-		if (unlink(file.c_str()) == -1)
+		if (unlink((path + file).c_str()) == -1)
 			throw ErrorResponse("In the response: file not removed", ERR_CODE_INTERNAL_ERROR);
 
-		_host._files.erase(std::remove(_host._files.begin(), _host._files.end(), _request_line["uri"].substr(9)), _host._files.end());
+		_host._files.erase(std::remove(_host._files.begin(), _host._files.end(), file), _host._files.end());
 	}
 	
 	// Send a response to the client

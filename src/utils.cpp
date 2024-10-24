@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 10:53:37 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/24 12:24:19 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -135,20 +135,8 @@ const std::string & collect_lh_ip(void) {
 	freeaddrinfo(res);
 	return ip_address;
 }
-// std::string	getAbsPath(std::string &path)
-// {
-// 	// on compare le debut de path si c'est pas ./ on renvoie /
-// 	if (!(path.size() >= 2 && path.compare(0,  2, "./")))
-// 		return ("/");
-// 	char	buffer[PATH_MAX];
-// 	char *buf = getcwd(buffer, sizeof(buffer));
-// 	if (buf)
-// 		return (buf);
-// 	return ("/");
-// }
 
-char	**vectorStringToChar(std::vector<std::string> &vector)
-{
+char	**vectorStringToChar(std::vector<std::string> &vector) {
 	char** tab = new char*[vector.size() + 1];
 	for (size_t i = 0; i < vector.size(); i++)
 	{
@@ -158,4 +146,37 @@ char	**vectorStringToChar(std::vector<std::string> &vector)
 	}
 	tab[vector.size()] = NULL;
 	return (tab);
+}
+
+int hex_to_char(char hex) {
+	if (hex >= '0' && hex <= '9') {
+		return hex - '0';
+	} else if (hex >= 'A' && hex <= 'F') {
+		return hex - 'A' + 10;
+	} else if (hex >= 'a' && hex <= 'f') {
+		return hex - 'a' + 10;
+	}
+	return -1; // Error
+}
+
+std::string replace_percentage(std::string str) {
+	std::string decoded;
+	char hex1, hex2;
+	int byte;
+
+	for (size_t i = 0; i < str.size(); i++) {
+		if (str[i] == '%' && i + 2 < str.length()) {
+			hex1 = str[i + 1];
+			hex2 = str[i + 2];
+			
+			byte = (hex_to_char(hex1) << 4) | hex_to_char(hex2);
+			decoded += static_cast<char>(byte);
+			
+			i += 2;
+		} else if (str[i] == '+')
+			decoded += ' ';
+		else 
+			decoded += str[i];
+	}
+	return decoded;
 }
