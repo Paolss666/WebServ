@@ -79,16 +79,6 @@
             transition: background-color 0.3s, transform 0.3s;
         }
 
-        button {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        button:hover {
-            background-color: #c0392b;
-            transform: scale(1.1);
-        }
-
         .link-button {
             background-color: #8e44ad;
             color: white;
@@ -125,17 +115,10 @@
         <input type="submit" value="Envoyer" class="link-button">
     </form>
     <div class="button-container">
-        <button onclick="showMessage()">Show Message</button>
         <a href="/cgi/basic.html" class="link-button">Go to CGI</a>
         <a href="/index.html" class="link-button">Go to HOMEPAGE</a>
         <a href="/cgi/basicphp.html" class="link-button">Go to PHP</a>
         <a href="/cgi/basicpy.html" class="link-button">Go to PY</a>
     </div>
-
-    <script>
-        function showMessage() {
-            alert('Hello! You clicked the button.');
-        }
-    </script>
 </body>
 </html>
