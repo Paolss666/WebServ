@@ -29,6 +29,9 @@ std::string			trim(std::string & str);
 void				ft_print_coucou(int i);
 const std::string &	collect_lh_ip(void);
 
+std::string	getAbsPath(std::string &path);
+
+char	**vectorStringToChar(std::vector<std::string> &vector);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black

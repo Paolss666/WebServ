@@ -21,12 +21,15 @@ class Response: public Request {
 		~Response(void);
 
 		void								buildGet(void);
+		void								buildCgi(void);
 		void								buildPost(void);
 		void								buildDelete(void);
 		void								buildPage(void);
 		void								buildAutoindex(void);
+		void								buildReturnPage();
 		void								send_response(int fd, bool *done);
-
+		void								exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value);
+		std::vector<std::string> 			MakeEnvCgi(std::string &cgi);
 		std::map<std::string, std::string>	_response_header;
 		std::string							_response_body;
 		std::string							_response_message;
@@ -49,6 +52,8 @@ class Response: public Request {
 		int									_found; // found the good Uri;
 		size_t								_maxBodySize;
 		int									_statusCode;
+		std::string							_Cgi;
+		char *								_cgi;
 };
 
 #endif

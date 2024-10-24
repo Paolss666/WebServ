@@ -34,6 +34,16 @@ void      Location::setUri(std::string uri)
     this->_Uri = uri;
 }
 
+int				Location::getFlagCgi()
+{
+	return (this->_CgiFlag);
+}
+
+std::string			Location::getCgiPath()
+{
+	return (this->_CgiPath);
+}
+
 std::string     Location::getUri(void)
 {
     return(this->_Uri);
@@ -110,7 +120,7 @@ int	Location::InLoc_p_Return(std::string &codeRetrn)
 	{
 		int errorCode = strtol(codeRetrn.c_str(), NULL, 10);
 		if (errorCode < 300 || errorCode > 308)
-			throw ErrorConfFile("In conf file: error_page  x < 100 || x > 599 ");
+			throw ErrorConfFile("In conf file: error_page  x < 300 || x > 308 ");
 		return (errorCode);
 	}
 	else

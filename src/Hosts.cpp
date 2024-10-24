@@ -173,7 +173,9 @@ void	Host::act_on_request(int i) {
 		it_resp = _responses.find(fd);
 	}
 	try {
+		// std::cout << it_resp->second._startUri << std::endl; 
 		if (!it_resp->second._response_ready) {
+				// it_resp->second.buildRetourn();
 			if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
 			else if (it_resp->second._request_line["method"] == "POST")
