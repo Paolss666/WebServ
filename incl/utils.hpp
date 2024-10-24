@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 10:38:20 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/24 14:22:21 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,7 @@ int 				isRepertory(std::string root, std::string filename);
 std::string			trim(std::string & str);
 void				ft_print_coucou(int i);
 const std::string &	collect_lh_ip(void);
-
-std::string	getAbsPath(std::string &path);
+std::string 		replace_percentage(std::string str);
 
 char	**vectorStringToChar(std::vector<std::string> &vector);
 // macros ------------------------------
@@ -50,7 +49,7 @@ char	**vectorStringToChar(std::vector<std::string> &vector);
 # define PORT				8080
 # define MAX_CONNECTIONS	512
 # define EPOLL_TIMEOUT		0
-# define BUFFER_SIZE		16
+# define BUFFER_SIZE		512
 # define MAX_BODY_SIZE		5368709120	// 5 GB
 # define MAX_HEADER_SIZE	8192	// 8 KB
 # define MAX_URI_SIZE		2048	// 2 KB

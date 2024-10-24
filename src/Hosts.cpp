@@ -269,6 +269,11 @@ void	Host::close_everything(void) {
 	for (size_t i = 0; i < _files.size(); i++)
 		unlink((_rootPath + "/uploads/" + _files[i]).c_str());
 	
+	// Clear files.json
+	std::ofstream file((_rootPath + "/uploads/files.json").c_str());
+	file << "[]";
+	file.close();
+	
 	// Close all sockets
 	for (size_t i = 0; i < _fdAcceptSock.size(); i++)
 		ft_close(_fdAcceptSock[i]);
