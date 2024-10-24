@@ -425,6 +425,7 @@ void	Response::buildCgi()
 			perror("waitpid");
 			close(cgiFdOut);
 			close(cgiFdIn);
+			// free
 			throw ErrorResponse("Error in the request: waitPID CGI", 500);
 		}
 	}
