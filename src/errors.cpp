@@ -252,26 +252,30 @@ template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, i
 
 std::string foundGoodUri(Host & host, std::string uri)
 {
+	std::string new_uri;
 	// std::cout << "URI -> " << uri << std::endl;
 	int i = 1;
+	if (uri[uri.size() - 1] != '/')
+		new_uri = uri + '/';
+	else
+		new_uri = uri;
 	while (i)
 	{
         for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it) {
-			// std::cout << "it->first" << it->first << std::endl;
-            if (it->first == uri)
-			{                
-				// std::cout << "Found matching URI: " << uri << std::endl;
+            if (it->first == new_uri)
+			{       
+				// std::cout << "Found matching URI: " << new_uri << std::endl;
             	i = 0;
-				break;
+				return (new_uri);
 			}
         }
-        	std::size_t pos = uri.find_last_of('/');
-			uri = uri.substr(0, uri.find_last_of('/'));
+        	std::size_t pos = new_uri.find_last_of('/');
+			new_uri = new_uri.substr(0, new_uri.find_last_of('/'));
 			// std::cout << " --------->  uri    ->" << uri << std::endl;
         	if (pos == std::string::npos || pos == 0) {
-        	    uri = "/";
+        	    new_uri = "/";
 				break;
 			}
 	}
-	return (uri);
+	return (new_uri);
 }

@@ -43,6 +43,9 @@ class Location
       bool                        _AutoIndex;
       bool                        _MetFlag;
       bool                        _rootflag;
+      int					                _flagPost;
+		  int								          _flagGet;
+		  int								          _flagDelete;
 
     public:
        
@@ -72,6 +75,10 @@ class Location
         std::string             getRoot();
         bool                    getAutoIndex();
         std::string             getCgiPath();
+        int                     getFlagGet();
+        int                     getFlagPost();
+        int                     getFlagDelete();
+      std::vector<std::string>  getMtods();
 };
 
 #endif

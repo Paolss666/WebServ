@@ -56,17 +56,37 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	_request_line["uri"] = uri;
 	_request_line["protocol"] = protocol;
 
-	// Check the method
+	if (_request_line["uri"].empty())
+		throw ErrorRequest("In the request: uri not found", ERR_CODE_BAD_REQUEST);
+
 	if (!(_request_line["method"] == "GET" || _request_line["method"] == "POST" || _request_line["method"] == "DELETE"))
 		throw ErrorRequest("In the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
+
+	// std::cout << good_uri << " <------------------ \n";
+	// std::cout << _host._Locatio[] << " _location name \n";
+	// std::cout << " FLAG -> " << _host._Location[good_uri].getFlagGet() << std::endl;
+	// printVector(_host._Location[good_uri].getMtods());
+	// std::cout << "URI _> " <<  _request_line["uri"] << std::endl;
+	// std::cout << " FIND  -> " << _request_line["uri"].find(good_uri) << std::endl;
+	// std::cout << "MEHTOS INSIDE REQUEST" << _request_line["method"] << std::endl;
 	
-	// Check the protocol
+	// check METHOD ALLOW
+
+	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
+	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
+		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+
+	if ( _request_line["method"] == "POST" && !_host._Location[good_uri].getFlagPost() && _request_line["uri"].find(good_uri) != std::string::npos)
+		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+	
+	if ( _request_line["method"] == "DELETE" && !_host._Location[good_uri].getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
+		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+	
+
 	if (_request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);
 
 	// Check the uri
-	if (_request_line["uri"].empty())
-		throw ErrorRequest("In the request: uri not found", ERR_CODE_BAD_REQUEST);
 }
 
 void	Request::pnc_headers(std::istringstream & iss) {

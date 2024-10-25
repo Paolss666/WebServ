@@ -176,9 +176,9 @@ void	Host::act_on_request(int i) {
 		it_resp = _responses.find(fd);
 	}
 	try {
-		// std::cout << it_resp->second._startUri << std::endl; 
 		if (!it_resp->second._response_ready) {
-				// it_resp->second.buildRetourn();
+			
+			// std::cout << "it_resp->second._request_line[uri] -> " <<  it_resp->second._request_line["uri"]<< std::endl;
 			if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
 			else if (it_resp->second._request_line["method"] == "POST")
@@ -186,7 +186,7 @@ void	Host::act_on_request(int i) {
 			else if (it_resp->second._request_line["method"] == "DELETE")
 				it_resp->second.buildDelete();
 			else
-				throw ErrorResponse("In the request: method not implemented", ERR_CODE_MET_NOT_ALLOWED);
+				throw ErrorResponse("In the request: method not implemented", ERR_CODE_FORBIDDEN);
 			json_update();
 		}
 

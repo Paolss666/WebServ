@@ -356,11 +356,6 @@ void	Response::buildCgi()
 		throw ErrorResponse("Error in the request: PIPE CGI", ERR_CODE_NOT_FOUND);
 	}
 
-
-
-	// HERE I ll put or build the find version 4 Different CGI php or PY
-
-
 	std::vector<std::string> vecEnv = MakeEnvCgi(_Cgi);
 
 	char * finalUriChar = const_cast<char*>(_startUri.c_str());
@@ -373,6 +368,7 @@ void	Response::buildCgi()
 		(close(cgiFdOut), close(cgiFdIn));
 		throw ErrorResponse("Error in the request: FILE FORK CGI", 500);
 	}
+	char **env = vectorStringToChar(vecEnv);
 	if (pid == 0)//child
 	{
 		close(fd[1]);
@@ -381,10 +377,15 @@ void	Response::buildCgi()
 		dup2(cgiFdOut, STDOUT_FILENO);//stdout devient pipe[1]
 		close(cgiFdOut);
 		char *av[] = {_cgi,finalUriChar,  NULL};
-		char **env = vectorStringToChar(vecEnv);
+		for (int i = 0; av[i]; i++)
+			std::cerr << av[i] << std::endl;
 		close(cgiFdIn);
 		execve(_cgi, av, env);
 		// execve failed
+		// for(size_t i = 0; env[i] ; i++){
+		// 	delete env[i];
+		// }
+		// delete [] env;
 		perror("execve");
 
 		sleep(2);
@@ -416,10 +417,10 @@ void	Response::buildCgi()
 				if (kill(pid, SIGKILL) == -1)
 					perror("kill");
 				pid_result = waitpid(pid, &writeStatus, WNOHANG);
-				_statusCode = 500;
+				_statusCode = 405;
 				remove(".cgi.txt");
 				remove(".body_cgi.txt");
-				throw ErrorResponse("Error in the request: FILE_____ CGI", 500);
+				throw ErrorResponse("Error in the request: TIME OUT CGI", 405);
 			}
 		}
 		else// waitpid failed
@@ -509,7 +510,7 @@ void	Response::buildReturnPage()
 }
 
 void	Response::buildGet(void) {
-	
+
 	std::string	index, path, uri;
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);

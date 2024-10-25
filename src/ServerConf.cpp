@@ -379,8 +379,10 @@ void    ServerConf::initWServer(std::istream &file) {
 			} else
 				throw ErrorConfFile("In conf file: location: wrong content");
 			location.ParseLocation(file);
+			// std::cout << "URI SET URI" << location.getUri() << std::endl;
 			_Location[location.getUri()] = location;
 			i++;
+			
 		} else if (line == "}") {
 			if (!_rootFlag )
 				throw ErrorConfFile("In conf file: missing root path");

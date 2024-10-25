@@ -23,11 +23,20 @@ Location::Location(void)
     _AutoIndex = false;
     _MetFlag   = false;
 	_rootflag = false;
+	_flagGet = 0;
+	_flagPost = 0;
+	_flagDelete = 0;
     return;
 }
 
 Location::~Location(void)
 {return;}
+
+std::vector<std::string>    Location::getMtods()
+{
+	return (this->_Methods);
+}
+
 
 void      Location::setUri(std::string uri)
 {
@@ -37,6 +46,22 @@ void      Location::setUri(std::string uri)
 int				Location::getFlagCgi()
 {
 	return (this->_CgiFlag);
+}
+
+// 
+int				Location::getFlagPost()
+{
+	return (this->_flagPost);
+}
+
+int				Location::getFlagGet()
+{
+	return (this->_flagGet);
+}
+
+int				Location::getFlagDelete()
+{
+	return (this->_flagDelete);
 }
 
 std::string			Location::getCgiPath()
@@ -51,17 +76,35 @@ std::string     Location::getUri(void)
 
 void        Location::InLoc_Methos(std::istringstream& iss)
 {
+	// std::cout << "INSIDE LOCATION -> " << this->getUri() << std::endl;
+	std::vector<std::string> methods;
+
     std::string line;
     if (!(iss >> line))
+	{
         throw ErrorConfFile("In conf file: location: methods");
-    // std::cout << "methods -> " << line << std::endl;
+	}
+
+	// std::cout << "methods -> " << line << std::endl;
+	if (line != "GET" && line != "POST" && line != "DELETE" )
+        throw ErrorConfFile("In conf file: location: wrong method");
+	if (line == "GET")
+		_flagGet = 1;
+    methods.push_back(line);
     while (iss >> line)
     {
-        if (line != "GET" && line != "POST" && line != "DELETE" )
+		// std::cout << "methods -> " << line << std::endl;
+	    if (line != "GET" && line != "POST" && line != "DELETE" )
             throw ErrorConfFile("In conf file: location: wrong method");
-        _Methods.push_back(line);
+		if (line == "POST")
+			_flagPost = 1;
+		if (line == "DELETE")
+			_flagDelete = 1;
+        methods.push_back(line);
         // std::cout << "methods -> " << line << std::endl;
     }
+	_Methods = methods;
+	// printVector(_Methods);
     _MetFlag = true;
 }
 
@@ -237,6 +280,7 @@ void	Location::InLoc_root(std::istringstream& iss)
 void        Location::ParseLocation(std::istream &file)
 {
     std::string line;
+	std::cout << this->getUri() << std::endl;
     while (std::getline(file, line))
     {
 		std::istringstream iss(line);
@@ -263,8 +307,20 @@ void        Location::ParseLocation(std::istream &file)
 		else if (keyword == "root" && !_rootflag)
 			InLoc_root(iss);
         else if (keyword == "}")
-            break;
-        else
+		{
+			if (!_MetFlag)
+			{
+				_Methods.push_back("GET");
+				_Methods.push_back("POST");
+				_Methods.push_back("DELETE");
+				_flagGet = 1;
+				_flagPost = 1;
+				_flagDelete = 1;
+				break;
+			}
+			break;
+		}
+		else
             throw ErrorConfFile("In conf file: Location 2");
     }
     return;
