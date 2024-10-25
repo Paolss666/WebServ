@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 11:42:14 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/25 10:45:54 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,9 @@ ServerConf::ServerConf(void) {
 }
 
 ServerConf::ServerConf(ServerConf const & src): _address(src._address), _PageError(src._PageError),
-	_CodeReturn(src._CodeReturn), _IndexFile(src._IndexFile), _nb_keepalive(src._nb_keepalive),
-	_max_keepalive(src._max_keepalive), _fdSetSock(src._fdSetSock), _fdEpoll(src._fdEpoll),
-	_fdAcceptSock(src._fdAcceptSock), _address_len(src._address_len), _NotBind(src._NotBind),
+	_CodeReturn(src._CodeReturn), _IndexFile(src._IndexFile), _allowedMethods(src._allowedMethods),
+	_nb_keepalive(src._nb_keepalive), _max_keepalive(src._max_keepalive), _fdSetSock(src._fdSetSock),
+	_fdEpoll(src._fdEpoll), _fdAcceptSock(src._fdAcceptSock), _address_len(src._address_len), _NotBind(src._NotBind),
 	_port(src._port), _IndexPages(src._IndexPages), _nbServer(src._nbServer), _maxBodySize(src._maxBodySize),
 	_PortString(src._PortString), _ip(src._ip), _raw_ip(src._raw_ip), _name(src._name),
 	_rootPath(src._rootPath), _Location(src._Location), _maxBodyState(src._maxBodyState),
@@ -401,6 +401,10 @@ void    ServerConf::initWServer(std::istream &file) {
 		} else
 			throw ErrorConfFile("In conf file: server section");
 	}
+	// To be removed
+	_allowedMethods.push_back("GET");
+	_allowedMethods.push_back("POST");
+	_allowedMethods.push_back("DELETE");
 }
 
 void	ServerConf::set_fdEpoll(int _fdEpoll) { this->_fdEpoll = _fdEpoll; }

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/24 15:12:46 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:42:01 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,27 +50,6 @@ const char *ErrorResponse::what() const throw() {
 }
 
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
-
-std::string build_error_page(int code, std::string image) {
-	std::string line, body;
-	std::ostringstream oss;
-	
-	std::ifstream file("www/error.html");
-	if (!file.is_open())
-		ft_perror("In the opening of the error page");
-	
-	oss << code;
-
-	while (std::getline(file, line)) {
-		if (line.find("<!-- status -->") != std::string::npos)
-			line.replace(line.find("<!-- status -->"), 15, oss.str());
-		if (line.find("<!-- image -->") != std::string::npos)
-			line.replace(line.find("<!-- image -->"), 14, image);
-		body += line;
-	}
-	file.close();
-	return body;
-}
 
 template <typename T>
 void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
@@ -141,7 +120,7 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive) {
 		image = "<img src=\"https://http.cat/450.jpg\">";
 	else
 		image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";
-	body = build_error_page(e._code, image);
+	body = build_custom_page(e._code, image);
 
 	// Set the response
 	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";

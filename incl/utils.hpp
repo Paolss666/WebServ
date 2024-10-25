@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/24 14:22:21 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/25 09:40:17 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,9 @@ std::string			trim(std::string & str);
 void				ft_print_coucou(int i);
 const std::string &	collect_lh_ip(void);
 std::string 		replace_percentage(std::string str);
+char				**vectorStringToChar(std::vector<std::string> &vector);
+std::string 		build_custom_page(int fig, std::string str);
 
-char	**vectorStringToChar(std::vector<std::string> &vector);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black

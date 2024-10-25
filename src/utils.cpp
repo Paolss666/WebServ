@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/24 12:24:19 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:41:54 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,4 +179,25 @@ std::string replace_percentage(std::string str) {
 			decoded += str[i];
 	}
 	return decoded;
+}
+
+std::string build_custom_page(int fig, std::string str) {
+	std::string line, body("");
+	std::ostringstream oss;
+	
+	std::ifstream file("www/utils/error.html");
+	if (!file.is_open())
+		ft_perror("In the opening of the error page");
+	
+	oss << fig;
+
+	while (std::getline(file, line)) {
+		if (line.find("<!-- status -->") != std::string::npos)
+			line.replace(line.find("<!-- status -->"), std::string("<!-- status -->").length(), oss.str());
+		if (line.find("<!-- str -->") != std::string::npos)
+			line.replace(line.find("<!-- str -->"), std::string("<!-- str -->").length(), str);
+		body += line + '\n';
+	}
+	file.close();
+	return body;
 }

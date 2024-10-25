@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:58:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/18 22:03:15 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/25 12:35:18 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <exception>
 # include <vector>
 # include <map>
+# include <list>
 # include <string>
 # include <errno.h>
 # include <stdio.h>
@@ -47,11 +48,11 @@
 # include <sys/epoll.h>
 
 // global variables ------------------------------
-extern int g_sig;
-	extern std::map<std::string, std::string> CONTENT_TYPES;
-// std::map<std::string, std::string>	CONTENT_TYPES;
-# include "Location.hpp"
+extern int									g_sig;
+extern std::map<std::string, std::string>	CONTENT_TYPES;
+
 // hpp files ------------------------------
+# include "Location.hpp"
 # include "errors.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
