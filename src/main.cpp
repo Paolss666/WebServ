@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 11:12:30 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/25 10:45:05 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,9 @@ std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     while (std::getline(file, line)) {
         if (line == "server {") {
             ServerConf virtualServer;	
-            // std::cout << " ======> "<< line << "<============================== \n";
-             virtualServer.initWServer(file);
-            // std::cout << "FILE DONE\n";
+            virtualServer.initWServer(file);
             virtualServer.setNbServer(i);
 			server.push_back(virtualServer);
-            // std::cout << "nbserver " << i << "\n";
 			i++;
 		}
         else if (line.empty())

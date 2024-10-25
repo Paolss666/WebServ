@@ -6,7 +6,7 @@
 #    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/10/06 18:36:22 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/25 12:35:46 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,6 +21,7 @@ INC = -I $(INC_PATH)
 
 SRCS_PATH = ./src/
 SRC := \
+	cgi.cpp \
 	errors.cpp \
 	Hosts.cpp \
 	Location.cpp \

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 08:58:06 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/21 19:02:27 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:58:38 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ class Request {
 		void								pnc_request_line(std::istringstream & iss);
 		void								pnc_headers(std::istringstream & iss);
 		void								pnc_body(void);
+		void								pnc_check_chunk();
+		std::vector<char>					pnc_clean_chunk();
 
 		Host &								_host;
 		struct epoll_event &				_event;
@@ -41,6 +43,7 @@ class Request {
 		std::vector<char>					_binary_body;
 		int									_stage;
 		int									_eof;
+		bool								_chunked;
 };
 
 #endif

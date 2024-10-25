@@ -96,7 +96,7 @@ if (isset($_GET['?username']) && isset($_GET['bio'])) {
     
     <div class="button-container">
         <button onclick="showMessage()">Show Message</button>
-        <a href="/home/index.html" class="link-button">Go to Home</a>
+        <a href="/index.html" class="link-button">Go to Home</a>
         <a href="/bla/index2.html" class="link-button">Go to Page bla</a>
         <a href="/cgi/basicphp.html" class="link-button">Go to CGI for PHP</a>
         <a href="/cgi/basicpy.html" class="link-button">Go to CGI for PY</a>

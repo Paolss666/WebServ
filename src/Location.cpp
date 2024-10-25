@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/23 11:14:17 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/25 18:15:21 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,7 @@ void        Location::InLoc_Methos(std::istringstream& iss)
         throw ErrorConfFile("In conf file: location: methods");
 	}
 
-	// std::cout << "methods -> " << line << std::endl;
+	std::cout << "methods -> " << line << std::endl;
 	if (line != "GET" && line != "POST" && line != "DELETE" )
         throw ErrorConfFile("In conf file: location: wrong method");
 	if (line == "GET")
@@ -93,7 +93,7 @@ void        Location::InLoc_Methos(std::istringstream& iss)
     methods.push_back(line);
     while (iss >> line)
     {
-		// std::cout << "methods -> " << line << std::endl;
+		std::cout << "methods -> " << line << std::endl;
 	    if (line != "GET" && line != "POST" && line != "DELETE" )
             throw ErrorConfFile("In conf file: location: wrong method");
 		if (line == "POST")
