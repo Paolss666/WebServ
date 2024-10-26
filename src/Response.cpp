@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 18:08:24 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 15:08:58 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,6 +116,33 @@ void	Response::buildAutoindex(void) {
 	_response_ready = true;
 }
 
+void	Response::buildReturnPage(void) {
+	int	returnCode;
+	std::string redirUri;
+
+	for (std::map<int, std::string>::iterator i = _returnPages.begin(); i != _returnPages.end(); i++)
+		(returnCode = i->first, redirUri = i->second);
+
+	if (returnCode >= 300 && returnCode < 309)
+		_statusCode = returnCode;
+	else
+		_statusCode = 500;
+	
+	if ((_startUri.size() -1 ) == '/' && redirUri[0] == '/') {
+		redirUri = redirUri.substr(1, redirUri.size());
+		_startUri += redirUri;
+	} else if ((_startUri.size() -1 ) == '/' && redirUri[0] != '/')
+		_startUri += redirUri;
+	else if ((_startUri.size() -1 ) != '/' && redirUri[0] == '/')
+		_startUri += redirUri;
+	else if ((_startUri.size() -1 ) != '/' && redirUri[0] != '/')
+		_startUri = _startUri + "/" + redirUri;
+
+	_headers["location"] = _startUri;
+
+	buildPage();
+}
+
 void	Response::buildPage(void) {
 	std::stringstream	buffer;
 	std::string			resourceName, fileExtension;
@@ -186,8 +213,7 @@ void	Response::buildGet(void) {
 		_pagesError = _host._Location[uri].getPagesError();
 	if (_host._Location[uri].getFlagCgi())
 		_Cgi = _host._Location[uri].getCgiPath();
-	if (!_returnPages.empty())
-	{
+	if (!_returnPages.empty()) {
 		buildReturnPage();
 		return ;
 	}

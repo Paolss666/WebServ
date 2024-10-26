@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 18:07:28 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 13:57:21 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,147 +51,62 @@ const char *ErrorResponse::what() const throw() {
 
 void	ft_perror(const char * message) { std::cerr << BOLD RED "Error: " RESET RED << message << RESET << std::endl; }
 
+std::string getStatus(const int & code) {
+	std::map<int, std::string> errorMap;
+	errorMap.insert(std::make_pair(ERR_CODE_MOVE_PERM, ERR_NAME_MOVE_PERM));
+	errorMap.insert(std::make_pair(ERR_CODE_BAD_REQUEST, ERR_NAME_BAD_REQUEST));
+	errorMap.insert(std::make_pair(ERR_CODE_FORBIDDEN, ERR_NAME_FORBIDDEN));
+	errorMap.insert(std::make_pair(ERR_CODE_NOT_FOUND, ERR_NAME_NOT_FOUND));
+	errorMap.insert(std::make_pair(ERR_CODE_MET_NOT_ALLOWED, ERR_NAME_MET_NOT_ALLOWED));
+	errorMap.insert(std::make_pair(ERR_CODE_TIMEOUT, ERR_NAME_TIMEOUT));
+	errorMap.insert(std::make_pair(ERR_CODE_CONFLICT, ERR_NAME_CONFLICT));
+	errorMap.insert(std::make_pair(ERR_CODE_LENGTH_REQUIRED, ERR_NAME_LENGTH_REQUIRED));
+	errorMap.insert(std::make_pair(ERR_CODE_PAYLOAD_TOO_LARGE, ERR_NAME_PAYLOAD_TOO_LARGE));
+	errorMap.insert(std::make_pair(ERR_CODE_URI_TOO_LONG, ERR_NAME_URI_TOO_LONG));
+	errorMap.insert(std::make_pair(ERR_CODE_UNSUPPORTED_MEDIA, ERR_NAME_UNSUPPORTED_MEDIA));
+	errorMap.insert(std::make_pair(ERR_CODE_REQ_HEADER_FIELDS, ERR_NAME_REQ_HEADER_FIELDS));
+	errorMap.insert(std::make_pair(ERR_CODE_INTERNAL_ERROR, ERR_NAME_INTERNAL_ERROR));
+	errorMap.insert(std::make_pair(ERR_CODE_SERVICE_UNAVAIL, ERR_NAME_SERVICE_UNAVAIL));
+	errorMap.insert(std::make_pair(ERR_CODE_HTTP_VERSION, ERR_NAME_HTTP_VERSION));
+
+	std::map<int, std::string>::const_iterator it = errorMap.find(code);
+	if (it != errorMap.end())
+		return it->second;
+	else
+		return "Unknown";
+}
+
 template <typename T>
 void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri) {
-	std::string status, response, body, line, image;
-	std::fstream file;
-	std::ostringstream oss, str_code, str_port;
+	std::string 								status, response, body, line, image;
+	std::fstream								file;
+	std::ostringstream							oss, str_code, str_port;
+	std::stringstream							buffer;
+	std::map<int, std::string>::const_iterator	it;
+	
 	ft_perror(e.what());
 	if (_nb_keepalive)
 		*_nb_keepalive -= 1;
 
-	// Set the status
-	switch (e._code) {
-		case ERR_CODE_MOVE_PERM:
-			status = ERR_NAME_MOVE_PERM;
-			break;
-		case ERR_CODE_BAD_REQUEST:
-			status = ERR_NAME_BAD_REQUEST;
-			break;
-		case ERR_CODE_FORBIDDEN:
-			status = ERR_NAME_FORBIDDEN;
-			break;
-		case ERR_CODE_NOT_FOUND:
-			status = ERR_NAME_NOT_FOUND;
-			break;
-		case ERR_CODE_MET_NOT_ALLOWED:
-			status = ERR_NAME_MET_NOT_ALLOWED;
-			break;
-		case ERR_CODE_TIMEOUT:
-			status = ERR_NAME_TIMEOUT;
-			break;
-		case ERR_CODE_CONFLICT:
-			status = ERR_NAME_CONFLICT;
-			break;
-		case ERR_CODE_LENGTH_REQUIRED:
-			status = ERR_NAME_LENGTH_REQUIRED;
-			break;
-		case ERR_CODE_PAYLOAD_TOO_LARGE:
-			status = ERR_NAME_PAYLOAD_TOO_LARGE;
-			break;
-		case ERR_CODE_URI_TOO_LONG:
-			status = ERR_NAME_URI_TOO_LONG;
-			break;
-		case ERR_CODE_UNSUPPORTED_MEDIA:
-			status = ERR_NAME_UNSUPPORTED_MEDIA;
-			break;
-		case ERR_CODE_REQ_HEADER_FIELDS:
-			status = ERR_NAME_REQ_HEADER_FIELDS;
-			break;
-		case ERR_CODE_INTERNAL_ERROR:
-			status = ERR_NAME_INTERNAL_ERROR;
-			break;
-		case ERR_CODE_SERVICE_UNAVAIL:
-			status = ERR_NAME_SERVICE_UNAVAIL;
-			break;
-		case ERR_CODE_HTTP_VERSION:
-			status = ERR_NAME_HTTP_VERSION;
-			break;
-		default:
-			status = "Unknown";
-			break;
-	}
-	std::string found = foundGoodUri(host, uri);
-	// std::cout << "FOUND  --> " << found << std::endl;
-	if(host._errorFlag)
-	{
-		if (host._Location[found].getFlagErrorPages())
-		{
-			const std::map<int, std::string>& pagesError = host._Location[found].getPagesError();  // Store the map in a local variable
-			std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
-			// std::map<int, std::string>::iterator it = host._Location[found].getPagesError().find(e._code);
-			if (it != host._Location[found].getPagesError().end()) {
-				std::ifstream fileRequested(it->second.c_str());
-				if (fileRequested.good() == false)
-					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+	// Get the status
+	status = getStatus(e._code);
+	
+	// Get URI for specific error code page
+	uri = foundGoodUri(host, uri);
 
-				std::stringstream	 buffer;
-				buffer << fileRequested.rdbuf();
-
-				body = buffer.str(); // Print the value // Print the value
-				
-			} 
-		}
-		else
-		{
-			const std::map<int, std::string>& pagesError = host.getPagesError();  // Store the map in a local variable
-			std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
-			// std::map<int, std::string>::iterator it = host.getPagesError().find(e._code);
-			if (it != host.getPagesError().end()) {
-			    // std::cout << it->second << " <-- found file\n"; 
-				std::ifstream fileRequested(it->second.c_str());
-				if (fileRequested.good() == false)
-					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
-
-				std::stringstream	 buffer;
-				buffer << fileRequested.rdbuf();
-
-				body = buffer.str(); // Print the value
-			} 
-		}
-
-	}
-	else if (host._Location[found].getFlagErrorPages())
-	{
-		const std::map<int, std::string>& pagesError = host._Location[found].getPagesError();  // Store the map in a local variable
-		std::map<int, std::string>::const_iterator it = pagesError.find(e._code);  // Use the map here
-			// std::map<int, std::string>::iterator it= host._Location[found].getPagesError().find(e._code);
-		if (it != host._Location[found].getPagesError().end()) {
-		    // std::cout << it->second << " <-- found file\n";
-				std::ifstream fileRequested(it->second.c_str());
-				if (fileRequested.good() == false)
-					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
-
-				std::stringstream	 buffer;
-				buffer << fileRequested.rdbuf();
-
-				body = buffer.str();  // Print the value
-		}
-		else
-		{
-			str_code << e._code;
-			if (status == "Unkown")
-				image = "<img src=\"https://http.cat/450.jpg\">";
-			else
-				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
-			body = "<!DOCTYPE html>\
-					<html lang=\"en\">\
-					<head>\
-					<meta charset=\"UTF-8\">\
-					<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\
-					<title>" + status + "</title>\
-					</head>\
-					<body>\
-					<div class=\"img\">" + image + "</div>\
-					<div class=\"index\">\
-					<a class=\"indexButton\" href=\"/index.html\">go back to home page</a>\
-					</div>\
-					</body>\
-					</html>";
-		}
-	}
-	else
-	{
+	// Get error page if defined in location or at global server level
+	if (host._Location[uri].getFlagErrorPages())
+		it = host._Location[uri].getPagesError().find(e._code);
+	else if (host._errorFlag)
+		it = host.getPagesError().find(e._code);
+	
+	if (it != host._Location[uri].getPagesError().end() || it != host.getPagesError().end()) {
+			std::ifstream fileRequested(it->second.c_str());
+			if (fileRequested.good() == false)
+				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+			buffer << fileRequested.rdbuf();
+			body = buffer.str();
+	} else {
 		str_code << e._code;
 		if (status == "Unkown")
 			image = "<img src=\"https://http.cat/450.jpg\">";
@@ -199,7 +114,8 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 			image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
 		body = build_custom_page(e._code, image);
 	}
-		// Set the response
+
+	// Set the response
 	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";
 	if (host._name.empty()) {
 		str_port << host._port;
@@ -227,34 +143,3 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 template void send_error_page<ErrorFdManipulation>(Host&, int, const ErrorFdManipulation&, int*, std::string);
 template void send_error_page<ErrorRequest>(Host&, int, const ErrorRequest&, int*, std::string);
 template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, int*, std::string);
-
-
-std::string foundGoodUri(Host & host, std::string uri)
-{
-	std::string new_uri;
-	// std::cout << "URI -> " << uri << std::endl;
-	int i = 1;
-	if (uri[uri.size() - 1] != '/')
-		new_uri = uri + '/';
-	else
-		new_uri = uri;
-	while (i)
-	{
-        for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it) {
-            if (it->first == new_uri)
-			{       
-				// std::cout << "Found matching URI: " << new_uri << std::endl;
-            	i = 0;
-				return (new_uri);
-			}
-        }
-        	std::size_t pos = new_uri.find_last_of('/');
-			new_uri = new_uri.substr(0, new_uri.find_last_of('/'));
-			// std::cout << " --------->  uri    ->" << uri << std::endl;
-        	if (pos == std::string::npos || pos == 0) {
-        	    new_uri = "/";
-				break;
-			}
-	}
-	return (new_uri);
-}

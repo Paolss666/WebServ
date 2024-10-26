@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 10:40:37 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 12:39:42 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ class ServerConf {
 		std::map<int, std::string>		_PageError;
 		std::map<int, std::string>		_CodeReturn;
 		std::vector<std::string>		_IndexFile;
-		std::list<std::string>			_allowedMethods;
 		int								_nb_keepalive;
 		int								_max_keepalive;
 		int								_fdSetSock;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 09:40:17 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 13:11:06 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ const std::string &	collect_lh_ip(void);
 std::string 		replace_percentage(std::string str);
 char				**vectorStringToChar(std::vector<std::string> &vector);
 std::string 		build_custom_page(int fig, std::string str);
+std::string			foundGoodUri(Host & host, std::string uri);
 
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color

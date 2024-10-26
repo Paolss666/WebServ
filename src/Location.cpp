@@ -3,113 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 18:15:21 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 12:58:46 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-Location::Location(void)
-{
-    _MetFlag = false;
-    _indexFlag = false;
-    _CgiFlag = false;
-    _ReturnFlag = false;
-    _ErPages = false;
-    _AutoFlag = false;
-    _AutoIndex = false;
-    _MetFlag   = false;
-	_rootflag = false;
-	_flagGet = 0;
-	_flagPost = 0;
-	_flagDelete = 0;
-    return;
-}
+Location::Location(void): _indexFlag(false), _CgiFlag(false), _ReturnFlag(false), _ErPages(false), _AutoFlag(false),
+	_AutoIndex(false), _MetFlag(false), _rootflag(false), _flagPost(0), _flagGet(0), _flagDelete(0) { return ; }
 
-Location::~Location(void)
-{return;}
-
-std::vector<std::string>    Location::getMtods()
-{
-	return (this->_Methods);
-}
-
-
-void      Location::setUri(std::string uri)
-{
-    this->_Uri = uri;
-}
-
-int				Location::getFlagCgi()
-{
-	return (this->_CgiFlag);
-}
-
-// 
-int				Location::getFlagPost()
-{
-	return (this->_flagPost);
-}
-
-int				Location::getFlagGet()
-{
-	return (this->_flagGet);
-}
-
-int				Location::getFlagDelete()
-{
-	return (this->_flagDelete);
-}
-
-std::string			Location::getCgiPath()
-{
-	return (this->_CgiPath);
-}
-
-std::string     Location::getUri(void)
-{
-    return(this->_Uri);
-}
-
-void        Location::InLoc_Methos(std::istringstream& iss)
-{
-	// std::cout << "INSIDE LOCATION -> " << this->getUri() << std::endl;
-	std::vector<std::string> methods;
-
+void        Location::InLoc_Methos(std::istringstream& iss) {
     std::string line;
-    if (!(iss >> line))
-	{
-        throw ErrorConfFile("In conf file: location: methods");
-	}
 
-	std::cout << "methods -> " << line << std::endl;
-	if (line != "GET" && line != "POST" && line != "DELETE" )
-        throw ErrorConfFile("In conf file: location: wrong method");
-	if (line == "GET")
-		_flagGet = 1;
-    methods.push_back(line);
-    while (iss >> line)
-    {
-		std::cout << "methods -> " << line << std::endl;
+    while (iss >> line) {
 	    if (line != "GET" && line != "POST" && line != "DELETE" )
-            throw ErrorConfFile("In conf file: location: wrong method");
+            throw ErrorConfFile("In conf file: location: unkmown method");
+		if (line == "GET")
+			_flagGet = 1;
 		if (line == "POST")
 			_flagPost = 1;
 		if (line == "DELETE")
 			_flagDelete = 1;
-        methods.push_back(line);
-        // std::cout << "methods -> " << line << std::endl;
+        _Methods.push_back(line);
     }
-	_Methods = methods;
-	// printVector(_Methods);
     _MetFlag = true;
 }
 
-void        Location::InLoc_Index(std::istringstream& iss)
-{
+void	Location::InLoc_Index(std::istringstream& iss) {
     std::string     indx;
 
     if (!(iss >> indx) || indx.empty())
@@ -119,27 +42,20 @@ void        Location::InLoc_Index(std::istringstream& iss)
 	
     _indexFlag = true;
 	
-    while (iss >> indx)
-	{
-		// std::cout << std::getline(iss, index) << "--- "<< std::endl;
+    while (iss >> indx) {
 		if (indx.empty() || indx.find(".") == std::string::npos)
 			throw ErrorConfFile("In conf file: index ");
 		else
 			_Indx.push_back(indx);
 	}
-	// printVector(_Indx);
-    
 }
 
 
-void        Location::InLoc_Cgi(std::istringstream& iss)
-{
-    std::string 	cgiPath;
+void	Location::InLoc_Cgi(std::istringstream& iss) {
+    std::string	cgiPath;
 
 	if (!(iss >> cgiPath))
 		throw ErrorConfFile("In conf file: location: cgi;");
-	
-	// std::cout << " path-root found --->  " << pathRoot << std::endl; 
 
 	if (cgiPath.compare(0, 4, "www/") != 0 && cgiPath.compare(0, 8, "www/cgi") != 0)
 		throw ErrorConfFile("In conf file: location: cgi path;");
@@ -149,38 +65,33 @@ void        Location::InLoc_Cgi(std::istringstream& iss)
 	struct stat info;
 	if (stat(_CgiPath.c_str(), &info) != 0)// cannot access path 
 		throw ErrorConfFile("In conf file: location: cgi cannot access;");
-	
-	// std::cout << " cgi path --->  " << _CgiPath << std::endl; 
 
 	_CgiFlag = true;
 }
 
-int	Location::InLoc_p_Return(std::string &codeRetrn)
-{
+int	Location::InLoc_p_Return(std::string &codeRetrn) {
 	size_t	ix = codeRetrn.find_first_not_of("0123456789");
 	std::string	path;
-	if (ix == std::string::npos)
-	{
+	
+	if (ix == std::string::npos) {
 		int errorCode = strtol(codeRetrn.c_str(), NULL, 10);
 		if (errorCode < 300 || errorCode > 308)
 			throw ErrorConfFile("In conf file: error_page  x < 300 || x > 308 ");
 		return (errorCode);
-	}
-	else
+	} else
 		throw ErrorConfFile("In conf file: error_page parseCde");
 }
 
-void        Location::InLoc_Return(std::istringstream& iss)
-{
-    std::string            rtrn;
-    if (!(iss >> rtrn))
-        throw ErrorConfFile("In conf file: location: return");
-    int                    codeErr;
-    std::vector<int>       V_Code;
-    codeErr = InLoc_p_Return(rtrn);
-    V_Code.push_back(codeErr);
-    while ((iss >> rtrn) && rtrn.find_first_not_of("0123456789") == std::string::npos)
-	{
+void	Location::InLoc_Return(std::istringstream& iss) {
+	std::string			rtrn;
+	int					codeErr;
+	std::vector<int>	V_Code;
+	
+	if (!(iss >> rtrn))
+		throw ErrorConfFile("In conf file: location: return");
+	codeErr = InLoc_p_Return(rtrn);
+	V_Code.push_back(codeErr);
+	while ((iss >> rtrn) && rtrn.find_first_not_of("0123456789") == std::string::npos) {
 		codeErr = InLoc_p_Return(rtrn);
 		V_Code.push_back(codeErr);
 	}
@@ -193,36 +104,31 @@ void        Location::InLoc_Return(std::istringstream& iss)
 	for (size_t i = 0; i < V_Code.size(); i++)
 		_Retourn[V_Code[i]] = rtrn;
 	_ReturnFlag = true;
-    // Print_map_code_return(_Retourn);
 }
 
-int	Location::InLoc_p_errorCodes(std::string &pgError)
-{
-	size_t	ix = pgError.find_first_not_of("0123456789");
+int	Location::InLoc_p_errorCodes(std::string &pgError) {
+	size_t		ix = pgError.find_first_not_of("0123456789");
 	std::string	path;
-	if (ix == std::string::npos)
-	{
+
+	if (ix == std::string::npos) {
 		int errorCode = strtol(pgError.c_str(), NULL, 10);
 		if (errorCode < 100 || errorCode > 599)
 			throw ErrorConfFile("In conf file: error_page  x < 100 || x > 599 ");
 		return (errorCode);
-	}
-	else
+	} else
 		throw ErrorConfFile("In conf file: error_page parseCde");
 }
 
-void        Location::InLoc_ErPages(std::istringstream& iss)
-{
-    std::string pgError;;
-	std::vector<int> erroCodeVector;
-	int				eCode;
+void	Location::InLoc_ErPages(std::istringstream& iss) {
+    std::string			pgError;
+	std::vector<int>	erroCodeVector;
+	int					eCode;
 
 	if (!(iss >> pgError))
 		throw ErrorConfFile("In conf file: error_pages");
 	eCode = InLoc_p_errorCodes(pgError);
 	erroCodeVector.push_back(eCode);
-	while ((iss >> pgError) && pgError.find_first_not_of("0123456789") == std::string::npos)
-	{
+	while ((iss >> pgError) && pgError.find_first_not_of("0123456789") == std::string::npos) {
 		eCode =  InLoc_p_errorCodes(pgError);
 		erroCodeVector.push_back(eCode);
 	}
@@ -234,146 +140,120 @@ void        Location::InLoc_ErPages(std::istringstream& iss)
 		throw ErrorConfFile("In conf file: error_pages format /html");
 	for (size_t i = 0; i < erroCodeVector.size(); i++)
 		_PageError[erroCodeVector[i]] = pgError;
-	// Print_map_code_errors(_PageError);
+
 	_ErPages = true;
 }
 
-void        Location::InLoc_AutoIndex(std::istringstream& iss)
-{
+void	Location::InLoc_AutoIndex(std::istringstream& iss) {
     std::string autoIndex;
 
-	if (iss >> autoIndex)
-	{
+	if (iss >> autoIndex) {
 		if (autoIndex == "on")
 			_AutoIndex = true;
 		else
 			_AutoIndex = false;
 	}
-	// std::cout << "autoindex = " << _AutoIndex << std::endl;
     _AutoFlag = true;
 }
 
-void	Location::InLoc_root(std::istringstream& iss)
-{
+void	Location::InLoc_root(std::istringstream& iss) {
 	std::string 	pathRoot;
 
 	if (!(iss >> pathRoot))
 		throw ErrorConfFile("In conf file: root path don't found;");
-	
-	// std::cout << " path-root found --->  " << pathRoot << std::endl; 
 
 	if (pathRoot.compare(0, 3, "www") != 0 && pathRoot.compare(0, 4, "www/") != 0)
 		throw ErrorConfFile("In conf file: root in location: wrong path;");
 
 	_Root = pathRoot;
 
-
 	struct stat info;
-	if (stat(_Root.c_str(), &info) != 0)// cannot access path 
+	if (stat(_Root.c_str(), &info) != 0)
 		throw ErrorConfFile(("In conf file: root in location: cannot access path or file " + _Root).c_str());
-	
-	// std::cout << " root found --->  " << _Root << std::endl; 
 
 	_rootflag = 1;
 }	
 
-void        Location::ParseLocation(std::istream &file)
-{
-    std::string line;
-	std::cout << this->getUri() << std::endl;
-    while (std::getline(file, line))
-    {
-		std::istringstream iss(line);
-		std::string	keyword;
-        
-        if (line.empty() || line == "\t\t")//
-		    continue ;
-        if (!(iss >> keyword))
-            throw ErrorConfFile("In conf file: Location");
-    
-        // std::cout << "-------------LOCATION-----------------\n";
-        if (keyword == "methods" && !_MetFlag)
-            InLoc_Methos(iss);
-        else if (keyword == "index" && !_indexFlag)
-            InLoc_Index(iss);
-        else if (keyword == "cgi" && !_CgiFlag)
-            InLoc_Cgi(iss);
-        else if (keyword == "return" && !_ReturnFlag)
-            InLoc_Return(iss);
-        else if (keyword == "error_page" && !_ErPages)
-            InLoc_ErPages(iss);
-        else if (keyword == "autoindex" && !_AutoFlag)
-            InLoc_AutoIndex(iss);
+void	Location::ParseLocation(std::istream &file) {
+	std::string			line;
+	std::string			keyword;
+	std::istringstream	iss;
+	
+	std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
+	while (std::getline(file, line)) {
+		iss.clear();
+		iss.str(line);
+		
+		if (line.empty() || line == "\t\t")
+			continue ;
+		if (!(iss >> keyword))
+			throw ErrorConfFile("In conf file: Location");
+	
+		if (keyword == "methods" && !_MetFlag)
+			InLoc_Methos(iss);
+		else if (keyword == "index" && !_indexFlag)
+			InLoc_Index(iss);
+		else if (keyword == "cgi" && !_CgiFlag)
+			InLoc_Cgi(iss);
+		else if (keyword == "return" && !_ReturnFlag)
+			InLoc_Return(iss);
+		else if (keyword == "error_page" && !_ErPages)
+			InLoc_ErPages(iss);
+		else if (keyword == "autoindex" && !_AutoFlag)
+			InLoc_AutoIndex(iss);
 		else if (keyword == "root" && !_rootflag)
 			InLoc_root(iss);
-        else if (keyword == "}")
-		{
-			if (!_MetFlag)
-			{
+		else if (keyword == "}") {
+			if (!_MetFlag) {
 				_Methods.push_back("GET");
 				_Methods.push_back("POST");
 				_Methods.push_back("DELETE");
 				_flagGet = 1;
 				_flagPost = 1;
 				_flagDelete = 1;
-				break;
 			}
 			break;
-		}
-		else
-            throw ErrorConfFile("In conf file: Location 2");
-    }
-    return;
+		} else
+			throw ErrorConfFile("In conf file: Location 2");
+	}
+	for (size_t i = 0; i < _Methods.size(); i++)
+		std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
 }
 
+Location::~Location(void) { return; }
 
-int		Location::getFlagIndex()
-{
-	return (this->_indexFlag);
-}
+int	Location::getFlagIndex() { return (this->_indexFlag); }
 
-std::vector<std::string>& Location::getIndexPages()
-{
-	return (this->_Indx);
-}
+std::vector<std::string>&	Location::getIndexPages() { return (this->_Indx); }
 
-int		Location::getRootFlag()
-{
-	return (this->_rootflag);
-}
+int	Location::getRootFlag() { return (this->_rootflag); }
 
-std::string		Location::getRoot()
-{
-	return (this->_Root);
-}
+std::string	Location::getRoot() { return (this->_Root); }
 
-int		Location::getReturnFlag()
-{
-	return (this->_ReturnFlag);
-}
+int	Location::getReturnFlag() { return (this->_ReturnFlag); }
 
-std::map<int, std::string>& Location::getReturnPages()
-{
-	return (this->_Retourn);
-}
+std::map<int, std::string>& Location::getReturnPages() { return (this->_Retourn); }
 
-int		Location::getFlagErrorPages()
-{
-	return (this->_ErPages);
-}
+int	Location::getFlagErrorPages() { return (this->_ErPages); }
 
-std::map<int, std::string>& Location::getPagesError()
-{
-	return (this->_PageError);
-}
+std::map<int, std::string>& Location::getPagesError() { return (this->_PageError); }
 
+int	Location::getFlagAutoInx() { return (this->_AutoFlag); }
 
-int				Location::getFlagAutoInx()
-{
-	return (this->_AutoFlag);
-}
+bool	Location::getAutoIndex() { return(this->_AutoIndex); }
 
-bool			Location::getAutoIndex()
-{
-	return(this->_AutoIndex);
-}
+std::vector<std::string>	Location::getMtods(void) { return (this->_Methods); }
+
+void	Location::setUri(std::string uri) { this->_Uri = uri; }
+
+int	Location::getFlagCgi(void) { return (this->_CgiFlag); }
+
+int	Location::getFlagPost(void) { return (this->_flagPost); }
+
+int	Location::getFlagGet(void) { return (this->_flagGet); }
+
+int	Location::getFlagDelete(void) { return (this->_flagDelete); }
+
+std::string	Location::getCgiPath(void) { return (this->_CgiPath); }
+
+std::string	Location::getUri(void) {    return(this->_Uri); }

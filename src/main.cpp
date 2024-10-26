@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 10:45:05 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 15:52:33 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,13 +44,14 @@ std::vector<ServerConf>	ft_conf_init(const char *fileName) {
 	return server;
 }
 
-void	WebServe(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
+void	WebServ(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 
 	// Initiate the servers
 	for (size_t i = 0; i < server.size(); i++) {
 		Host tmp(server[i]);
 		hosts.push_back(tmp);
 	}
+
 	// Print the details of the hosts and epoll watchlist
 	std::cout << "Detail of hosts and epoll watchlist:" << std::endl;
 	for (size_t i = 0; i < hosts.size(); ++i)
@@ -81,7 +82,7 @@ int main(int ac, char **av) {
 			server = ft_conf_init("conf/basicgood.conf");
 		else
 			server = ft_conf_init(av[1]);
-		WebServe(server, hosts);
+		WebServ(server, hosts);
 	} catch(std::exception & c) {
 		ft_perror(c.what());
 		for (size_t i = 0; i < server.size(); i++)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:22:37 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/21 18:38:54 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 16:25:06 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,9 @@ class Response: public Request {
 		void								buildAutoindex(void);
 		void								buildReturnPage();
 		void								send_response(int fd, bool *done);
+		// std::vector<char *> 				MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage);
 		void								exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value);
-		std::vector<std::string> 			MakeEnvCgi(std::string &cgi);
+		std::vector<std::string>			MakeEnvCgi(std::string &cgi);
 		std::map<std::string, std::string>	_response_header;
 		std::string							_response_body;
 		std::string							_response_message;
@@ -52,7 +53,6 @@ class Response: public Request {
 		size_t								_maxBodySize;
 		int									_statusCode;
 		std::string							_Cgi;
-		char *								_cgi;
 };
 
 #endif

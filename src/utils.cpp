@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 14:41:54 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 13:38:21 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,4 +200,28 @@ std::string build_custom_page(int fig, std::string str) {
 	}
 	file.close();
 	return body;
+}
+
+std::string foundGoodUri(Host & host, std::string uri) {
+	int			i = 1;
+	std::size_t	pos;
+	std::string	tmp;
+
+	if (uri[uri.size() - 1] != '/')
+		uri = uri.substr(0, uri.find_last_of('/'));
+
+	while (i) {
+		for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it)
+			if (it->first == uri)
+				return (i = 0, uri);
+
+		pos = uri.find_last_of('/');
+		uri = uri.substr(0, pos);
+		
+		if (pos == std::string::npos || pos == 0) {
+			uri = "/";
+			break;
+		}
+	}
+	return (uri);
 }

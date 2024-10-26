@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 18:16:54 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 13:18:19 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,24 +139,21 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	_request_line["uri"] = uri;
 	_request_line["protocol"] = protocol;
 
+	// Check the uri validity
 	if (_request_line["uri"].empty())
 		throw ErrorRequest("In the request: uri not found", ERR_CODE_BAD_REQUEST);
 
+	// Check if method is generally allowed
 	if (!(_request_line["method"] == "GET" || _request_line["method"] == "POST" || _request_line["method"] == "DELETE"))
 		throw ErrorRequest("In the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
 
-	// std::cout << good_uri << " <------------------ \n";
-	// std::cout << _host._Locatio[] << " _location name \n";
-	// std::cout << " FLAG -> " << _host._Location[good_uri].getFlagGet() << std::endl;
-	// printVector(_host._Location[good_uri].getMtods());
-	// std::cout << "URI _> " <<  _request_line["uri"] << std::endl;
-	// std::cout << " FIND  -> " << _request_line["uri"].find(good_uri) << std::endl;
-	// std::cout << "MEHTOS INSIDE REQUEST" << _request_line["method"] << std::endl;
-	
-	// check METHOD ALLOW
-
+	// Check if method is allowed for the location
 	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
-	std::cout << good_uri << " <------------------ \n";
+	std::cout << "URI for methods: " << good_uri << std::endl;
+	std::cout << "Allowed methods: ";
+	for (size_t i = 0; i < _host._Location[good_uri].getMtods().size(); i++)
+		std::cout << _host._Location[good_uri].getMtods()[i] << " ";
+	std::cout << std::endl;
 	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
 		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
 
@@ -169,8 +166,6 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 
 	if (_request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);
-
-	// Check the uri
 }
 
 void	Request::pnc_headers(std::istringstream & iss) {

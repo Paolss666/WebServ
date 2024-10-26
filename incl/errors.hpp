@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 09:39:50 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/26 15:08:16 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,14 @@ class ErrorResponse: public std::exception {
 		int					_code;
 };
 
-std::string foundGoodUri(Host & host, std::string uri);
-
 template <typename T>
-void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri);
+void		send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri);
 
-void	ft_perror(const char * message);
+std::string getStatus(const int & code);
+void		ft_perror(const char * message);
+
+# define ERR_CODE_SUCCESS			200
+# define ERR_NAME_SUCCESS			"OK"
 
 # define ERR_CODE_MOVE_PERM			301
 # define ERR_NAME_MOVE_PERM			"Moved Permanently"
