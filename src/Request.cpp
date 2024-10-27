@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 13:18:19 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 14:06:08 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,11 +149,6 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 
 	// Check if method is allowed for the location
 	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
-	std::cout << "URI for methods: " << good_uri << std::endl;
-	std::cout << "Allowed methods: ";
-	for (size_t i = 0; i < _host._Location[good_uri].getMtods().size(); i++)
-		std::cout << _host._Location[good_uri].getMtods()[i] << " ";
-	std::cout << std::endl;
 	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
 		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
 
@@ -162,7 +157,6 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	
 	if ( _request_line["method"] == "DELETE" && !_host._Location[good_uri].getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
 		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
-	
 
 	if (_request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);

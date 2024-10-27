@@ -95,18 +95,10 @@ if (isset($_GET['?username']) && isset($_GET['bio'])) {
     <h3>Bio: ' . $bio . '</h3>
     
     <div class="button-container">
-        <button onclick="showMessage()">Show Message</button>
         <a href="/index.html" class="link-button">Go to Home</a>
-        <a href="/bla/index2.html" class="link-button">Go to Page bla</a>
-        <a href="/cgi/basicphp.html" class="link-button">Go to CGI for PHP</a>
-        <a href="/cgi/basicpy.html" class="link-button">Go to CGI for PY</a>
+        <a href="/cgi/php.html" class="link-button">Go to CGI for PHP</a>
+        <a href="/cgi/py.html" class="link-button">Go to CGI for PY</a>
     </div>
-
-    <script>
-        function showMessage() {
-            alert("Hello, ' . $username . '! You clicked the button.");
-        }
-    </script>
 
 </body>
 </html>';

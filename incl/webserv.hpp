@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
+/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/19 16:58:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/25 12:35:18 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/27 12:50:05 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@
 
 // global variables ------------------------------
 extern int									g_sig;
+extern std::vector<int>						g_fds;
 extern std::map<std::string, std::string>	CONTENT_TYPES;
 
 // hpp files ------------------------------

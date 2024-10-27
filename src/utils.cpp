@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 13:38:21 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 14:52:45 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,13 @@ void sig_handler(int signal) {
 }
 
 void	ft_close(int fd) {
+	std::vector<int>::iterator it = std::find(g_fds.begin(), g_fds.end(), fd);
+	if (it != g_fds.end())
+		g_fds.erase(it);
+
 	if (fd >= 0)
 		close(fd);
+
 	fd = -1;
 }
 

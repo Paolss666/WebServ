@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 15:08:16 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 12:09:23 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,6 +110,9 @@ void		ft_perror(const char * message);
 
 # define ERR_CODE_SERVICE_UNAVAIL	503
 # define ERR_NAME_SERVICE_UNAVAIL	"Service Unavailable"
+
+# define ERR_CODE_GATEWAY_TIMEOUT	504
+# define ERR_NAME_GATEWAY_TIMEOUT	"Gateway Timeout"
 
 # define ERR_CODE_HTTP_VERSION		505
 # define ERR_NAME_HTTP_VERSION		"HTTP Version Not Supported"

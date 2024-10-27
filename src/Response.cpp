@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 15:08:58 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 13:26:18 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -195,8 +195,8 @@ void	Response::buildPage(void) {
 }
 
 void	Response::buildGet(void) {
-
 	std::string	index, path, uri;
+
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
@@ -211,8 +211,6 @@ void	Response::buildGet(void) {
 		_returnPages = _host._Location[uri].getReturnPages();
 	if (_host._Location[uri].getFlagErrorPages())
 		_pagesError = _host._Location[uri].getPagesError();
-	if (_host._Location[uri].getFlagCgi())
-		_Cgi = _host._Location[uri].getCgiPath();
 	if (!_returnPages.empty()) {
 		buildReturnPage();
 		return ;
@@ -262,11 +260,11 @@ void	Response::buildGet(void) {
 				throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	}
-	else if (_startUri.find("/cgi/print_response.php?") != std::string::npos)
+	else if (_startUri.find("/cgi/print_res.php?") != std::string::npos)
 		buildCgi();
-	else if (_startUri.find("/cgi/print_res_py.py?") != std::string::npos)
+	else if (_startUri.find("/cgi/print_res.py?") != std::string::npos)
 		buildCgi();
-	else if (_startUri == "/cgi/print_res_py.py" || _startUri == "/cgi/print_response.php")
+	else if (_startUri == "/cgi/print_res.py" || _startUri == "/cgi/print_res.php")
 		throw ErrorResponse("In the reponse: URI IS NOT ALLOW", ERR_CODE_FORBIDDEN);
 	else if (isRepertory(_root, _startUri) == 1)
 		buildPage();

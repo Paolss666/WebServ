@@ -67,6 +67,11 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 
 	// Resize the events vector
 	_events.resize(MAX_CONNECTIONS);
+
+	// Add fds to the global list
+	std::cout << "fds to add: " << _fdSetSock << " and " << _fdEpoll << std::endl;
+	g_fds.push_back(_fdSetSock);
+	g_fds.push_back(_fdEpoll);
 }
 Host::~Host() { return ; }
 
@@ -127,6 +132,9 @@ void	Host::new_connection(void) {
 	// Manage number of kept connections
 	_keep_alive_time = time(NULL);
 	_nb_keepalive++;
+
+	// Add fds to the global list
+	g_fds.push_back(event.data.fd);
 }
 
 void	Host::parse_request(int i) {
@@ -259,7 +267,7 @@ void	Host::run_server(void) {
 		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
 		else {
-			std::cout << "Unknown event" << std::endl;
+			std::cerr << "Unknown event" << std::endl;
 			ft_close(_events[i].data.fd);
 			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[i].data.fd, NULL);
 		}

@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 13:57:21 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 12:45:10 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,17 +95,24 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 	uri = foundGoodUri(host, uri);
 
 	// Get error page if defined in location or at global server level
-	if (host._Location[uri].getFlagErrorPages())
+	if (host._Location[uri].getFlagErrorPages()) {
 		it = host._Location[uri].getPagesError().find(e._code);
-	else if (host._errorFlag)
-		it = host.getPagesError().find(e._code);
-	
-	if (it != host._Location[uri].getPagesError().end() || it != host.getPagesError().end()) {
+		if (it != host._Location[uri].getPagesError().end()) {
 			std::ifstream fileRequested(it->second.c_str());
 			if (fileRequested.good() == false)
 				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
 			buffer << fileRequested.rdbuf();
-			body = buffer.str();
+			body = buffer.str();	
+		}
+	} else if (host._errorFlag) {
+		it = host.getPagesError().find(e._code);
+		if (it != host.getPagesError().end()) {
+			std::ifstream fileRequested(it->second.c_str());
+			if (fileRequested.good() == false)
+				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+			buffer << fileRequested.rdbuf();
+			body = buffer.str();	
+		}
 	} else {
 		str_code << e._code;
 		if (status == "Unkown")

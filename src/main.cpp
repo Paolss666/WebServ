@@ -6,13 +6,14 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 15:52:33 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 13:31:56 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-int	g_sig;
+int					g_sig;
+std::vector<int>	g_fds;
 
 std::vector<ServerConf>	ft_conf_init(const char *fileName) {
     std::string				line;
@@ -79,7 +80,7 @@ int main(int ac, char **av) {
 	signal(SIGINT, sig_handler);
 	try {
 		if (ac != 2)
-			server = ft_conf_init("conf/basicgood.conf");
+			server = ft_conf_init("conf/no_cgi.conf");
 		else
 			server = ft_conf_init(av[1]);
 		WebServ(server, hosts);

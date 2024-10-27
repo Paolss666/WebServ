@@ -6,7 +6,7 @@
 /*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:22:37 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 16:25:06 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/27 14:35:49 by benoit           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,17 +20,22 @@ class Response: public Request {
 		Response(const Request & src, const Host &host);
 		~Response(void);
 
-		void								buildGet(void);
+		// CGI functions
+		std::vector<char *> 				MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage);
+		void								exportENV(std::vector<std::string> & storage, std::vector<char *> & env, std::string key, std::string value);
+		void								exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script);
 		void								buildCgi(void);
+	
+		// Response functions
+		void								buildGet(void);
 		void								buildPost(void);
 		void								buildDelete(void);
 		void								buildPage(void);
 		void								buildAutoindex(void);
-		void								buildReturnPage();
+		void								buildReturnPage(void);
 		void								send_response(int fd, bool *done);
-		// std::vector<char *> 				MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage);
-		void								exportENV(std::vector<std::string> &env, const std::string &key, const std::string &value);
-		std::vector<std::string>			MakeEnvCgi(std::string &cgi);
+
+		// Variables
 		std::map<std::string, std::string>	_response_header;
 		std::string							_response_body;
 		std::string							_response_message;
@@ -52,7 +57,6 @@ class Response: public Request {
 		int									_found; // found the good Uri;
 		size_t								_maxBodySize;
 		int									_statusCode;
-		std::string							_Cgi;
 };
 
 #endif
