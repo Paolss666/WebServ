@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 14:06:08 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 17:39:15 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,15 +148,17 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 		throw ErrorRequest("In the request: method not supported", ERR_CODE_MET_NOT_ALLOWED);
 
 	// Check if method is allowed for the location
+	if (_host._Location.size() == 0)
+		return ;
 	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
 	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
 		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
 
 	if ( _request_line["method"] == "POST" && !_host._Location[good_uri].getFlagPost() && _request_line["uri"].find(good_uri) != std::string::npos)
-		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+		throw ErrorRequest("In the request: method POST is not allow", ERR_CODE_FORBIDDEN);
 	
 	if ( _request_line["method"] == "DELETE" && !_host._Location[good_uri].getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
-		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+		throw ErrorRequest("In the request: method DELETE is not allow", ERR_CODE_FORBIDDEN);
 
 	if (_request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);
@@ -219,7 +221,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 	}
 
 	// Check URI can be DELETED
-	if (_request_line["method"] == "DELETE" && _request_line["uri"].find("uploads/") != 0)
+	if (_request_line["method"] == "DELETE" && _request_line["uri"].find("uploads/") == std::string::npos)
 		throw ErrorRequest("In the request: DELETE not allowed for this resource", ERR_CODE_FORBIDDEN);
 }
 

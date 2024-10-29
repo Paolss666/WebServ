@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 12:59:59 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 17:34:39 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,7 @@ NGINX restituirà un errore HTTP 413 (Request Entity Too Large). */
 void	ServerConf::p_MaxClientBodySize(std::istringstream &iss)
 {
 	const size_t			KB_IN_BYTES = 1024;
-	const size_t			MB_IN_BYTES = 1024 * 1024;
+	const size_t			MB_IN_BYTES = KB_IN_BYTES * 1024;
 	const size_t			MAX_SIZE_LIMIT = 10 * MB_IN_BYTES; // 3MB
 	size_t					size, sizeValue = 0;
 	std::string::size_type	index = 0;
@@ -341,7 +341,7 @@ void    ServerConf::initWServer(std::istream &file) {
 	std::string	line, kw;
 	int			i = 0;
 
-	std::cout << YELLOW "New Server" << std::endl;
+	// std::cout << YELLOW "New Server" << std::endl;
 	while (std::getline(file, line)) {
 		std::istringstream iss(line);
 		if (line.empty() || line == "\t\t")

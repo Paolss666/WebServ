@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 14:52:45 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 17:12:38 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,7 +215,7 @@ std::string foundGoodUri(Host & host, std::string uri) {
 	if (uri[uri.size() - 1] != '/')
 		uri = uri.substr(0, uri.find_last_of('/'));
 
-	while (i) {
+	while (i && host._Location.size()) {
 		for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it)
 			if (it->first == uri)
 				return (i = 0, uri);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 13:26:18 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 17:14:36 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,16 +201,18 @@ void	Response::buildGet(void) {
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
 		uri = _startUri;
-	if (_host._Location[uri].getFlagIndex())
-		_indexPages = _host._Location[uri].getIndexPages();
-	if (_host._Location[uri].getFlagAutoInx())
-		_autoIndex = _host._Location[uri].getAutoIndex();
-	if (_host._Location[uri].getRootFlag())
-		_root = _host._Location[uri].getRoot();
-	if (_host._Location[uri].getReturnFlag())
-		_returnPages = _host._Location[uri].getReturnPages();
-	if (_host._Location[uri].getFlagErrorPages())
-		_pagesError = _host._Location[uri].getPagesError();
+	if (_host._Location.size()) {
+		if (_host._Location[uri].getFlagIndex())
+			_indexPages = _host._Location[uri].getIndexPages();
+		if (_host._Location[uri].getFlagAutoInx())
+			_autoIndex = _host._Location[uri].getAutoIndex();
+		if (_host._Location[uri].getRootFlag())
+			_root = _host._Location[uri].getRoot();
+		if (_host._Location[uri].getReturnFlag())
+			_returnPages = _host._Location[uri].getReturnPages();
+		if (_host._Location[uri].getFlagErrorPages())
+			_pagesError = _host._Location[uri].getPagesError();
+	}
 	if (!_returnPages.empty()) {
 		buildReturnPage();
 		return ;

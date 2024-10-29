@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Location.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 12:29:21 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 16:48:56 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,7 @@ void	Location::ParseLocation(std::istream &file) {
 	std::string			keyword;
 	std::istringstream	iss;
 	
-	std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
+	// std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
 	while (std::getline(file, line)) {
 		iss.clear();
 		iss.str(line);
@@ -216,8 +216,8 @@ void	Location::ParseLocation(std::istream &file) {
 		} else
 			throw ErrorConfFile("In conf file: Location 2");
 	}
-	for (size_t i = 0; i < _Methods.size(); i++)
-		std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
+	// for (size_t i = 0; i < _Methods.size(); i++)
+	// 	std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
 }
 
 Location::~Location(void) { return; }

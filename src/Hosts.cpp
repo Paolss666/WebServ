@@ -69,7 +69,6 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 	_events.resize(MAX_CONNECTIONS);
 
 	// Add fds to the global list
-	std::cout << "fds to add: " << _fdSetSock << " and " << _fdEpoll << std::endl;
 	g_fds.push_back(_fdSetSock);
 	g_fds.push_back(_fdEpoll);
 }
@@ -164,7 +163,10 @@ void	Host::parse_request(int i) {
 
 	// Parse the partial read of the request
 	try {
-		it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
+		if (valread == 0)
+			it->second._eof = 0;
+		else
+			it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
 		it->second.parse();
 	} catch (const ErrorRequest & e) {
 		send_error_page(*this, i, e, NULL, it->second._request_line["uri"]);

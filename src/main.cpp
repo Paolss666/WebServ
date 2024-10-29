@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:20 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 13:31:56 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/29 17:04:09 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,6 @@ void	WebServ(std::vector<ServerConf> & server, std::vector<Host> & hosts) {
 	}
 
 	// Print the details of the hosts and epoll watchlist
-	std::cout << "Detail of hosts and epoll watchlist:" << std::endl;
 	for (size_t i = 0; i < hosts.size(); ++i)
 		std::cout << CYAN << std::setw(8) << "Server " << WHITE << std::setw(2) << i 
 			<< CYAN << " | Port: " << WHITE << std::setw(1) << hosts[i]._port 
