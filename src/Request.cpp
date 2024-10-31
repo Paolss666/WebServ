@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 09:32:27 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/31 16:02:01 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,92 +33,6 @@ void	Request::append(const char * buffer, int valread) {
 		_binary_body.insert(_binary_body.end(), buffer, buffer + valread);
 	else
 		_raw += std::string(buffer, valread);
-}
-
-void	Request::pnc_check_chunk(void) {
-	std::stringstream			ss;
-	std::vector<char>			res;
-	std::vector<std::string>	lines;
-	std::string					tmp;
-	bool						len = true;
-	char						ch;
-	size_t						chunk_size;
-
-	ss.write(_binary_body.data(), _binary_body.size());
-	while (ss.get(ch)) {
-		if (ch == '\n') {
-			lines.push_back(tmp);
-			tmp.clear();
-		} else
-			tmp += ch;
-	}
-	if (!tmp.empty())
-		lines.push_back(tmp);
-
-	for (size_t i = 0; i < lines.size(); i++) {
-		if (lines[i].empty()) {
-			ft_print_coucou(0);
-			continue ;
-		}
-		if (lines[i].find("\r") == std::string::npos) {
-			ft_print_coucou(1);
-			break ;
-		} else if (len) {
-			std::istringstream	iss(lines[i].substr(0, lines[i].size() - 1));
-			iss >> std::hex >> chunk_size;
-			if (iss.fail())
-				throw ErrorRequest("In the request: chunk size not well formatted", ERR_CODE_BAD_REQUEST);
-			if (chunk_size == 0)
-				break ;
-			len = false;
-		} else if (!len) {
-			if (lines[i].size() - 1 != chunk_size && lines[i][lines[i].size() - 1] == '\r')
-				throw ErrorRequest("In the request: chunk size mismatch", ERR_CODE_BAD_REQUEST);
-			len = true;
-		}
-	}
-}
-
-std::vector<char>	Request::pnc_clean_chunk(void) {
-	std::stringstream			ss;
-	std::vector<std::string>	lines;
-	std::string					tmp;
-	bool						len = true;
-	char						ch;
-
-	ss.write(_binary_body.data(), _binary_body.size());
-	_binary_body.clear();
-	while (ss.get(ch)) {
-		if (ch == '\n') {
-			lines.push_back(tmp);
-			tmp.clear();
-		} else
-			tmp += ch;
-	}
-
-	if (!tmp.empty())
-		lines.push_back(tmp);
-
-	for (size_t i = 0; i < lines.size(); i++) {
-		if (lines[i].empty()) {
-			lines.erase(lines.begin() + i);
-			i--;
-			continue ;
-		}
-		if (len) {
-			lines.erase(lines.begin() + i);
-			i--;
-			len = false;
-		} else if (!len) {
-			for (size_t j = 0; j < lines[i].size(); j++)
-				_binary_body.push_back(lines[i][j]);
-			_binary_body.push_back('\n');
-			len = true;
-		}
-	}
-	for (size_t i = 0; i < _binary_body.size(); i++)
-		std::cout << _binary_body[i];
-	return _binary_body;
 }
 
 void	Request::pnc_request_line(std::istringstream & iss) {
@@ -236,20 +150,22 @@ void	Request::pnc_body(void) {
 	if (len > MAX_BODY_SIZE + 1 || len > _host._maxBodySize + 1	|| len > len_max + 1)
 		throw ErrorRequest("In the request: body too long", ERR_CODE_BAD_REQUEST);
 
+	// Is the body complete?
+	if (_eof > 0)
+		return ;
+
 	// If the body is chunked, decode it and check it
 	if (_chunked)
 		pnc_check_chunk();
 
-	// Is the body complete?
-	if (!_chunked && _eof > 0)
-		return ;
-	else if (_chunked) {
+	// Is the chunk request done?
+	if (_chunked) {
 		if (_binary_body.size() < 5)
 			return ;
 		for (size_t i = 1; i <= 5; i++)
 			line = _binary_body[_binary_body.size() - i] + line;
 		if (line != "0\r\n\r\n")
-			return;
+			return ;
 	}
 
 	// Clean chunked body

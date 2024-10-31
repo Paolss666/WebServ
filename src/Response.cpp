@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/29 17:14:36 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/31 15:54:00 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,12 +288,14 @@ void	Response::buildPost(void) {
 	// Get the end of preliminary binary information
 	for (std::size_t i = 0; i < _binary_body.size(); i++) {
 		line += _binary_body[i];
+		std::cout << _binary_body[i];
 		if (line.size() >= 4 && line.size() < _binary_body.size() && line.substr(line.size() - 4) == "\r\n\r\n") {
 			start = i + 1;
 			break;
 		}
 	}
-	if (!start)
+	std::cout << std::endl;
+	if (!start && !_chunked)
 		throw ErrorResponse("In the response: missing opening body information", ERR_CODE_BAD_REQUEST);
 
 	// Parse the multipart form data
@@ -310,6 +312,8 @@ void	Response::buildPost(void) {
 	line.clear();
 	for (size_t i = _binary_body.size() - _boundary.size() - 2; i < _binary_body.size(); i++)
 		line += _binary_body[i];
+	std::cout << "boudary: " << _boundary << std::endl;
+	std::cout << "line: " << line << std::endl;
 	if (line.find(_boundary) == std::string::npos)
 		throw ErrorResponse("In the response: missing closing body information", ERR_CODE_BAD_REQUEST);
 

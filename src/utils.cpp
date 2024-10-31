@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/29 17:12:38 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/31 14:35:59 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,4 +229,19 @@ std::string foundGoodUri(Host & host, std::string uri) {
 		}
 	}
 	return (uri);
+}
+
+bool	is_hex(const std::string & str) {
+	size_t	start = 0;
+	char	c;
+
+	if (str.empty())
+		return false;
+
+	for (size_t i = start; i < str.length(); ++i) {
+		c = str[i];
+		if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')))
+			return false;
+	}
+	return true;
 }
