@@ -32,7 +32,10 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 	}
 	oss << _response_body;
 	exportENV(storage, env, "CONTENT_LENGTH", oss.str());
-	exportENV(storage, env, "CONTENT_TYPE", "text/html");
+	if (_request_line["method"] == "POST")
+		exportENV(storage, env, "CONTENT_TYPE", "application/x-www-form-urlencoded");
+	else
+		exportENV(storage, env, "CONTENT_TYPE", "text/html");
 	exportENV(storage, env, "GATEWAY_INTERFACE", "CGI/1.1");
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++) {
 		keyWord = it->first;
@@ -127,7 +130,7 @@ void	Response::buildCgi(void) {
 	else if (format.substr(0, f_interr) == ".py")
 		script += ".py";
 	script = _root + script;
-	
+	std::cout << "script ----------> " << script << std::endl;
 	if (access(script.c_str(), F_OK))
 		throw ErrorResponse("In CGI: access URI CGI", ERR_CODE_NOT_FOUND);
 
@@ -158,10 +161,35 @@ void	Response::buildCgi(void) {
 	_response_body = ss.str(); 
 	if (_response_body.size() > _maxBodySize)
 	    _response_body = "", throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
-
+	std::string modif = _response_body;
+	std::string line;
+	for (std::string::iterator it = modif.begin(); it != modif.end(); it++)
+	{
+		line += *it;
+		if (*it == '\n')
+		{
+			if (*(it -1) == '\r')
+			{
+				std::size_t colon = line.find(":", 0);
+				if (colon != std::string::npos)
+				{
+					line.erase(line.size() - 1);
+					line.erase(line.size() - 1);
+					std::string key = strToLower(line.substr(0, colon));
+					std::string value = strToLower(line.substr(colon + 2));
+					_response_body = _response_body.substr(line.size() + sizeof("\r\n") - 1);
+				}
+			}
+			else 
+				break;
+			line = "";
+		}
+	}
 	ss.str("");
 	ss.clear();
 	ss << _response_body.size();
+	if (!_response_body.size())
+		 throw ErrorResponse("In CGI: body size 0", ERR_CODE_INTERNAL_ERROR);
 	_response_message = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
 	_response_message += ss.str();
 	_response_message += "\r\n\r\n";

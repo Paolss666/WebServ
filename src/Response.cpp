@@ -262,10 +262,10 @@ void	Response::buildGet(void) {
 				throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
 		}
 	}
-	else if (_startUri.find("/cgi/print_res.php?") != std::string::npos)
+/* 	else if (_startUri.find("/cgi/print_res.php") != std::string::npos)
 		buildCgi();
-	else if (_startUri.find("/cgi/print_res.py?") != std::string::npos)
-		buildCgi();
+	else if (_startUri.find("/cgi/print_res.py") != std::string::npos)
+		buildCgi(); */
 	else if (_startUri == "/cgi/print_res.py" || _startUri == "/cgi/print_res.php")
 		throw ErrorResponse("In the reponse: URI IS NOT ALLOW", ERR_CODE_FORBIDDEN);
 	else if (isRepertory(_root, _startUri) == 1)
@@ -280,6 +280,7 @@ void	Response::buildPost(void) {
 	size_t 				pos, start = 0;
 
 	// Get the boundary 
+	std::cout << "content type --> " << _headers["Content-Type"] << std::endl;
 	iss.str(_headers["Content-Type"]);
 	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
 		throw ErrorResponse("In the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);

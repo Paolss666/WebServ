@@ -32,7 +32,7 @@ std::string 		replace_percentage(std::string str);
 char				**vectorStringToChar(std::vector<std::string> &vector);
 std::string 		build_custom_page(int fig, std::string str);
 std::string			foundGoodUri(Host & host, std::string uri);
-
+std::string	        strToLower(std::string s);
 // macros ------------------------------
 # define RESET				"\033[0m"	// Reset to default color
 # define BLACK				"\033[30m"	// Black

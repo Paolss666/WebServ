@@ -186,6 +186,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 		value = trim(value);
 		_headers[key] = value;
 		buffer.clear();
+		std::cout << _headers[key] << std::endl;
 	}
 	
 	if (_headers.empty())

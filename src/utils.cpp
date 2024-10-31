@@ -24,6 +24,17 @@ void	fillContentTypes() {
 	CONTENT_TYPES["css"] = "text/css";
 }
 
+
+std::string	strToLower(std::string s)
+{
+	std::string lowS;
+	for (std::string::iterator it = s.begin(); it != s.end(); it++)
+	{
+		lowS += tolower(*it);
+	}
+	return (lowS);
+}
+
 void	Check_extension(const std::string & str, const std::string & ext) {
 	if (str.size() >= ext.size() && !str.compare(str.size() - ext.size(), ext.size(), ext))
 		return ;	
