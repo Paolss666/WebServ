@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Hosts.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 17:51:48 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 15:55:01 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/31 10:33:44 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ class Host: public ServerConf {
 		std::vector<std::string>		_files;
 		std::map<int, Request>			_requests;
 		std::map<int, Response>			_responses;
+		std::map<int, time_t>			_connections;
 		std::vector<int>				_partials;
 		int								_nfds;
 		time_t							_keep_alive_time;
@@ -38,6 +39,8 @@ class Host: public ServerConf {
 		void							run_server(void);
 		void							close_everything(void);
 		void							json_update(void);
+		void							manage_connection(int i, int fd, std::map<int, Request>::iterator	it_req);
+		void							prepare_next_iteration(void);
 };
 
 #endif

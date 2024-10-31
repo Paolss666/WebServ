@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 13:11:06 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/31 10:05:50 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ std::string			foundGoodUri(Host & host, std::string uri);
 # define GREEN				"\033[92m"	// Green
 # define YELLOW				"\033[93m"	// Yellow
 # define BLUE				"\033[94m"	// Blue
-# define MAGENTA			"\033[35m"	// Magenta
+# define MAGENTA			"\033[95m"	// Magenta
 # define CYAN				"\033[96m"	// Cyan
 # define WHITE				"\033[37m"	// White
 # define GRAY				"\033[90m"	// Bright Black (Gray)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:53 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 12:09:23 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/31 10:18:30 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ class ErrorResponse: public std::exception {
 };
 
 template <typename T>
-void		send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri);
+void		send_error_page(Host & host, int i, const T & e, std::string uri);
 
 std::string getStatus(const int & code);
 void		ft_perror(const char * message);

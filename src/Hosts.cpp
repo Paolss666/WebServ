@@ -12,8 +12,6 @@
 
 #include "webserv.hpp"
 
-Host::Host() { return ;}
-
 Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 
 	struct epoll_event	event;
@@ -72,38 +70,12 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 	g_fds.push_back(_fdSetSock);
 	g_fds.push_back(_fdEpoll);
 }
-Host::~Host() { return ; }
-
-void	Host::json_update(void) {
-	std::ostringstream	oss;
-	std::string			json;
-
-	oss << "[";
-	for (size_t i = 0; i < _files.size(); ++i) {
-		oss << "\"" << _files[i] << "\"";
-		if (i < _files.size() - 1)
-			oss << ",";
-	}
-	oss << "]";
-	json = oss.str();
-
-	std::ofstream file((_rootPath + "/uploads/files.json").c_str());
-	try {
-		if (!file.is_open())
-			throw ErrorFdManipulation("In the opening of the file", ERR_CODE_INTERNAL_ERROR);
-	} catch (const ErrorFdManipulation & e) {
-		ft_perror(e.what());
-		return ;
-	}
-	file << json;
-	file.close();
-}
 
 void	Host::new_connection(void) {
 	int					res;
 	std::ostringstream	oss;
 	std::cout << YELLOW BOLD "New connection detected" RESET << std::endl;
-	
+
 	// Accept the connection
 	res = accept(_fdSetSock, (struct sockaddr *)&_address, (socklen_t*)&_address_len);
 	if (res < 0) {
@@ -128,12 +100,10 @@ void	Host::new_connection(void) {
 	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, _fdAcceptSock.back(), &event) < 0)
 		throw ErrorFdManipulation("In the epoll_ctl: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
 
-	// Manage number of kept connections
-	_keep_alive_time = time(NULL);
-	_nb_keepalive++;
-
-	// Add fds to the global list
+	// Add fd and time to the global list
 	g_fds.push_back(event.data.fd);
+	_connections.insert(std::pair<int, int>(event.data.fd, time(NULL)));
+	_nb_keepalive++;
 }
 
 void	Host::parse_request(int i) {
@@ -148,9 +118,9 @@ void	Host::parse_request(int i) {
 			throw ErrorFdManipulation("In the read", ERR_CODE_INTERNAL_ERROR);
 	} catch (const ErrorFdManipulation & e) {
 		if (it != _requests.end())
-			return send_error_page(*this, i, e, NULL, it->second._request_line["uri"]);
+			return send_error_page(*this, i, e, it->second._request_line["uri"]);
 		else
-			return send_error_page(*this, i, e, NULL, "");
+			return send_error_page(*this, i, e, "");
 	}
 
 	if (it != _requests.end())
@@ -169,7 +139,7 @@ void	Host::parse_request(int i) {
 			it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
 		it->second.parse();
 	} catch (const ErrorRequest & e) {
-		send_error_page(*this, i, e, NULL, it->second._request_line["uri"]);
+		send_error_page(*this, i, e, it->second._request_line["uri"]);
 	}
 }
 
@@ -187,8 +157,6 @@ void	Host::act_on_request(int i) {
 	}
 	try {
 		if (!it_resp->second._response_ready) {
-			
-			// std::cout << "it_resp->second._request_line[uri] -> " <<  it_resp->second._request_line["uri"]<< std::endl;
 			if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
 			else if (it_resp->second._request_line["method"] == "POST")
@@ -208,24 +176,10 @@ void	Host::act_on_request(int i) {
 		}
 
 		// Close the connection if needed
-		if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
-			|| (difftime(time(NULL), _keep_alive_time) > KEEP_ALIVE && !it_req->second._headers["Connection"].compare("keep-alive"))) {
-			ft_close(fd);
-			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, fd, NULL);
-			std::cout << "Closing connection" << std::endl;
-			_nb_keepalive--;
-		} else {
-			if (it_req->second._headers["Connection"].compare("keep-alive"))
-				_keep_alive_time = time(NULL);
-			_events[i].events = EPOLLIN;
-			epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, fd, &_events[i]);
-			std::cout << "Connection kept alive" << std::endl;
-		}
-		_requests.erase(fd);
-		_responses.erase(fd);
+		manage_connection(i, fd, it_req);
 
 	} catch (const ErrorResponse & e) {
-		send_error_page(*this, i, e, &_nb_keepalive, it_req->second._request_line["uri"]);
+		send_error_page(*this, i, e, it_req->second._request_line["uri"]);
 	}
 	
 	std::cout << YELLOW "---> Request answered" RESET << std::endl << std::endl;
@@ -274,7 +228,9 @@ void	Host::run_server(void) {
 			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[i].data.fd, NULL);
 		}
 	}
-	std::fill(_events.begin(), _events.end(), epoll_event());
+
+	// Reset the events vector & check for keep alive to close
+	prepare_next_iteration();
 }
 
 void	Host::close_everything(void) {

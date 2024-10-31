@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   errors.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/27 12:45:10 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/31 10:23:08 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ std::string getStatus(const int & code) {
 }
 
 template <typename T>
-void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::string uri) {
+void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	std::string 								status, response, body, line, image;
 	std::fstream								file;
 	std::ostringstream							oss, str_code, str_port;
@@ -85,8 +85,8 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 	std::map<int, std::string>::const_iterator	it;
 	
 	ft_perror(e.what());
-	if (_nb_keepalive)
-		*_nb_keepalive -= 1;
+	if (host._nb_keepalive)
+		host._nb_keepalive -= 1;
 
 	// Get the status
 	status = getStatus(e._code);
@@ -95,7 +95,7 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 	uri = foundGoodUri(host, uri);
 
 	// Get error page if defined in location or at global server level
-	if (host._Location[uri].getFlagErrorPages()) {
+	if (host._Location.size() && host._Location[uri].getFlagErrorPages()) {
 		it = host._Location[uri].getPagesError().find(e._code);
 		if (it != host._Location[uri].getPagesError().end()) {
 			std::ifstream fileRequested(it->second.c_str());
@@ -135,9 +135,11 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 	oss << "\r\n";
 	oss << body;
 	response = oss.str();
+
 	// Send the response
 	if (send(host._events[i].data.fd, response.c_str(), response.size(), 0) < 0)
 		ft_perror(("In the send of error page: " + str_code.str()).c_str());
+
 	// Close the connection
 	ft_close(host._events[i].data.fd);
 	epoll_ctl(host._fdEpoll, EPOLL_CTL_DEL, host._events[i].data.fd, NULL);
@@ -145,8 +147,12 @@ void	send_error_page(Host & host, int i, const T & e, int *_nb_keepalive, std::s
 		host._requests.erase(host._events[i].data.fd);
 		host._responses.erase(host._events[i].data.fd);
 	}
+
+	// Remove the connection fd from the host and the global fds
+	host._connections.erase(host._events[i].data.fd);
+	g_fds.erase(std::remove(g_fds.begin(), g_fds.end(), host._events[i].data.fd), g_fds.end());
 }
 
-template void send_error_page<ErrorFdManipulation>(Host&, int, const ErrorFdManipulation&, int*, std::string);
-template void send_error_page<ErrorRequest>(Host&, int, const ErrorRequest&, int*, std::string);
-template void send_error_page<ErrorResponse>(Host&, int, const ErrorResponse&, int*, std::string);
+template void send_error_page<ErrorFdManipulation>(Host &, int, const ErrorFdManipulation &, std::string);
+template void send_error_page<ErrorRequest>(Host &, int, const ErrorRequest &, std::string);
+template void send_error_page<ErrorResponse>(Host &, int, const ErrorResponse &, std::string);
