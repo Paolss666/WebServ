@@ -58,6 +58,13 @@ void printVector(const std::vector<std::string>& vec) {
 	}
 }
 
+void printVectorChar(const std::vector<char *>vec) {
+	std::cout << "Vector content:" << std::endl;
+	for (size_t i = 0; i!= vec.size(); ++i) {
+		std::cout << " - " << vec[i] << std::endl;
+	}
+}
+
 void sig_handler(int signal) {
 	std::time_t currentTime = std::time(0);
 	struct std::tm* localTime = std::localtime(&currentTime);

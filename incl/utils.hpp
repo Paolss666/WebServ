@@ -17,6 +17,7 @@
 void				fillContentTypes(void);
 void				Check_extension(const std::string & str, const std::string & ext);
 void				Print_map_code_errors(std::map<int, std::string> PagesError);
+void printVectorChar(const std::vector<char *>vec);
 void				printVector(const std::vector<std::string> & vec);
 void				Print_map_code_return(std::map<int, std::string> errorPages);
 void				ft_perror(const char * message);

@@ -57,6 +57,7 @@ class Response: public Request {
 		int									_found; // found the good Uri;
 		size_t								_maxBodySize;
 		int									_statusCode;
+		std::string							_Cgi; // root for cgi exec
 };
 
 #endif

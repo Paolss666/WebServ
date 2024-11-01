@@ -1,9 +1,37 @@
 #!/usr/bin/php-cgi
 <?php
-// file_put_contents('log.txt', print_r($_GET, true));
-if (isset($_GET['?username']) && isset($_GET['bio'])) {
-    $username = htmlspecialchars($_GET['?username']);
-    $bio = htmlspecialchars($_GET['bio']);
+// file_put_contents('log.txt', print_r($_POST, true));
+// file_put_contents('log.txt', print_r($_SERVER['REQUEST_METHOD'], true));
+// file_put_contents('log.txt', "Content-Type: " . $_SERVER['CONTENT_TYPE'] . "\n", FILE_APPEND);
+// ile_put_contents('log.txt', "Method: " . $_SERVER['REQUEST_METHOD'] . "\nContent-Type: " . $_SERVER['CONTENT_TYPE'] . "\nContent-Length: " . $_SERVER['CONTENT_LENGTH'] . "\n", FILE_APPEND);
+file_put_contents('log.txt', print_r($_POST, true)); // Log dei dati POST
+file_put_contents('COCO.txt', print_r($_SERVER, true)); // Log dei dati POST
+$queryString = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
+file_put_contents('log2.txt', "Query String: $queryString\n", FILE_APPEND);
+
+// $_SERVER["QUERY_STRING"];
+$username = null;
+$bio = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    var_dump($_POST); // Aggiungi questa riga per vedere i dati POST
+    if (isset($_POST['username']) && isset($_POST['bio'])) {
+        $username = htmlspecialchars($_POST['username']);
+        $bio = htmlspecialchars($_POST['bio']);
+    }
+    if (!empty($_POST)) {
+        $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : null;
+        $bio = isset($_POST['bio']) ? htmlspecialchars($_POST['bio']) : null;
+    }
+
+    // I dati POST sono già disponibili in $_POST, quindi non c'è bisogno di file_get_contents
+    // $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : null;
+    // $bio = isset($_POST['bio']) ? htmlspecialchars($_POST['bio']) : null;
+
+    // Log dei dati ricevuti
+}
+file_put_contents('log1.txt', "Username: $username, Bio: $bio\n");
+if ($username && $bio) {
     echo '
 <!DOCTYPE html>
 <html lang="en">

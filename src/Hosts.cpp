@@ -160,7 +160,7 @@ void	Host::act_on_request(int i) {
 			if (it_resp->second._request_line["uri"].find(".py")!= std::string::npos 
 			|| it_resp->second._request_line["uri"].find(".php")!= std::string::npos)
 				it_resp->second.buildCgi(); 
-			if (it_resp->second._request_line["method"] == "GET")
+			else if (it_resp->second._request_line["method"] == "GET")
 				it_resp->second.buildGet();
 			else if (it_resp->second._request_line["method"] == "POST")
 				it_resp->second.buildPost();
