@@ -248,7 +248,10 @@ void	Request::pnc_body(void) {
 		if (_binary_body.size() < 5)
 			return ;
 		for (size_t i = 1; i <= 5; i++)
+		{
 			line = _binary_body[_binary_body.size() - i] + line;
+			_body = line;
+		}
 		if (line != "0\r\n\r\n")
 			return;
 	}

@@ -1,37 +1,14 @@
 #!/usr/bin/php-cgi
 <?php
-// file_put_contents('log.txt', print_r($_POST, true));
-// file_put_contents('log.txt', print_r($_SERVER['REQUEST_METHOD'], true));
-// file_put_contents('log.txt', "Content-Type: " . $_SERVER['CONTENT_TYPE'] . "\n", FILE_APPEND);
-// ile_put_contents('log.txt', "Method: " . $_SERVER['REQUEST_METHOD'] . "\nContent-Type: " . $_SERVER['CONTENT_TYPE'] . "\nContent-Length: " . $_SERVER['CONTENT_LENGTH'] . "\n", FILE_APPEND);
-file_put_contents('log.txt', print_r($_POST, true)); // Log dei dati POST
-file_put_contents('COCO.txt', print_r($_SERVER, true)); // Log dei dati POST
-$queryString = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
-file_put_contents('log2.txt', "Query String: $queryString\n", FILE_APPEND);
+file_put_contents('COCO.txt', print_r($_SERVER, true));
+file_put_contents('log.txt', print_r($_POST, true));
+file_put_contents('log1.txt', print_r($_SERVER['REQUEST_METHOD'],  FILE_APPEND));
+$data = file_get_contents("php://input");
+file_put_contents('raw_post_data.txt', $data);
 
-// $_SERVER["QUERY_STRING"];
-$username = null;
-$bio = null;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    var_dump($_POST); // Aggiungi questa riga per vedere i dati POST
-    if (isset($_POST['username']) && isset($_POST['bio'])) {
-        $username = htmlspecialchars($_POST['username']);
-        $bio = htmlspecialchars($_POST['bio']);
-    }
-    if (!empty($_POST)) {
-        $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : null;
-        $bio = isset($_POST['bio']) ? htmlspecialchars($_POST['bio']) : null;
-    }
-
-    // I dati POST sono già disponibili in $_POST, quindi non c'è bisogno di file_get_contents
-    // $username = isset($_POST['username']) ? htmlspecialchars($_POST['username']) : null;
-    // $bio = isset($_POST['bio']) ? htmlspecialchars($_POST['bio']) : null;
-
-    // Log dei dati ricevuti
-}
-file_put_contents('log1.txt', "Username: $username, Bio: $bio\n");
-if ($username && $bio) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['bio'])) {
+    $username = htmlspecialchars($_POST['username']);
+    $bio = htmlspecialchars($_POST['bio']);
     echo '
 <!DOCTYPE html>
 <html lang="en">
@@ -132,58 +109,58 @@ if ($username && $bio) {
 </html>';
 } else {
     echo '<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error 404 - Page Not Found</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            color: #333;
-            text-align: center;
-            padding: 50px;
-        }
-        h1 {
-            font-size: 72px;
-            color: #e74c3c;
-        }
-        p {
-            font-size: 24px;
-            color: #555;
-        }
-        .error-container {
-            max-width: 600px;
-            margin: auto;
-        }
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .back-home {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        .back-home:hover {
-            background-color: #2980b9;
-        }
-    </style>
-</head>
-<body>
-    <div class="error-container">
-        <h1>404</h1>
-        <p>Oops! The page you are looking for cannot be found.</p>
-        <a href="/index.html" class="back-home">Go Back to Home</a>
-    </div>
-</body>
-</html>';
-    }
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Error 400 - Bad Request</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f2f2f2;
+                color: #333;
+                text-align: center;
+                padding: 50px;
+            }
+            h1 {
+                font-size: 72px;
+                color: #e74c3c;
+            }
+            p {
+                font-size: 24px;
+                color: #555;
+            }
+            .error-container {
+                max-width: 600px;
+                margin: auto;
+            }
+            a {
+                color: #3498db;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            .back-home {
+                display: inline-block;
+                padding: 10px 20px;
+                background-color: #3498db;
+                color: white;
+                border-radius: 5px;
+                margin-top: 20px;
+            }
+            .back-home:hover {
+                background-color: #2980b9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="error-container">
+            <h1>400</h1>
+            <p>Oops! u made a bad request</p>
+            <a href="/" class="back-home">Go Back to Home</a>
+        </div>
+    </body>
+    </html>';
+}
 ?>

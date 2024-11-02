@@ -14,30 +14,28 @@
 
 std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage) {
 	std::vector<char *>			env;
-	std::stringstream			buffer;
+/* 	std::stringstream			buffer; */
 	std::ostringstream			oss;
 	std::string					keyWord;
-	std::ifstream				fileRequested(cgi.c_str());
+/* 	std::ifstream				fileRequested(cgi.c_str()); */
 	size_t						i;
 
-	if (fileRequested.good() == false)
+/* 	if (fileRequested.good() == false)
 		throw ErrorResponse("Error in the opening of the file requested", ERR_CODE_NOT_FOUND);
 	
-	buffer  << fileRequested.rdbuf();
+	buffer  << fileRequested.rdbuf(); */
 
-	_response_body = buffer.str();
-	if (_response_body.size() > _maxBodySize) {
-		_response_body = "";
+/* 	_body = buffer.str();
+	if (_body.size() > _maxBodySize) {
+		_body = "";
 		throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
-	}
-	oss << _response_body;
-	// std::cout << _response_body << std::endl;
+	} */
+	oss << _binary_body.size();
 	exportENV(storage, env, "CONTENT_LENGTH", oss.str());
 	if (_request_line["method"] == "POST")
 		exportENV(storage, env, "CONTENT_TYPE", "application/x-www-form-urlencoded");
 	else
 		exportENV(storage, env, "CONTENT_TYPE", "text/html");
-	exportENV(storage, env, "DOCUMENT_ROOT", "/www/html/");
 	exportENV(storage, env, "GATEWAY_INTERFACE", "CGI/1.1");
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++) {
 		keyWord = it->first;
@@ -52,23 +50,16 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 		if (keyWord != "HTTP_CONNECTION")
 			exportENV(storage, env, keyWord, it->second);
 	}
-	if (_request_line["method"] == "POST")
-	{
-		exportENV(storage, env, "POST_DATA", _response_body);
-		exportENV(storage, env, "QUERY_STRING",""); 
-	}
-	else
-		exportENV(storage, env, "QUERY_STRING",_startUri.substr(_startUri.find_last_of('?'), _startUri.size())); 
+	/* exportENV(storage, env, "QUERY_STRING",_startUri.substr(_startUri.find_last_of('?'), _startUri.size())); */
 	exportENV(storage, env, "REDIRECT_STATUS", "200");
-	std::cout <<  _request_line["method"] << " < - MEHTODOSDOSD\n";
-	exportENV(storage, env, "SCRIPT_NAME", _startUri);
 	exportENV(storage, env, "REQUEST_METHOD", _request_line["method"]);
+	exportENV(storage, env, "SCRIPT_NAME", _startUri);
 	exportENV(storage, env, "SCRIPT_FILENAME", "./" + cgi);
 	exportENV(storage, env, "SERVER_PROTOCOL", "HTTP/1.1");
 	exportENV(storage, env, "SERVER_SOFTWARE", "webserv");
 
 	env.push_back(NULL);
-	// printVectorChar(env);
+
 	return (env);
 }
 
@@ -82,82 +73,91 @@ void	Response::exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script) 
 
 	storage.reserve(_headers.size() + 9);
 	env = MakeEnvCgi(script, storage);
+	std::cout << script << std::endl;
+	/* binay request to line  */
+	std::string line;
+	for (std::size_t i = 0; i < _binary_body.size(); i++) {
+			line += _binary_body[i];
+		if (line.size() >= 4 && line.size() < _binary_body.size() && line.substr(line.size() - 4) == "\r\n\r\n") {
+			start = i + 1;
+			break;
+			}
+	}
+	std::cout << line << std::endl;
 	start = time(NULL);
 	pid = fork();
 	if (pid == -1)
 		ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: fork CGI", ERR_CODE_INTERNAL_ERROR);
 	if (pid == 0) {
-		if(dup2(fd[0], STDIN_FILENO) == -1)
-			perror("dup FDIN " );
-		if (dup2(cgiFdOut, STDOUT_FILENO) == -1)
-			perror("dup FDOUT " );
-		ft_close(fd[1]), ft_close(fd[0]), ft_close(cgiFdOut), ft_close(cgiFdIn);
-		for (size_t i = 0; i < g_fds.size(); i++)
-			if (g_fds[i] >= 0)
-				close(g_fds[i]);
+		close(fd[1]);
+
+		dup2(fd[0], STDIN_FILENO);
+		close(fd[0]);  // Chiude subito fd[0] dopo averlo duplicato
 		
-		std::cout << _Cgi << " <---\n";
-		std::string realOne = _root + _startUri;
-		char *av[] = { const_cast<char*>(_Cgi.c_str()), const_cast<char*>(realOne.c_str()),  NULL };
-		// for (int i = 0; av[i]; ++i)
-		// 	std::cout << "av -> " << i << " " << av[i] << std::endl;
-		execve(const_cast<char*>(_Cgi.c_str()), av, env.data());
-		throw std::runtime_error("In CGI: execve CGI failed");
-	} else {
-		writeInPipe.open(".body_cgi.txt");
-		if (!writeInPipe.is_open())
-			ft_close(fd[1]), throw ErrorResponse("In CGI: file open body CGI", ERR_CODE_INTERNAL_ERROR);
-		writeInPipe << _response_body;
-		writeInPipe.close();
-		ft_close(fd[0]), ft_close(fd[1]);
-		
-		while (true) {
-			pid_result = waitpid(pid, &writeStatus, WNOHANG);
-			if (pid_result > 0)
-				break;
-			if (pid_result == 0) {
-				end = time(NULL);
-				if (end - start >= 10) {
-					ft_close(cgiFdOut), ft_close(cgiFdIn);
-					if (kill(pid, SIGKILL) == -1)
-						perror("kill");
-					pid_result = waitpid(pid, &writeStatus, WNOHANG);
-					remove(".cgi.txt"), remove(".body_cgi.txt");
-					throw ErrorResponse("In CGI: timeout after 10 seconds", ERR_CODE_GATEWAY_TIMEOUT);
-				}
-			} else
-				ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: waitpid CGI", ERR_CODE_INTERNAL_ERROR);
-		}
-		ft_close(cgiFdOut), ft_close(cgiFdIn);
+		dup2(cgiFdOut, STDOUT_FILENO);
+		ft_close(cgiFdOut);  
+			for (size_t i = 0; i < g_fds.size(); i++)
+				if (g_fds[i] >= 0)
+					close(g_fds[i]);
+				
+			char *av[] = { const_cast<char*>(_Cgi.c_str()), const_cast<char*>(script.c_str()),  NULL };
+			execve(const_cast<char*>(_Cgi.c_str()), av, env.data());
+			throw std::runtime_error("In CGI: execve CGI failed");
+	}
+	close(fd[0]);
+	writeInPipe.open(".body_cgi.txt");
+	if (!writeInPipe.is_open())
+		ft_close(fd[1]), throw ErrorResponse("In CGI: file open body CGI", ERR_CODE_INTERNAL_ERROR);
+	writeInPipe << line; /* body request */
+	writeInPipe.close();
+	ft_close(fd[1]);
+	
+	while (true) {
+		pid_result = waitpid(pid, &writeStatus, WNOHANG);
+		if (pid_result > 0)
+			break;
+		if (pid_result == 0) {
+			end = time(NULL);
+			if (end - start >= 10) {
+				ft_close(cgiFdOut), ft_close(cgiFdIn);
+				if (kill(pid, SIGKILL) == -1)
+					perror("kill");
+				pid_result = waitpid(pid, &writeStatus, WNOHANG);
+				remove(".cgi.txt"), remove(".body_cgi.txt");
+				throw ErrorResponse("In CGI: timeout after 10 seconds", ERR_CODE_GATEWAY_TIMEOUT);
+			}
+		} else
+			ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: waitpid CGI", ERR_CODE_INTERNAL_ERROR);
 	}
 }
 
 void	Response::buildCgi(void) {
 	size_t						extention = _startUri.find_last_of('.');
 	std::string					format = _startUri.substr(extention, _startUri.size());
-	size_t						f_interr = format.find_last_of('?');
+/* 	size_t						f_interr = format.find_last_of('?'); */
 	std::string					script = _startUri.substr(0, extention);
 	int							cgiFdOut, cgiFdIn, fd[2];
 	std::stringstream			ss;
 	
-	if (format.substr(0, f_interr) == ".php")
+	if (format.substr(0, extention) == ".php")
 	{
 		script += ".php";
-		_Cgi = "/usr/bin/php";
+		_Cgi = "/usr/bin/php-cgi";
 	}
-	else if (format.substr(0, f_interr) == ".py")
+	else if (format.substr(0, extention) == ".py")
 	{
 		script += ".py";
 		_Cgi = "/usr/bin/python3";
 	}
 	script = _root + script;
+	
 	if (access(script.c_str(), F_OK))
 		throw ErrorResponse("In CGI: access URI CGI", ERR_CODE_NOT_FOUND);
 
 	cgiFdOut = open(".cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
 	if (cgiFdOut == -1 || chmod(".cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
 		ft_close(cgiFdOut), throw ErrorResponse("In CGI: file CGI", ERR_CODE_NOT_FOUND);
-	
+
 	cgiFdIn = open(".body_cgi.txt", O_WRONLY | O_CREAT | O_TRUNC);
 	if (cgiFdIn == -1 || chmod(".body_cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
 		ft_close(cgiFdOut), ft_close(cgiFdOut), throw ErrorResponse("In CGI: file body CGI", ERR_CODE_NOT_FOUND);
@@ -166,54 +166,25 @@ void	Response::buildCgi(void) {
 		remove(".cgi.txt"), remove(".body_cgi.txt"), ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: pipe CGI", ERR_CODE_INTERNAL_ERROR);
 
 	try {
-		// std::cout << "script ----------> " << script << std::endl;
 		exec_cgi(fd, cgiFdOut, cgiFdIn, script);
 	} catch (std::exception & e) {
 		remove(".cgi.txt"), remove(".body_cgi.txt");
 		throw;
 	}		
-
+	ft_close(cgiFdOut), ft_close(cgiFdIn);
 	std::ifstream ifs(".cgi.txt");
 	if (!ifs.is_open())
 	    throw ErrorResponse("In CGI: Open file CGI, potential fail in script execution", ERR_CODE_INTERNAL_ERROR);
-	remove(".body_cgi.txt"), remove(".cgi.txt");
+	/* remove(".body_cgi.txt"), remove(".cgi.txt"); */
 	ss << ifs.rdbuf();
 	_response_body.clear();
 	_response_body = ss.str(); 
 	if (_response_body.size() > _maxBodySize)
 	    _response_body = "", throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
-	std::string modif = _response_body;
-	std::string line;
-	for (std::string::iterator it = modif.begin(); it != modif.end(); it++)
-	{
-		line += *it;
-		if (*it == '\n')
-		{
-			if (*(it -1) == '\r')
-			{
-				std::size_t colon = line.find(":", 0);
-				if (colon != std::string::npos)
-				{
-					line.erase(line.size() - 1);
-					line.erase(line.size() - 1);
-					std::string key = strToLower(line.substr(0, colon));
-					std::string value = strToLower(line.substr(colon + 2));
-					_response_body = _response_body.substr(line.size() + sizeof("\r\n") - 1);
-				}
-			}
-			else 
-				break;
-			line = "";
-		}
-	}
-	_response_body += "\r\n";
-	// std::cout << _response_body << "\n";
+
 	ss.str("");
 	ss.clear();
 	ss << _response_body.size();
-	// std::cout << "body: -> " << _response_body << std::endl;
-	if (!_response_body.size())
-		 throw ErrorResponse("In CGI: body size 0", ERR_CODE_INTERNAL_ERROR);
 	_response_message = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: ";
 	_response_message += ss.str();
 	_response_message += "\r\n\r\n";
@@ -222,16 +193,7 @@ void	Response::buildCgi(void) {
 	_response_ready = true;
 }
 
-
 void	Response::exportENV(std::vector<std::string> & storage, std::vector<char *> & env, std::string key, std::string value) {
 	storage.push_back(key + "=" + value);
 	env.push_back(const_cast<char*>(storage.back().c_str()));
 }
-
-// void Response::exportENV(std::vector<std::string> & storage, std::vector<char *> & env, std::string key, std::string value) {
-//     std::string entry = key + "=" + value;  // Crea l'entry per l'ambiente
-//     storage.push_back(entry); 
-//     char* envEntry = new char[entry.size() + 1];
-// 	std::strcpy(envEntry, entry.c_str());
-//     env.push_back(envEntry);
-// }
