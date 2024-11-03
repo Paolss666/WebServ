@@ -13,7 +13,7 @@
 #include "webserv.hpp"
 
 Location::Location(void): _indexFlag(false), _CgiFlag(false), _ReturnFlag(false), _ErPages(false), _AutoFlag(false),
-	_AutoIndex(false), _MetFlag(false), _rootflag(false), _flagPost(0), _flagGet(0), _flagDelete(0) { return ; }
+	_AutoIndex(false), _MetFlag(false), _rootflag(false), _flagPost(0), _flagGet(0), _flagDelete(0), _CgiAllow(0) { return ; }
 
 void        Location::InLoc_Methos(std::istringstream& iss) {
     std::string line;
@@ -67,6 +67,7 @@ void	Location::InLoc_Cgi(std::istringstream& iss) {
 		throw ErrorConfFile("In conf file: location: cgi cannot access;");
 
 	_CgiFlag = true;
+	_CgiAllow = 1;
 }
 
 int	Location::InLoc_p_Return(std::string &codeRetrn) {
@@ -253,6 +254,8 @@ int	Location::getFlagPost(void) { return (this->_flagPost); }
 int	Location::getFlagGet(void) { return (this->_flagGet); }
 
 int	Location::getFlagDelete(void) { return (this->_flagDelete); }
+
+int Location::getCgiAllow(void){return (this->_CgiAllow); }
 
 std::string	Location::getCgiPath(void) { return (this->_CgiPath); }
 

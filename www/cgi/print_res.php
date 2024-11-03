@@ -1,8 +1,5 @@
 #!/usr/bin/php-cgi
 <?php
-file_put_contents('log.txt', print_r($_SERVER, true), FILE_APPEND);
-file_put_contents('log1.txt', print_r($_POST, true), FILE_APPEND);
-file_put_contents('log2.txt', print_r($_GET, true), FILE_APPEND);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['bio'])) {
     // Ricevi i dati dalla richiesta POST
