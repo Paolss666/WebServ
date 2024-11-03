@@ -43,6 +43,7 @@ class Location {
 		int							_flagPost;
 		int							_flagGet;
 		int							_flagDelete;
+		int							_CgiAllow;
 
 	public:
 		Location(/*args*/);
@@ -71,6 +72,7 @@ class Location {
 		std::string					getRoot();
 		bool						getAutoIndex();
 		std::string					getCgiPath();
+		int							getCgiAllow();
 		int							getFlagGet();
 		int							getFlagPost();
 		int							getFlagDelete();
