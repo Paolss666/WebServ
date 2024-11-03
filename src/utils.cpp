@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 14:35:59 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/03 12:09:47 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,14 +24,10 @@ void	fillContentTypes() {
 	CONTENT_TYPES["css"] = "text/css";
 }
 
-
-std::string	strToLower(std::string s)
-{
+std::string	strToLower(std::string s) {
 	std::string lowS;
 	for (std::string::iterator it = s.begin(); it != s.end(); it++)
-	{
 		lowS += tolower(*it);
-	}
 	return (lowS);
 }
 
@@ -85,8 +81,6 @@ void	ft_close(int fd) {
 
 	fd = -1;
 }
-
-
 
 void writeToPipe(int fd, const std::string &data) {
     int saved_stdout = dup(STDOUT_FILENO);

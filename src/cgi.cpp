@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/26 14:12:48 by benoit            #+#    #+#             */
-/*   Updated: 2024/10/27 14:36:00 by benoit           ###   ########.fr       */
+/*   Updated: 2024/11/03 12:08:55 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 	std::ostringstream			oss;
 	std::string					keyWord;
 	size_t						i;
-
 
 	oss << _binary_body.size();
 	exportENV(storage, env, "CONTENT_LENGTH", oss.str());
@@ -66,36 +65,32 @@ void	Response::exec_cgi( int cgiFdOut, int cgiFdIn, std::string script) {
 
 	storage.reserve(_headers.size() + 9);
 	env = MakeEnvCgi(script, storage);
-	/* binay request to line  */
+
 	std::string line;
 	for (std::size_t i = 0; i < _binary_body.size(); i++) {
 			line += _binary_body[i];
 		if (line.size() >= 4 && line.size() < _binary_body.size() && line.substr(line.size() - 4) == "\r\n\r\n") {
 			start = i + 1;
 			break;
-			}
+		}
 	}
 	start = time(NULL);
 	pid = fork();
 	if (pid == -1)
 		ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: fork CGI", ERR_CODE_INTERNAL_ERROR);
 	if (pid == 0) {
-		close(fd[1]);
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
-		dup2(cgiFdOut, STDOUT_FILENO);
-		ft_close(cgiFdOut);  
-			for (size_t i = 0; i < g_fds.size(); i++)
-				if (g_fds[i] >= 0)
-					close(g_fds[i]);
-				
-			char *av[] = { const_cast<char*>(_Cgi.c_str()), const_cast<char*>(script.c_str()),  NULL };
-			execve(const_cast<char*>(_Cgi.c_str()), av, env.data());
-			throw std::runtime_error("In CGI: execve CGI failed");
+		dup2(fd[0], STDIN_FILENO), dup2(cgiFdOut, STDOUT_FILENO);
+		ft_close(fd[1]), ft_close(fd[0]), ft_close(cgiFdOut);  
+		for (size_t i = 0; i < g_fds.size(); i++)
+			if (g_fds[i] >= 0)
+				ft_close(g_fds[i]);
+
+		char *av[] = { const_cast<char*>(_Cgi.c_str()), const_cast<char*>(script.c_str()),  NULL };
+		execve(const_cast<char*>(_Cgi.c_str()), av, env.data());
+		throw std::runtime_error("In CGI: execve CGI failed");
 	}
-	close(fd[0]);
 	writeToPipe(fd[1], line);
-	ft_close(fd[1]);
+	ft_close(fd[0]), ft_close(fd[1]);
 	while (true) {
 		pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)
@@ -116,39 +111,31 @@ void	Response::exec_cgi( int cgiFdOut, int cgiFdIn, std::string script) {
 }
 
 void	Response::buildCgi(void) {
-	size_t						extention = _startUri.find_last_of('.');
+	size_t						f_interr, extention = _startUri.find_last_of('.');
 	std::string					format = _startUri.substr(extention, _startUri.size());
 	std::string					script = _startUri.substr(0, extention);
 	int							cgiFdOut, cgiFdIn;
 	std::stringstream			ss;
 	
-	if (_request_line["method"] == "POST")
-	{
-		if (format.substr(0, extention) == ".php")
-		{
+	if (_request_line["method"] == "POST") {
+		if (format.substr(0, extention) == ".php") {
 			script += ".php";
 			_Cgi = "/usr/bin/php-cgi";
+		} else if (format.substr(0, extention) == ".py") {
+			script += ".py";
+			_Cgi = "/usr/bin/python3";
 		}
-		else if (format.substr(0, extention) == ".py")
-		{
+	} else if (_request_line["method"] == "GET") {
+		f_interr = format.find_last_of('?');
+		if (format.substr(0, f_interr) == ".php") {
+			script += ".php";
+			_Cgi = "/usr/bin/php-cgi";
+		} else if (format.substr(0, f_interr) == ".py") {
 			script += ".py";
 			_Cgi = "/usr/bin/python3";
 		}
 	}
-	if (_request_line["method"] == "GET")
-	{
-		size_t						f_interr = format.find_last_of('?');
-		if (format.substr(0, f_interr) == ".php")
-		{
-			script += ".php";
-			_Cgi = "/usr/bin/php-cgi";
-		}
-		else if (format.substr(0, f_interr) == ".py")
-		{
-			script += ".py";
-			_Cgi = "/usr/bin/python3";
-		}
-	}
+	
 	script = _root + script;
 	
 	if (access(script.c_str(), F_OK))
@@ -171,13 +158,13 @@ void	Response::buildCgi(void) {
 	ft_close(cgiFdOut), ft_close(cgiFdIn);
 	std::ifstream ifs(".cgi.txt");
 	if (!ifs.is_open())
-	    throw ErrorResponse("In CGI: Open file CGI, potential fail in script execution", ERR_CODE_INTERNAL_ERROR);
+		throw ErrorResponse("In CGI: Open file CGI, potential fail in script execution", ERR_CODE_INTERNAL_ERROR);
 	remove(".body_cgi.txt"), remove(".cgi.txt");
 	ss << ifs.rdbuf();
 	_response_body.clear();
 	_response_body = ss.str(); 
 	if (_response_body.size() > _maxBodySize)
-	    _response_body = "", throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
+		_response_body = "", throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
 
 	ss.str("");
 	ss.clear();
