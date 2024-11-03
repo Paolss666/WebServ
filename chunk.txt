@@ -1,0 +1,22 @@
+POST /upload HTTP/1.1
+Host: localhost:8080
+Transfer-Encoding: chunked
+Content-Type: text/plain
+Content-Type: multipart/form-data; boundary=---------------------------42464357947435409762358888610
+
+63
+-----------------------------42464357947435409762358888610
+Content-Disposition: filename="Makefile";
+
+50
+# **************************************************************************** #
+
+50
+#                                                                              #
+
+E
+NAME = webserv
+
+3E
+-----------------------------42464357947435409762358888610--
+0

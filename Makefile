@@ -6,7 +6,7 @@
 #    By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/01/04 16:22:18 by npaolett          #+#    #+#              #
-#    Updated: 2024/10/31 10:28:33 by bdelamea         ###   ########.fr        #
+#    Updated: 2024/10/31 16:02:25 by bdelamea         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,6 +28,7 @@ SRC := \
 	Location.cpp \
 	main.cpp \
 	Request.cpp \
+	Request_utils.cpp \
 	Response.cpp \
 	ServerConf.cpp \
 	utils.cpp \

@@ -74,30 +74,33 @@ Host::Host(ServerConf & src): ServerConf(src), _nfds(0) {
 void	Host::new_connection(void) {
 	int					res;
 	std::ostringstream	oss;
-	std::cout << YELLOW BOLD "New connection detected" RESET << std::endl;
+	std::cout << MAGENTA BOLD "New connection detected" RESET << std::endl;
 
-	// Accept the connection
+	// Accept the connection if possible
+	if (_connections.size() >= MAX_CONNECTIONS) {
+		oss << "In the accept for server " << _nbServer << " and socket " << _fdSetSock << ": too many connections";
+		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
+	}
 	res = accept(_fdSetSock, (struct sockaddr *)&_address, (socklen_t*)&_address_len);
 	if (res < 0) {
 		ft_close(_fdSetSock);
 		oss << "In the accept for server " << _nbServer << " and socket " << _fdSetSock << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
-	_fdAcceptSock.push_back(res);
 
 	// Make the connection non-blocking
-	if (fcntl(_fdAcceptSock.back(), F_SETFL, O_NONBLOCK) < 0) {
+	if (fcntl(res, F_SETFL, O_NONBLOCK) < 0) {
 		ft_close(_fdSetSock);
-		ft_close(_fdAcceptSock.back());
-		oss << "In the fcntl for server " << _nbServer << " and socket " << _fdAcceptSock.back() << ": " << strerror(errno);
+		ft_close(res);
+		oss << "In the fcntl for server " << _nbServer << " and socket " << res << ": " << strerror(errno);
 		throw ErrorFdManipulation(oss.str(), ERR_CODE_INTERNAL_ERROR);
 	}
 
 	// Add new connection to epoll if possible
 	struct epoll_event event;
 	event.events = EPOLLIN;
-	event.data.fd = _fdAcceptSock.back();
-	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, _fdAcceptSock.back(), &event) < 0)
+	event.data.fd = res;
+	if (epoll_ctl(_fdEpoll, EPOLL_CTL_ADD, res, &event) < 0)
 		throw ErrorFdManipulation("In the epoll_ctl: " + static_cast<std::string>(strerror(errno)), ERR_CODE_INTERNAL_ERROR);
 
 	// Add fd and time to the global list
@@ -122,10 +125,10 @@ void	Host::parse_request(int i) {
 		else
 			return send_error_page(*this, i, e, "");
 	}
-
 	if (it != _requests.end())
 		it->second.append(buffer, valread);
 	else {
+		std::cout << YELLOW BOLD "New request detected" RESET << std::endl;
 		Request tmp(*this, _events[i], static_cast<std::string>(buffer));
 		_requests.insert(std::pair<int, Request>(fd, tmp));
 		it = _requests.find(fd);
@@ -138,6 +141,8 @@ void	Host::parse_request(int i) {
 		else
 			it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
 		it->second.parse();
+		if (it->second._chunked)
+			_connections[fd] = time(NULL);
 	} catch (const ErrorRequest & e) {
 		send_error_page(*this, i, e, it->second._request_line["uri"]);
 	}
@@ -247,8 +252,8 @@ void	Host::close_everything(void) {
 	file.close();
 	
 	// Close all sockets
-	for (size_t i = 0; i < _fdAcceptSock.size(); i++)
-		ft_close(_fdAcceptSock[i]);
+	for (std::map<int, time_t>::iterator it = _connections.begin(); it != _connections.end(); ++it)
+		ft_close(it->first);
 	ft_close(_fdSetSock);
 	ft_close(_fdEpoll);
 	for (size_t i = 0; i < _events.size(); i++)

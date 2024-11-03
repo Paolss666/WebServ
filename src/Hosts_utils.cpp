@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/31 10:27:33 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 10:50:03 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/31 12:07:40 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,20 +43,19 @@ void	Host::json_update(void) {
 
 void	Host::manage_connection(int i, int fd, std::map<int, Request>::iterator	it_req) {
 	time_t	ka_time = _connections.find(fd)->second;
-
-	if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive >= _max_keepalive
+	if (!it_req->second._headers["Connection"].compare("close") || _nb_keepalive > _max_keepalive
 		|| (difftime(time(NULL), ka_time) > KEEP_ALIVE && it_req->second._headers["Connection"].compare("keep-alive"))) {
 		ft_close(fd);
 		epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, fd, NULL);
 		_nb_keepalive--;
 		_connections.erase(fd);
-		std::cout << MAGENTA "Closing connection" RESET << std::endl;
+		std::cout << MAGENTA "---> Closing connection" RESET << std::endl;
 	} else {
 		if (!it_req->second._headers["Connection"].compare("keep-alive"))
 			_connections.find(fd)->second = time(NULL);
 		_events[i].events = EPOLLIN;
 		epoll_ctl(_fdEpoll, EPOLL_CTL_MOD, fd, &_events[i]);
-		std::cout << MAGENTA "Connection kept alive" RESET << std::endl;
+		std::cout << MAGENTA "---> Connection kept alive" RESET << std::endl;
 	}
 	_requests.erase(fd);
 	_responses.erase(fd);
@@ -74,7 +73,8 @@ void	Host::prepare_next_iteration(void) {
 			ft_close(it->first);
 			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, it->first, NULL);
 			_connections.erase(it);
-			std::cout << MAGENTA "Closing hanging connection" RESET << std::endl;
+			_nb_keepalive--;
+			std::cout << MAGENTA "---> Closing hanging connection" RESET << std::endl;
 			if (_connections.empty())
 				return ;
 			it = _connections.begin();

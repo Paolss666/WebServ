@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 10:05:50 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/03 12:02:38 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ std::string 		replace_percentage(std::string str);
 char				**vectorStringToChar(std::vector<std::string> &vector);
 std::string 		build_custom_page(int fig, std::string str);
 std::string			foundGoodUri(Host & host, std::string uri);
+bool				is_hex(const std::string & str);
 std::string	        strToLower(std::string s);
 void                writeToPipe(int fd, const std::string& data);
 
@@ -52,13 +53,15 @@ void                writeToPipe(int fd, const std::string& data);
 # define UNDERLINE			"\033[4m"	// Underline
 
 # define PORT				8080
-# define MAX_CONNECTIONS	512
+# define MAX_CONNECTIONS	255
 # define EPOLL_TIMEOUT		0
 # define BUFFER_SIZE		512
 # define MAX_BODY_SIZE		5368709120	// 5 GB
-# define MAX_HEADER_SIZE	8192	// 8 KB
-# define MAX_URI_SIZE		2048	// 2 KB
+// # define MAX_BODY_SIZE		1000000		// 1 MB
+# define MAX_HEADER_SIZE	8192		// 8 KB
+# define MAX_URI_SIZE		2048		// 2 KB
 # define KEEP_ALIVE			30
+# define MAX_NB_KEEP_ALIVE	255
 # define RL_DONE			0
 # define HEADERS_DONE		1
 # define BODY_DONE			2

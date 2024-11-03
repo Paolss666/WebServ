@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ServerConf.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: benoit <benoit@student.42.fr>              +#+  +:+       +#+        */
+/*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/26 12:39:42 by benoit           ###   ########.fr       */
+/*   Updated: 2024/10/31 10:58:57 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class ServerConf {
 		int								_max_keepalive;
 		int								_fdSetSock;
 		int								_fdEpoll;
-		std::vector<int>				_fdAcceptSock;
+		std::map<int, time_t>			_connections;
 		int								_address_len;
 		int								_NotBind;
 		int								_port;

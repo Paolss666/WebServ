@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 10:23:08 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/10/31 12:07:32 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,11 +146,12 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	if (host._requests.find(host._events[i].data.fd) != host._requests.end()) {
 		host._requests.erase(host._events[i].data.fd);
 		host._responses.erase(host._events[i].data.fd);
+		g_fds.erase(std::remove(g_fds.begin(), g_fds.end(), host._events[i].data.fd), g_fds.end());
 	}
-
-	// Remove the connection fd from the host and the global fds
-	host._connections.erase(host._events[i].data.fd);
-	g_fds.erase(std::remove(g_fds.begin(), g_fds.end(), host._events[i].data.fd), g_fds.end());
+	if (host._connections.find(host._events[i].data.fd) != host._connections.end()) {
+		std::cout << MAGENTA "---> Closing error connection" RESET << std::endl;
+		host._connections.erase(host._events[i].data.fd);
+	}
 }
 
 template void send_error_page<ErrorFdManipulation>(Host &, int, const ErrorFdManipulation &, std::string);
