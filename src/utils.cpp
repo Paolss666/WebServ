@@ -86,6 +86,31 @@ void	ft_close(int fd) {
 	fd = -1;
 }
 
+
+
+void writeToPipe(int fd, const std::string &data) {
+    int saved_stdout = dup(STDOUT_FILENO);
+    if (saved_stdout == -1) {
+        perror("dup");
+        return;
+    }
+
+    if (dup2(fd, STDOUT_FILENO) == -1) {
+        perror("dup2");
+        close(saved_stdout);
+        return;
+    }
+
+    std::cout << data << std::endl;
+
+    if (dup2(saved_stdout, STDOUT_FILENO) == -1) {
+        perror("dup2");
+    }
+
+    close(saved_stdout);
+    close(fd);
+}
+
 void	print_with_hex(const std::string & str) {
 	for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) {
 		if (isprint(*it))

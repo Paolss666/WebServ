@@ -1,18 +1,35 @@
 #!/usr/bin/python3
 import os
 import urllib.parse
+import sys
+
+print()
 
 
-query = os.environ.get('QUERY_STRING', '')
+def get_params():
+    params = {}
+
+    if os.environ.get('REQUEST_METHOD') == 'POST':
+
+        content_length = int(os.environ.get('CONTENT_LENGTH', 0))
+        post_data = sys.stdin.read(content_length)
+        params = urllib.parse.parse_qs(post_data)
+    else: 
+        query = os.environ.get('QUERY_STRING', '')
+        params = urllib.parse.parse_qs(query)
+    
+
+    if os.environ.get('REQUEST_METHOD') == 'POST':
+        username = params.get('username', [''])[0]
+    else:
+        username = params.get('?username', [''])[0]
+    
+    bio = params.get('bio', [''])[0]
+    return username, bio
 
 
-params = urllib.parse.parse_qs(query)
+username, bio = get_params()
 
-
-username = params.get('?username', [''])[0]
-bio = params.get('bio', [''])[0]
-
-print("Content-Type: text/html")
 print()
 
 content = f"""<!DOCTYPE html>

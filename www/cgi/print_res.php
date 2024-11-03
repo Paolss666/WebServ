@@ -1,14 +1,22 @@
 #!/usr/bin/php-cgi
 <?php
-file_put_contents('COCO.txt', print_r($_SERVER, true));
-file_put_contents('log.txt', print_r($_POST, true));
-file_put_contents('log1.txt', print_r($_SERVER['REQUEST_METHOD'],  FILE_APPEND));
-$data = file_get_contents("php://input");
-file_put_contents('raw_post_data.txt', $data);
+file_put_contents('log.txt', print_r($_SERVER, true), FILE_APPEND);
+file_put_contents('log1.txt', print_r($_POST, true), FILE_APPEND);
+file_put_contents('log2.txt', print_r($_GET, true), FILE_APPEND);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['bio'])) {
+    // Ricevi i dati dalla richiesta POST
     $username = htmlspecialchars($_POST['username']);
     $bio = htmlspecialchars($_POST['bio']);
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['?username']) && isset($_GET['bio'])) {
+    // Ricevi i dati dalla richiesta GET
+    $username = htmlspecialchars($_GET['?username']);
+    $bio = htmlspecialchars($_GET['bio']);
+}
+
+// Controllo se i dati sono stati ricevuti correttamente
+if (!empty($username) && !empty($bio)) {
+    // Stampa il profilo utente se i dati sono validi
     echo '
 <!DOCTYPE html>
 <html lang="en">
@@ -82,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
             transform: scale(1.1);
         }
 
-        /* Optional subtle animation */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -157,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset(
     <body>
         <div class="error-container">
             <h1>400</h1>
-            <p>Oops! u made a bad request</p>
+            <p>Oops! You made a bad request</p>
             <a href="/" class="back-home">Go Back to Home</a>
         </div>
     </body>

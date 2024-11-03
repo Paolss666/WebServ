@@ -14,22 +14,11 @@
 
 std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage) {
 	std::vector<char *>			env;
-/* 	std::stringstream			buffer; */
 	std::ostringstream			oss;
 	std::string					keyWord;
-/* 	std::ifstream				fileRequested(cgi.c_str()); */
 	size_t						i;
 
-/* 	if (fileRequested.good() == false)
-		throw ErrorResponse("Error in the opening of the file requested", ERR_CODE_NOT_FOUND);
-	
-	buffer  << fileRequested.rdbuf(); */
 
-/* 	_body = buffer.str();
-	if (_body.size() > _maxBodySize) {
-		_body = "";
-		throw ErrorResponse("Error in the size of the file requested", ERR_CODE_NOT_FOUND);
-	} */
 	oss << _binary_body.size();
 	exportENV(storage, env, "CONTENT_LENGTH", oss.str());
 	if (_request_line["method"] == "POST")
@@ -50,7 +39,8 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 		if (keyWord != "HTTP_CONNECTION")
 			exportENV(storage, env, keyWord, it->second);
 	}
-	/* exportENV(storage, env, "QUERY_STRING",_startUri.substr(_startUri.find_last_of('?'), _startUri.size())); */
+	if (_request_line["method"] == "GET")
+		exportENV(storage, env, "QUERY_STRING",_startUri.substr(_startUri.find_last_of('?'), _startUri.size()));
 	exportENV(storage, env, "REDIRECT_STATUS", "200");
 	exportENV(storage, env, "REQUEST_METHOD", _request_line["method"]);
 	exportENV(storage, env, "SCRIPT_NAME", _startUri);
@@ -63,17 +53,19 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 	return (env);
 }
 
-void	Response::exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script) {
+void	Response::exec_cgi( int cgiFdOut, int cgiFdIn, std::string script) {
 	int							writeStatus;
+	int							fd[2];
 	pid_t						pid, pid_result;
 	time_t						start, end;
 	std::vector<char *> 		env;
 	std::vector<std::string>	storage;
-	std::ofstream				writeInPipe;
+
+	if (pipe(fd) == - 1)
+		remove(".cgi.txt"), remove(".body_cgi.txt"), ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: pipe CGI", ERR_CODE_INTERNAL_ERROR);
 
 	storage.reserve(_headers.size() + 9);
 	env = MakeEnvCgi(script, storage);
-	std::cout << script << std::endl;
 	/* binay request to line  */
 	std::string line;
 	for (std::size_t i = 0; i < _binary_body.size(); i++) {
@@ -83,17 +75,14 @@ void	Response::exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script) 
 			break;
 			}
 	}
-	std::cout << line << std::endl;
 	start = time(NULL);
 	pid = fork();
 	if (pid == -1)
 		ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: fork CGI", ERR_CODE_INTERNAL_ERROR);
 	if (pid == 0) {
 		close(fd[1]);
-
 		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);  // Chiude subito fd[0] dopo averlo duplicato
-		
+		close(fd[0]);
 		dup2(cgiFdOut, STDOUT_FILENO);
 		ft_close(cgiFdOut);  
 			for (size_t i = 0; i < g_fds.size(); i++)
@@ -105,13 +94,8 @@ void	Response::exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script) 
 			throw std::runtime_error("In CGI: execve CGI failed");
 	}
 	close(fd[0]);
-	writeInPipe.open(".body_cgi.txt");
-	if (!writeInPipe.is_open())
-		ft_close(fd[1]), throw ErrorResponse("In CGI: file open body CGI", ERR_CODE_INTERNAL_ERROR);
-	writeInPipe << line; /* body request */
-	writeInPipe.close();
+	writeToPipe(fd[1], line);
 	ft_close(fd[1]);
-	
 	while (true) {
 		pid_result = waitpid(pid, &writeStatus, WNOHANG);
 		if (pid_result > 0)
@@ -134,20 +118,36 @@ void	Response::exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script) 
 void	Response::buildCgi(void) {
 	size_t						extention = _startUri.find_last_of('.');
 	std::string					format = _startUri.substr(extention, _startUri.size());
-/* 	size_t						f_interr = format.find_last_of('?'); */
 	std::string					script = _startUri.substr(0, extention);
-	int							cgiFdOut, cgiFdIn, fd[2];
+	int							cgiFdOut, cgiFdIn;
 	std::stringstream			ss;
 	
-	if (format.substr(0, extention) == ".php")
+	if (_request_line["method"] == "POST")
 	{
-		script += ".php";
-		_Cgi = "/usr/bin/php-cgi";
+		if (format.substr(0, extention) == ".php")
+		{
+			script += ".php";
+			_Cgi = "/usr/bin/php-cgi";
+		}
+		else if (format.substr(0, extention) == ".py")
+		{
+			script += ".py";
+			_Cgi = "/usr/bin/python3";
+		}
 	}
-	else if (format.substr(0, extention) == ".py")
+	if (_request_line["method"] == "GET")
 	{
-		script += ".py";
-		_Cgi = "/usr/bin/python3";
+		size_t						f_interr = format.find_last_of('?');
+		if (format.substr(0, f_interr) == ".php")
+		{
+			script += ".php";
+			_Cgi = "/usr/bin/php-cgi";
+		}
+		else if (format.substr(0, f_interr) == ".py")
+		{
+			script += ".py";
+			_Cgi = "/usr/bin/python3";
+		}
 	}
 	script = _root + script;
 	
@@ -162,11 +162,8 @@ void	Response::buildCgi(void) {
 	if (cgiFdIn == -1 || chmod(".body_cgi.txt", S_IRWXU | S_IRWXG | S_IRWXO) != 0)
 		ft_close(cgiFdOut), ft_close(cgiFdOut), throw ErrorResponse("In CGI: file body CGI", ERR_CODE_NOT_FOUND);
 	
-	if (pipe(fd) == - 1)
-		remove(".cgi.txt"), remove(".body_cgi.txt"), ft_close(cgiFdOut), ft_close(cgiFdIn), throw ErrorResponse("In CGI: pipe CGI", ERR_CODE_INTERNAL_ERROR);
-
 	try {
-		exec_cgi(fd, cgiFdOut, cgiFdIn, script);
+		exec_cgi(cgiFdOut, cgiFdIn, script);
 	} catch (std::exception & e) {
 		remove(".cgi.txt"), remove(".body_cgi.txt");
 		throw;
@@ -175,7 +172,7 @@ void	Response::buildCgi(void) {
 	std::ifstream ifs(".cgi.txt");
 	if (!ifs.is_open())
 	    throw ErrorResponse("In CGI: Open file CGI, potential fail in script execution", ERR_CODE_INTERNAL_ERROR);
-	/* remove(".body_cgi.txt"), remove(".cgi.txt"); */
+	remove(".body_cgi.txt"), remove(".cgi.txt");
 	ss << ifs.rdbuf();
 	_response_body.clear();
 	_response_body = ss.str(); 

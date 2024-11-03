@@ -23,7 +23,7 @@ class Response: public Request {
 		// CGI functions
 		std::vector<char *> 				MakeEnvCgi(std::string & cgi, std::vector<std::string> & storage);
 		void								exportENV(std::vector<std::string> & storage, std::vector<char *> & env, std::string key, std::string value);
-		void								exec_cgi(int *fd, int cgiFdOut, int cgiFdIn, std::string script);
+		void								exec_cgi(int cgiFdOut, int cgiFdIn, std::string script);
 		void								buildCgi(void);
 	
 		// Response functions
