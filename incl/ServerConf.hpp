@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/24 09:41:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 10:58:57 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:09:40 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class ServerConf {
 		std::string						_raw_ip;
 		std::string						_name;
 		std::string						_rootPath;
-        std::map<std::string, Location>	_Location;
+		std::map<std::string, Location>	_Location;
 		bool							_maxBodyState;
 		bool							_DefaultPort;
 		bool							_StateListen;
@@ -76,14 +76,14 @@ class ServerConf {
 		void							set_fdEpoll(int _fdEpoll);
 		// void							setDefaultErrorPages(void);
 		//GETEUR ------------------//
-		int								get_fdEpoll(void);
-		std::map<int, std::string>		getPagesError(void);
-		std::map<int, std::string>		getCodesReturn(void);
-		std::string&					getIp(void);
-		int								getPort(void);
-		std::string&					getNameServer(void);
-		int								getNumberServer(void);
-		std::vector<std::string>		getIndexFiles(void);
+		int								get_fdEpoll(void) const;
+		std::map<int, std::string>		getPagesError(void) const;
+		std::map<int, std::string>		getCodesReturn(void) const;
+		std::string const &				getIp(void) const;
+		int								getPort(void) const;
+		std::string const &				getNameServer(void) const;
+		int								getNumberServer(void) const;
+		std::vector<std::string>		getIndexFiles(void) const;
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 12:01:16 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:10:21 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -397,21 +397,21 @@ void    ServerConf::initWServer(std::istream &file) {
 
 void	ServerConf::set_fdEpoll(int _fdEpoll) { this->_fdEpoll = _fdEpoll; }
 
-int	ServerConf::get_fdEpoll(void) { return (this->_fdEpoll); }
+int	ServerConf::get_fdEpoll(void) const { return (this->_fdEpoll); }
 
-std::map<int, std::string> ServerConf::getPagesError(void) { return (this->_PageError); }
+std::map<int, std::string> ServerConf::getPagesError(void) const { return (this->_PageError); }
 
-std::map<int, std::string> ServerConf::getCodesReturn(void) { return (this->_CodeReturn); }
+std::map<int, std::string> ServerConf::getCodesReturn(void) const { return (this->_CodeReturn); }
 
-std::string& ServerConf::getIp(void) { return (this->_ip); }
+std::string const & ServerConf::getIp(void) const { return (this->_ip); }
 
-int	ServerConf::getPort(void) { return (this->_port); }
+int	ServerConf::getPort(void) const { return (this->_port); }
 
-std::string&	ServerConf::getNameServer(void) { return(this->_name); }
+std::string const &	ServerConf::getNameServer(void) const { return(this->_name); }
 
-int	ServerConf::getNumberServer(void) { return (this->_nbServer); }
+int	ServerConf::getNumberServer(void) const { return (this->_nbServer); }
 
-std::vector<std::string> 	ServerConf::getIndexFiles(void) { return (this->_IndexFile); }
+std::vector<std::string> 	ServerConf::getIndexFiles(void) const { return (this->_IndexFile); }
 
 void	ServerConf::setNbServer(int nb) { _nbServer = ++nb; }
 

@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 16:02:01 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:50:15 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,8 @@ void	Request::append(const char * buffer, int valread) {
 }
 
 void	Request::pnc_request_line(std::istringstream & iss) {
-	std::string	line, method, uri, protocol;
+	std::map<std::string, Location>::const_iterator it;
+	std::string	line, good_uri;
 
 	// Skip the empty lines
 	while (std::getline(iss, line, '\n') && line == "\r");
@@ -47,11 +48,8 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 
 	// Parse the request line
 	std::istringstream	iss_line(line);
-	if (!(std::getline(iss_line, method, ' ') && std::getline(iss_line, uri, ' ') && std::getline(iss_line, protocol, ' ')))
+	if (!(std::getline(iss_line, _request_line["method"], ' ') && std::getline(iss_line, _request_line["uri"], ' ') && std::getline(iss_line, _request_line["protocol"], ' ')))
 		throw ErrorRequest("In the request: method not well formatted", ERR_CODE_BAD_REQUEST);
-	_request_line["method"] = method;
-	_request_line["uri"] = uri;
-	_request_line["protocol"] = protocol;
 
 	// Check the uri validity
 	if (_request_line["uri"].empty())
@@ -65,23 +63,25 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	if (_host._Location.size() == 0)
 		return ;
 	
-	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
+	good_uri = foundGoodUri(_host, _request_line["uri"]);
+	it = _host._Location.find(good_uri);
 
-	if (!_host._Location[good_uri].getCgiAllow() 
-		&& _request_line["uri"].find(good_uri) != std::string::npos
-		&&  _request_line["uri"].find("/cgi") != std::string::npos)
-		throw ErrorRequest("In the request: CGI is not allow", ERR_CODE_FORBIDDEN);
+	// Check methods if location is found
+	if (it != _host._Location.end()) {
+		if (!it->second.getCgiAllow() && _request_line["uri"].find(good_uri) != std::string::npos &&  _request_line["uri"].find("/cgi") != std::string::npos)
+			throw ErrorRequest("In the request: CGI is not allow", ERR_CODE_FORBIDDEN);
 
+		if (_request_line["method"] == "GET" && !it->second.getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
+			throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_MET_NOT_ALLOWED);
 
-	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
-		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);
+		if (_request_line["method"] == "POST" && !it->second.getFlagPost() && _request_line["uri"].find(good_uri) != std::string::npos)
+			throw ErrorRequest("In the request: method POST is not allow", ERR_CODE_MET_NOT_ALLOWED);
+		
+		if (_request_line["method"] == "DELETE" && !it->second.getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
+			throw ErrorRequest("In the request: method DELETE is not allow", ERR_CODE_MET_NOT_ALLOWED);
+	}
 
-	if ( _request_line["method"] == "POST" && !_host._Location[good_uri].getFlagPost() && _request_line["uri"].find(good_uri) != std::string::npos)
-		throw ErrorRequest("In the request: method POST is not allow", ERR_CODE_FORBIDDEN);
-	
-	if ( _request_line["method"] == "DELETE" && !_host._Location[good_uri].getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
-		throw ErrorRequest("In the request: method DELETE is not allow", ERR_CODE_FORBIDDEN);
-
+	// Check the protocol
 	if (_request_line["protocol"] != "HTTP/1.1\r")
 		throw ErrorRequest("In the request: protocol not supported", ERR_CODE_HTTP_VERSION);
 }
@@ -104,11 +104,8 @@ void	Request::pnc_headers(std::istringstream & iss) {
 			throw ErrorRequest("In the request: header not well formatted", ERR_CODE_BAD_REQUEST);
 		
 		// Remove leading and trailing whitespaces
-		key = trim(key);
-		value = trim(value);
-		_headers[key] = value;
+		_headers[trim(key)] = trim(value);
 		buffer.clear();
-		// std::cout << _headers[key] << std::endl;
 	}
 	
 	if (_headers.empty())

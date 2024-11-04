@@ -430,7 +430,7 @@ section {
 }
 
 .play-icon:before {
-    
+    font-family: 'fontawesome';
     content: '\f144';
     speak: none;
     font-size: 74px;
@@ -1115,6 +1115,7 @@ blockquote {
         cursor: pointer;
         text-align: center;
         color: #fff;
+        font-family: "fontawesome";
         font-size: 22px;
         opacity: 0.5;
         -webkit-transition: all 0.3s ease-out;
@@ -1163,6 +1164,7 @@ blockquote {
 @media all {
     .featherlight-next,
     .featherlight-previous {
+        font-family: "fontawesome";
         font-size: 22px;
         display: block;
         position: absolute;
@@ -1352,6 +1354,7 @@ blockquote {
 }
 
 #slvj-close-icon:before {
+    font-family: "fontawesome";
     color: #fff;
     content: '\f00d';
     font-size: 22px;
@@ -1538,6 +1541,7 @@ blockquote {
 
 #scrollUp:before {
     background: #ccc;
+    font-family: "fontawesome";
     font-size: 2.4em;
     font-style: normal;
     font-weight: normal;

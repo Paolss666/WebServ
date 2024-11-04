@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/03 12:09:47 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 15:53:12 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,10 +224,14 @@ std::string replace_percentage(std::string str) {
 }
 
 std::string build_custom_page(int fig, std::string str) {
-	std::string line, body("");
-	std::ostringstream oss;
+	std::string			line, body("");
+	std::ostringstream	oss;
+	std::ifstream		file;
 	
-	std::ifstream file("www/utils/error.html");
+	if (fig == ERR_CODE_SUCCESS)
+		file.open("www/utils/auto_index.html");
+	else
+		file.open("www/utils/error.html");
 	if (!file.is_open())
 		ft_perror("In the opening of the error page");
 	

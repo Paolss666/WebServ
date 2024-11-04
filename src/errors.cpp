@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 12:07:32 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:12:23 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,11 +78,12 @@ std::string getStatus(const int & code) {
 
 template <typename T>
 void	send_error_page(Host & host, int i, const T & e, std::string uri) {
-	std::string 								status, response, body, line, image;
-	std::fstream								file;
-	std::ostringstream							oss, str_code, str_port;
-	std::stringstream							buffer;
-	std::map<int, std::string>::const_iterator	it;
+	std::string 									status, response, body, line, image;
+	std::fstream									file;
+	std::ostringstream								oss, str_code, str_port;
+	std::stringstream								buffer;
+	std::map<int, std::string>::const_iterator		it;
+	std::map<std::string, Location>::const_iterator	loc_it = host._Location.find(uri);
 	
 	ft_perror(e.what());
 	if (host._nb_keepalive)
@@ -95,9 +96,9 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	uri = foundGoodUri(host, uri);
 
 	// Get error page if defined in location or at global server level
-	if (host._Location.size() && host._Location[uri].getFlagErrorPages()) {
-		it = host._Location[uri].getPagesError().find(e._code);
-		if (it != host._Location[uri].getPagesError().end()) {
+	if (loc_it != host._Location.end() && loc_it->second.getFlagErrorPages()) {
+		it = loc_it->second.getPagesError().find(e._code);
+		if (it != loc_it->second.getPagesError().end()) {
 			std::ifstream fileRequested(it->second.c_str());
 			if (fileRequested.good() == false)
 				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);

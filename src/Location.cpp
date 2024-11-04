@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/29 16:48:56 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:37:22 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ void	Location::ParseLocation(std::istream &file) {
 	std::string			keyword;
 	std::istringstream	iss;
 	
-	// std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
+	std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
 	while (std::getline(file, line)) {
 		iss.clear();
 		iss.str(line);
@@ -189,7 +189,6 @@ void	Location::ParseLocation(std::istream &file) {
 			continue ;
 		if (!(iss >> keyword))
 			throw ErrorConfFile("In conf file: Location");
-	
 		if (keyword == "methods" && !_MetFlag)
 			InLoc_Methos(iss);
 		else if (keyword == "index" && !_indexFlag)
@@ -217,46 +216,47 @@ void	Location::ParseLocation(std::istream &file) {
 		} else
 			throw ErrorConfFile("In conf file: Location 2");
 	}
-	// for (size_t i = 0; i < _Methods.size(); i++)
-	// 	std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
+	for (size_t i = 0; i < _Methods.size(); i++)
+		std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
+	std::cout << BLUE "Flags: " RESET << _flagGet << " " << _flagPost << " " << _flagDelete << std::endl;
 }
 
 Location::~Location(void) { return; }
 
-int	Location::getFlagIndex() { return (this->_indexFlag); }
-
-std::vector<std::string>&	Location::getIndexPages() { return (this->_Indx); }
-
-int	Location::getRootFlag() { return (this->_rootflag); }
-
-std::string	Location::getRoot() { return (this->_Root); }
-
-int	Location::getReturnFlag() { return (this->_ReturnFlag); }
-
-std::map<int, std::string>& Location::getReturnPages() { return (this->_Retourn); }
-
-int	Location::getFlagErrorPages() { return (this->_ErPages); }
-
-std::map<int, std::string>& Location::getPagesError() { return (this->_PageError); }
-
-int	Location::getFlagAutoInx() { return (this->_AutoFlag); }
-
-bool	Location::getAutoIndex() { return(this->_AutoIndex); }
-
-std::vector<std::string>	Location::getMtods(void) { return (this->_Methods); }
-
 void	Location::setUri(std::string uri) { this->_Uri = uri; }
 
-int	Location::getFlagCgi(void) { return (this->_CgiFlag); }
+int	Location::getFlagIndex() const { return (this->_indexFlag); }
 
-int	Location::getFlagPost(void) { return (this->_flagPost); }
+std::vector<std::string> const &	Location::getIndexPages() const { return (this->_Indx); }
 
-int	Location::getFlagGet(void) { return (this->_flagGet); }
+int	Location::getRootFlag() const { return (this->_rootflag); }
 
-int	Location::getFlagDelete(void) { return (this->_flagDelete); }
+std::string	Location::getRoot() const { return (this->_Root); }
 
-int Location::getCgiAllow(void){return (this->_CgiAllow); }
+int	Location::getReturnFlag() const { return (this->_ReturnFlag); }
 
-std::string	Location::getCgiPath(void) { return (this->_CgiPath); }
+std::map<int, std::string> const & Location::getReturnPages() const { return (this->_Retourn); }
 
-std::string	Location::getUri(void) {    return(this->_Uri); }
+int	Location::getFlagErrorPages() const { return (this->_ErPages); }
+
+std::map<int, std::string> const & Location::getPagesError() const { return (this->_PageError); }
+
+int	Location::getFlagAutoInx() const { return (this->_AutoFlag); }
+
+bool	Location::getAutoIndex() const { return(this->_AutoIndex); }
+
+std::vector<std::string>	Location::getMtods(void) const { return (this->_Methods); }
+
+int	Location::getFlagCgi(void) const { return (this->_CgiFlag); }
+
+int	Location::getFlagPost(void) const { return (this->_flagPost); }
+
+int	Location::getFlagGet(void) const { return (this->_flagGet); }
+
+int	Location::getFlagDelete(void) const { return (this->_flagDelete); }
+
+int Location::getCgiAllow(void) const {return (this->_CgiAllow); }
+
+std::string	Location::getCgiPath(void) const { return (this->_CgiPath); }
+
+std::string	Location::getUri(void) const {    return(this->_Uri); }

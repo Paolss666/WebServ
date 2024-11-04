@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/26 14:12:48 by benoit            #+#    #+#             */
-/*   Updated: 2024/11/03 12:08:55 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 17:37:36 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ void	Response::exec_cgi( int cgiFdOut, int cgiFdIn, std::string script) {
 				ft_close(g_fds[i]);
 
 		char *av[] = { const_cast<char*>(_Cgi.c_str()), const_cast<char*>(script.c_str()),  NULL };
+		
 		execve(const_cast<char*>(_Cgi.c_str()), av, env.data());
 		throw std::runtime_error("In CGI: execve CGI failed");
 	}
