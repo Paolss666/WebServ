@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:51 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 17:12:23 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 18:15:52 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	status = getStatus(e._code);
 	
 	// Get URI for specific error code page
-	uri = foundGoodUri(host, uri);
+	uri = foundPathUri(host, uri);
 
 	// Get error page if defined in location or at global server level
 	if (loc_it != host._Location.end() && loc_it->second.getFlagErrorPages()) {

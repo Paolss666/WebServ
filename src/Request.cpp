@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 17:50:15 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 18:16:03 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ void	Request::append(const char * buffer, int valread) {
 
 void	Request::pnc_request_line(std::istringstream & iss) {
 	std::map<std::string, Location>::const_iterator it;
-	std::string	line, good_uri;
+	std::string	line, path_uri;
 
 	// Skip the empty lines
 	while (std::getline(iss, line, '\n') && line == "\r");
@@ -63,21 +63,21 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	if (_host._Location.size() == 0)
 		return ;
 	
-	good_uri = foundGoodUri(_host, _request_line["uri"]);
-	it = _host._Location.find(good_uri);
+	path_uri = foundPathUri(_host, _request_line["uri"]);
+	it = _host._Location.find(path_uri);
 
 	// Check methods if location is found
 	if (it != _host._Location.end()) {
-		if (!it->second.getCgiAllow() && _request_line["uri"].find(good_uri) != std::string::npos &&  _request_line["uri"].find("/cgi") != std::string::npos)
+		if (!it->second.getCgiAllow() && _request_line["uri"].find(path_uri) != std::string::npos &&  _request_line["uri"].find("/cgi") != std::string::npos)
 			throw ErrorRequest("In the request: CGI is not allow", ERR_CODE_FORBIDDEN);
 
-		if (_request_line["method"] == "GET" && !it->second.getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
+		if (_request_line["method"] == "GET" && !it->second.getFlagGet() && _request_line["uri"].find(path_uri) != std::string::npos)
 			throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_MET_NOT_ALLOWED);
 
-		if (_request_line["method"] == "POST" && !it->second.getFlagPost() && _request_line["uri"].find(good_uri) != std::string::npos)
+		if (_request_line["method"] == "POST" && !it->second.getFlagPost() && _request_line["uri"].find(path_uri) != std::string::npos)
 			throw ErrorRequest("In the request: method POST is not allow", ERR_CODE_MET_NOT_ALLOWED);
 		
-		if (_request_line["method"] == "DELETE" && !it->second.getFlagDelete() && _request_line["uri"].find(good_uri) != std::string::npos)
+		if (_request_line["method"] == "DELETE" && !it->second.getFlagDelete() && _request_line["uri"].find(path_uri) != std::string::npos)
 			throw ErrorRequest("In the request: method DELETE is not allow", ERR_CODE_MET_NOT_ALLOWED);
 	}
 

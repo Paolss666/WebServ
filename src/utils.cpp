@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:36 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 15:53:12 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 18:34:28 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,6 +130,7 @@ int	isRepertory(std::string root, std::string filename) {
 	struct stat buffer;
 
 	filename = root + filename;
+	
 	if (stat(filename.c_str(), &buffer) < 0)
 		return (0); // 404 request not found;
 	if (S_ISREG(buffer.st_mode))
@@ -248,7 +249,7 @@ std::string build_custom_page(int fig, std::string str) {
 	return body;
 }
 
-std::string foundGoodUri(Host & host, std::string uri) {
+std::string foundPathUri(Host & host, std::string uri) {
 	int			i = 1;
 	std::size_t	pos;
 	std::string	tmp;

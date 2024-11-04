@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 16:23:56 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 19:10:59 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,10 @@ void	Response::buildAutoindex(void) {
 			hyperlink = (*it) + "/";
 		else
 			hyperlink = (*it);
-		add_content += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
+		if (it == filesList.begin() + 1)
+			add_content += "<div class=\"button-container\"><a class=\"link-button back-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
+		else
+			add_content += "<div class=\"button-container\"><a class=\"link-button\" href=" + hyperlink + ">" + filename + "</a></div>\n";
 	}
 	closedir(dir);
 	
@@ -195,28 +198,31 @@ void	Response::buildPage(void) {
 }
 
 void	Response::buildGet(void) {
-	std::string	index, path, uri;
+	std::string										index, path, uri, path_uri;
+	std::map<std::string, Location>::const_iterator it;
 
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
 		uri = _startUri;
-	if (_host._Location.size() && _host._Location.find(uri) != _host._Location.end()) {
-		if (_host._Location[uri].getFlagIndex())
-			_indexPages = _host._Location[uri].getIndexPages();
-		if (_host._Location[uri].getFlagAutoInx())
-			_autoIndex = _host._Location[uri].getAutoIndex();
-		if (_host._Location[uri].getRootFlag())
-			_root = _host._Location[uri].getRoot();
-		if (_host._Location[uri].getReturnFlag())
-			_returnPages = _host._Location[uri].getReturnPages();
-		if (_host._Location[uri].getFlagErrorPages())
-			_pagesError = _host._Location[uri].getPagesError();
+	path_uri = foundPathUri(_host, uri);
+	it = _host._Location.find(path_uri);
+	if (it != _host._Location.end()) {
+		if (it->second.getFlagIndex())
+			_indexPages = it->second.getIndexPages();
+		if (it->second.getFlagAutoInx())
+			_autoIndex = it->second.getAutoIndex();
+		if (it->second.getRootFlag())
+			_root = it->second.getRoot() + "/";
+		if (it->second.getReturnFlag())
+			_returnPages = it->second.getReturnPages();
+		if (it->second.getFlagErrorPages())
+			_pagesError = it->second.getPagesError();
 	}
-	if (!_returnPages.empty()) {
-		buildReturnPage();
-		return ;
-	}
+	
+	if (!_returnPages.empty())
+		return buildReturnPage();
+	
 	if (isRepertory(_root, _startUri) == 3) {
 		if (_startUri[_startUri.size() -1] != '/') {
 			_statusCode = 301;
@@ -238,32 +244,33 @@ void	Response::buildGet(void) {
 				if (isRepertory(_root, _startUri + "/"+ file) == 1 && file[file.size() - 5] == '.') {
 					_startUri = _startUri + "/"+ (*it);
 					closedir(dir);
-					buildPage();
-					return ;
+					return buildPage();
 				}
 			}
 			closedir(dir);
 			throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
-		} else {
-			if (!_indexPages.empty()) {
-				for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
-					index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
-					path = _startUri + index;
-					if (isRepertory(_root, path) == 1) {
-						_startUri = path;
-						buildPage();
-					}
+		} else if (!_indexPages.empty()) {
+			for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
+				index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
+				path = _root + "/" + index;
+				std::cout << "index: " << index << std::endl;
+				std::cout << "startUri: " << _startUri << std::endl;
+				std::cout << "path: " << path << std::endl;
+				if (isRepertory(_root, index) == 1 || isRepertory(_root + _startUri, index) == 3) {
+					_startUri = index;
+					return buildPage();
 				}
 			}
-			else if (_autoIndex)
-				buildAutoindex();
-			else
-				throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
-		}
+			throw ErrorResponse("In the response: no index file found", ERR_CODE_NOT_FOUND);
+		} else if (_autoIndex)
+			return buildAutoindex();
+		else
+			throw ErrorResponse("In the response: URI points nowhere", ERR_CODE_FORBIDDEN);
+	
 	} else if (_startUri == "/cgi/print_res.py" || _startUri == "/cgi/print_res.php")
 		throw ErrorResponse("In the reponse: URI IS NOT ALLOW", ERR_CODE_FORBIDDEN);
 	else if (isRepertory(_root, _startUri) == 1)
-		buildPage();
+		return buildPage();
 	else
 		throw ErrorResponse("In the response: URI is not a directory", ERR_CODE_NOT_FOUND);
 }

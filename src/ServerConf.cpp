@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:28 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 17:10:21 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 18:09:20 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -392,6 +392,7 @@ void    ServerConf::initWServer(std::istream &file) {
 			break;
 		} else
 			throw ErrorConfFile("In conf file: server section");
+		// std::cout << GREEN "KW: " << kw << " | " << "Line: " << line << RESET << std::endl;
 	}
 }
 

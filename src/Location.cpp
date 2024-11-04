@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:07:30 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 17:37:22 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/04 18:09:11 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ void	Location::ParseLocation(std::istream &file) {
 	std::string			keyword;
 	std::istringstream	iss;
 	
-	std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
+	// std::cout << CYAN "URI: " RESET << this->getUri() << std::endl;
 	while (std::getline(file, line)) {
 		iss.clear();
 		iss.str(line);
@@ -215,10 +215,11 @@ void	Location::ParseLocation(std::istream &file) {
 			break;
 		} else
 			throw ErrorConfFile("In conf file: Location 2");
+		// std::cout << GREEN "Keyword: " << keyword << " | line: " << line << RESET << std::endl;
 	}
-	for (size_t i = 0; i < _Methods.size(); i++)
-		std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
-	std::cout << BLUE "Flags: " RESET << _flagGet << " " << _flagPost << " " << _flagDelete << std::endl;
+	// for (size_t i = 0; i < _Methods.size(); i++)
+	// 	std::cout << BLUE "Methods: " RESET << _Methods[i] << std::endl;
+	// std::cout << BLUE "Flags: " RESET << _flagGet << " " << _flagPost << " " << _flagDelete << std::endl;
 }
 
 Location::~Location(void) { return; }
