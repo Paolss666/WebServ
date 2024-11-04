@@ -23,7 +23,7 @@ class Request {
 		Request(Request const & src);
 		~Request(void);
 
-		void								parse(void);
+		void								parse();
 		void								append(const char * buffer, int valread);
 		void								pnc_request_line(std::istringstream & iss);
 		void								pnc_headers(std::istringstream & iss);

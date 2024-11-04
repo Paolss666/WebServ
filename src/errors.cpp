@@ -104,6 +104,25 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 			buffer << fileRequested.rdbuf();
 			body = buffer.str();	
 		}
+		else if (host._errorFlag) {
+			it = host.getPagesError().find(e._code);
+			if (it != host.getPagesError().end()) {
+				std::ifstream fileRequested(it->second.c_str());
+				if (fileRequested.good() == false)
+					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
+				buffer << fileRequested.rdbuf();
+				body = buffer.str();	
+			}
+		}
+		else {
+			str_code << e._code;
+			if (status == "Unkown")
+				image = "<img src=\"https://http.cat/450.jpg\">";
+			else
+				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+			body = build_custom_page(e._code, image);
+		}
+
 	} else if (host._errorFlag) {
 		it = host.getPagesError().find(e._code);
 		if (it != host.getPagesError().end()) {
@@ -123,6 +142,7 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	}
 
 	// Set the response
+	// std::cout << body << " <<<<<< ----------- Body\n";
 	oss << "HTTP/1.1 " << e._code << " " << status << "\r\n";
 	if (host._name.empty()) {
 		str_port << host._port;

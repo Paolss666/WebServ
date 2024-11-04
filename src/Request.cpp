@@ -64,10 +64,14 @@ void	Request::pnc_request_line(std::istringstream & iss) {
 	// Check if method is allowed for the location
 	if (_host._Location.size() == 0)
 		return ;
+	
 	std::string good_uri = foundGoodUri(_host, _request_line["uri"]);
 
-	if (!_host._Location[good_uri].getCgiAllow() && _request_line["uri"].find(good_uri) != std::string::npos )
+	if (!_host._Location[good_uri].getCgiAllow() 
+		&& _request_line["uri"].find(good_uri) != std::string::npos
+		&&  _request_line["uri"].find("/cgi") != std::string::npos)
 		throw ErrorRequest("In the request: CGI is not allow", ERR_CODE_FORBIDDEN);
+
 
 	if ( _request_line["method"] == "GET" && !_host._Location[good_uri].getFlagGet() && _request_line["uri"].find(good_uri) != std::string::npos)
 		throw ErrorRequest("In the request: method GET is not allow", ERR_CODE_FORBIDDEN);

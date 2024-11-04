@@ -250,7 +250,7 @@ std::string foundGoodUri(Host & host, std::string uri) {
 	std::string	tmp;
 
 	if (uri[uri.size() - 1] != '/')
-		uri = uri.substr(0, uri.find_last_of('/'));
+		uri = uri + "/";
 
 	while (i && host._Location.size()) {
 		for (std::map<std::string, Location>::iterator it = host._Location.begin(); it != host._Location.end(); ++it)

@@ -25,8 +25,9 @@ def get_params():
         username = params.get('?username', [''])[0]
     
     bio = params.get('bio', [''])[0]
+    
     return username, bio
-
+   
 
 username, bio = get_params()
 
@@ -134,4 +135,5 @@ content = f"""<!DOCTYPE html>
 # print("Content-Type: text/html")
 # print()
 # Stampare il contenuto HTML generato
+del username, bio
 print(content)
