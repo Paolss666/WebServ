@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/05 14:55:13 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/05 16:49:54 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,7 +155,6 @@ void	Request::pnc_body(void) {
 	
 	// Check the body size during reading
 	_chunked ? len_max = MAX_BODY_SIZE : len_max = std::atof(_headers["Content-Length"].c_str());
-	std::cout << YELLOW "Body size: " << len << " | Expected: " << len_max << " | Max: " << _host._maxBodySize << " | eof: " << _eof << RESET << std::endl;
 	if (len > MAX_BODY_SIZE + 1 || len > _host._maxBodySize + 1	|| len > len_max + 1)
 		throw ErrorRequest("In the request: body too long", ERR_CODE_BAD_REQUEST);
 
@@ -164,9 +163,9 @@ void	Request::pnc_body(void) {
 		throw ErrorRequest("In the request: body not found", ERR_CODE_BAD_REQUEST);
 
 	// Is the body complete?
-	if (_eof > 0 && _binary_body.size() != len_max)
+	if (_eof > 0 && len != len_max && !_chunked)
 		return ;
-
+	
 	// If the body is chunked, decode it and check it
 	if (_chunked)
 		pnc_check_chunk();

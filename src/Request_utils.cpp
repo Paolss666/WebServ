@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/02 09:43:56 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/10/31 16:02:10 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/05 17:02:01 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ std::vector<char>	Request::pnc_clean_chunk(void) {
 				len = true;
 		}
 	}
-	
+	_binary_body.pop_back();
+	_binary_body.pop_back();
 	return _binary_body;
 }
