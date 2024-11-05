@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 19:10:59 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/05 15:15:20 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,13 +274,11 @@ void	Response::buildPost(void) {
 	std::istringstream	iss;
 	std::string			line, path;
 	size_t 				pos, start = 0;
-
 	// Get the boundary 
 	iss.str(_headers["Content-Type"]);
 	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
 		throw ErrorResponse("In the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);
 	_boundary += "--";
-	
 	// Get the end of preliminary binary information
 	for (std::size_t i = 0; i < _binary_body.size(); i++) {
 		line += _binary_body[i];
@@ -291,7 +289,6 @@ void	Response::buildPost(void) {
 	}
 	if (!start && !_chunked)
 		throw ErrorResponse("In the response: missing opening body information", ERR_CODE_BAD_REQUEST);
-
 	// Parse the multipart form data
 	pos = line.find("filename=\"");
 	if (pos != std::string::npos) {
@@ -301,14 +298,12 @@ void	Response::buildPost(void) {
 			throw ErrorResponse("In the response: missing filename information", ERR_CODE_BAD_REQUEST);
 	} else
 		throw ErrorResponse("In the response: missing filename information", ERR_CODE_BAD_REQUEST);
-	
 	// Check the end of file string is present
 	line.clear();
 	for (size_t i = _binary_body.size() - _boundary.size() - 2; i < _binary_body.size(); i++)
 		line += _binary_body[i];
 	if (line.find(_boundary) == std::string::npos)
 		throw ErrorResponse("In the response: missing closing body information", ERR_CODE_BAD_REQUEST);
-
 	// Save the file
 	path = _host._rootPath + "/uploads/";
 
@@ -319,8 +314,15 @@ void	Response::buildPost(void) {
 	std::ofstream outfile((path + _filename).c_str(), std::ios::binary);
 	if (!outfile.is_open())
 		throw ErrorResponse("In the response: cannot open the file", ERR_CODE_INTERNAL_ERROR);
-	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++)
+	for (size_t i = start; i < _binary_body.size() - (_boundary.size() + 4); i++) {
+		if (g_sig) {
+			outfile.close();
+			if (remove((path + _filename).c_str()) == -1)
+				throw ErrorResponse("In the response: file not removed", ERR_CODE_INTERNAL_ERROR);
+			throw ErrorResponse("In the response: file not uploaded", ERR_CODE_INTERNAL_ERROR);
+		}
 		outfile.put(_binary_body[i]);
+	}
 	outfile.close();
 	_host._files.push_back(_filename);
 

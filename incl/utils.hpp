@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/27 18:03:16 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/04 18:15:52 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/05 15:06:16 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,10 +57,9 @@ void                writeToPipe(int fd, const std::string& data);
 # define EPOLL_TIMEOUT		0
 # define BUFFER_SIZE		512
 # define MAX_BODY_SIZE		5368709120	// 5 GB
-// # define MAX_BODY_SIZE		1000000		// 1 MB
 # define MAX_HEADER_SIZE	8192		// 8 KB
 # define MAX_URI_SIZE		2048		// 2 KB
-# define KEEP_ALIVE			30
+# define KEEP_ALIVE			300
 # define MAX_NB_KEEP_ALIVE	255
 # define RL_DONE			0
 # define HEADERS_DONE		1

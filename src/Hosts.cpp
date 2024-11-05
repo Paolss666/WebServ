@@ -117,8 +117,10 @@ void	Host::parse_request(int i) {
 	// Read data from client
 	try {
 		valread = read(fd, buffer, BUFFER_SIZE - 1);
-		if (valread < 0)
+		if (valread < 0 && it != _requests.end() && it->second._stage != HEADERS_DONE)
 			throw ErrorFdManipulation("In the read", ERR_CODE_INTERNAL_ERROR);
+		else if (valread < 0)
+			valread = 0;
 	} catch (const ErrorFdManipulation & e) {
 		if (it != _requests.end())
 			return send_error_page(*this, i, e, it->second._request_line["uri"]);
@@ -139,7 +141,7 @@ void	Host::parse_request(int i) {
 		if (valread == 0)
 			it->second._eof = 0;
 		else
-			it->second._eof = recv(fd, buffer, 2, MSG_PEEK);
+			it->second._eof = valread;
 		it->second.parse();
 		if (it->second._chunked)
 			_connections[fd] = time(NULL);
@@ -206,6 +208,8 @@ void	Host::run_server(void) {
 
 	// Handle events
 	for (int i = 0; i < _nfds; ++i) {
+		if (g_sig)
+			break ;
 		if (_events[i].events == EPOLLIN) {
 			// New connection
 			if (_events[i].data.fd == _fdSetSock)
