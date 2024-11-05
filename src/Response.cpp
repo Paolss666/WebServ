@@ -6,7 +6,7 @@
 /*   By: bdelamea <bdelamea@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/06 18:24:47 by bdelamea          #+#    #+#             */
-/*   Updated: 2024/11/05 15:15:20 by bdelamea         ###   ########.fr       */
+/*   Updated: 2024/11/05 16:25:49 by bdelamea         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,11 +201,16 @@ void	Response::buildGet(void) {
 	std::string										index, path, uri, path_uri;
 	std::map<std::string, Location>::const_iterator it;
 
+	// Check if uri has a file to download
+	if (_startUri.find("uploads/") != std::string::npos && _startUri.find("index.html") == std::string::npos)
+		_startUri = replace_percentage(_startUri);
+
 	if (_startUri.size() > 2 &&  _startUri[_startUri.size() - 1] == '/')
 		uri = _startUri.substr(0, _startUri.size() - 1);
 	else
 		uri = _startUri;
 	path_uri = foundPathUri(_host, uri);
+
 	it = _host._Location.find(path_uri);
 	if (it != _host._Location.end()) {
 		if (it->second.getFlagIndex())
