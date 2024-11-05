@@ -235,7 +235,6 @@ void	Host::run_server(void) {
 		} else if (_requests.find(_events[i].data.fd) != _requests.end() && _events[i].events == EPOLLOUT)
 			act_on_request(i);
 		else {
-			std::cerr << "Unknown event" << std::endl;
 			ft_close(_events[i].data.fd);
 			epoll_ctl(_fdEpoll, EPOLL_CTL_DEL, _events[i].data.fd, NULL);
 		}

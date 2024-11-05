@@ -79,7 +79,7 @@ int main(int ac, char **av) {
 	signal(SIGINT, sig_handler);
 	try {
 		if (ac != 2)
-			server = ft_conf_init("conf/no_cgi.conf");
+			server = ft_conf_init("conf/test.conf");
 		else
 			server = ft_conf_init(av[1]);
 		WebServ(server, hosts);

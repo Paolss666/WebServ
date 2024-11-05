@@ -76,6 +76,10 @@ std::string getStatus(const int & code) {
 		return "Unknown";
 }
 
+void send_generic_error() {
+
+}
+
 template <typename T>
 void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	std::string 									status, response, body, line, image;
@@ -83,7 +87,7 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	std::ostringstream								oss, str_code, str_port;
 	std::stringstream								buffer;
 	std::map<int, std::string>::const_iterator		it;
-	std::map<std::string, Location>::const_iterator	loc_it = host._Location.find(uri);
+	std::map<std::string, Location>::const_iterator	loc_it = host._Location.find(foundPathUri(host, uri));
 	
 	ft_perror(e.what());
 	if (host._nb_keepalive)
@@ -91,7 +95,7 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 
 	// Get the status
 	status = getStatus(e._code);
-	
+		
 	// Get URI for specific error code page
 	uri = foundPathUri(host, uri);
 
@@ -99,28 +103,36 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	if (loc_it != host._Location.end() && loc_it->second.getFlagErrorPages()) {
 		it = loc_it->second.getPagesError().find(e._code);
 		if (it != loc_it->second.getPagesError().end()) {
+
 			std::ifstream fileRequested(it->second.c_str());
-			if (fileRequested.good() == false)
-				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
-			buffer << fileRequested.rdbuf();
-			body = buffer.str();	
+			if (fileRequested.good() == false) {
+				ft_perror("In the opening of the file requested");
+				str_code << ERR_CODE_NOT_FOUND;
+				status = getStatus(ERR_CODE_NOT_FOUND);
+				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+				body = build_custom_page(ERR_CODE_NOT_FOUND, image);
+			} else {
+				buffer << fileRequested.rdbuf();
+				body = buffer.str();	
+			}
 		}
 		else if (host._errorFlag) {
 			it = host.getPagesError().find(e._code);
 			if (it != host.getPagesError().end()) {
 				std::ifstream fileRequested(it->second.c_str());
-				if (fileRequested.good() == false)
-					throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
-				buffer << fileRequested.rdbuf();
-				body = buffer.str();	
+				if (fileRequested.good() == false) {
+					ft_perror("In the opening of the file requested");
+					str_code << ERR_CODE_NOT_FOUND;
+					status = getStatus(ERR_CODE_NOT_FOUND);
+					image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+					body = build_custom_page(ERR_CODE_NOT_FOUND, image);
+				} else {
+					buffer << fileRequested.rdbuf();
+					body = buffer.str();	
+				}
 			}
 		}
 		else {
-			str_code << e._code;
-			if (status == "Unkown")
-				image = "<img src=\"https://http.cat/450.jpg\">";
-			else
-				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
 			body = build_custom_page(e._code, image);
 		}
 
@@ -128,10 +140,15 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 		it = host.getPagesError().find(e._code);
 		if (it != host.getPagesError().end()) {
 			std::ifstream fileRequested(it->second.c_str());
-			if (fileRequested.good() == false)
-				throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);
-			buffer << fileRequested.rdbuf();
-			body = buffer.str();	
+			if (fileRequested.good() == false) {
+				str_code << ERR_CODE_NOT_FOUND;
+				status = getStatus(ERR_CODE_NOT_FOUND);
+				image = "<img src=\"https://http.cat/" + str_code.str() + ".jpg\">";	
+				body = build_custom_page(ERR_CODE_NOT_FOUND, image);
+			} else {
+				buffer << fileRequested.rdbuf();
+				body = buffer.str();	
+			}
 		}
 	} else {
 		str_code << e._code;
@@ -157,12 +174,12 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	oss << body;
 	response = oss.str();
 
-	int check_send = send(host._events[i].data.fd, response.c_str(), response.size(), 0);
+	int check_send = send(host._events[i].data.fd, response.c_str(), response.size(), MSG_NOSIGNAL);
 	// Send the response
 	if (check_send < 0)
 		ft_perror(("In the send of error page: " + str_code.str()).c_str());
 	else if (check_send == 0)
-		ft_perror("Send 0 byte to client "); 
+		ft_perror("In the send of error page: Send 0 byte to client "); 
 
 	// Close the connection
 	ft_close(host._events[i].data.fd);

@@ -50,6 +50,8 @@ void	Response::send_response(int fd, bool *done) {
 
 	if (sent == -1)
 		throw ErrorResponse("In the send of the response", ERR_CODE_INTERNAL_ERROR);
+	else if (sent == 0)
+		throw ErrorResponse("In the send of the response: sent 0 bytes to the client", ERR_CODE_INTERNAL_ERROR);
 	else
 		_response_message = _response_message.substr(sent);
 	
@@ -131,15 +133,16 @@ void	Response::buildReturnPage(void) {
 	else
 		_statusCode = 500;
 	
+	std::string goodUri = foundPathUri(_host, _startUri);
+
 	if ((_startUri.size() -1 ) == '/' && redirUri[0] == '/') {
 		redirUri = redirUri.substr(1, redirUri.size());
-		_startUri += redirUri;
-	} else if ((_startUri.size() -1 ) == '/' && redirUri[0] != '/')
-		_startUri += redirUri;
-	else if ((_startUri.size() -1 ) != '/' && redirUri[0] == '/')
-		_startUri += redirUri;
+		// _startUri += redirUri;
+	}
 	else if ((_startUri.size() -1 ) != '/' && redirUri[0] != '/')
-		_startUri = _startUri + "/" + redirUri;
+		redirUri = "/" + redirUri;
+	
+	_startUri = goodUri + redirUri;
 
 	_headers["location"] = _startUri;
 
@@ -154,6 +157,7 @@ void	Response::buildPage(void) {
 	
 	// Open the requested file
 	_startUri = _root + _startUri;
+
 	std::ifstream fileRequested(_startUri.c_str());
 	if (fileRequested.good() == false)
 		throw ErrorResponse("In the opening of the file requested", ERR_CODE_NOT_FOUND);

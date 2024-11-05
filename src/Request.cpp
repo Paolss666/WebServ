@@ -115,13 +115,11 @@ void	Request::pnc_headers(std::istringstream & iss) {
 	oss << _host._port;
 	if (_headers["Host"] == "localhost:" + oss.str() || _headers["Host"] == "localhost")
 		_headers["Host"] = collect_lh_ip() + ":" + oss.str();
-	if (!_host._name.empty() && (_headers.find("Host") == _headers.end() || (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str())))
-	{
-		std::cout << _headers["Host"] << std::endl;
-		std::cout << _host._name << std::endl;
-		std::cout << collect_lh_ip() + ":" + oss.str() << std::endl;
-		throw ErrorRequest("In the request: host error", 666);
-	}
+	
+	if (!_host._name.empty() 
+		&& (_headers.find("Host") == _headers.end()
+		|| (_headers["Host"] != _host._name && _headers["Host"] != _host._raw_ip + ":" + oss.str() && _headers["Host"] != _host._name + ":" + oss.str())))
+		throw ErrorRequest("In the request: host error", ERR_CODE_NOT_FOUND);
 
 	// Check content for POST
 	if (_request_line["method"] == "POST") {

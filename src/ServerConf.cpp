@@ -341,7 +341,6 @@ void    ServerConf::initWServer(std::istream &file) {
 	std::string	line, kw;
 	int			i = 0;
 
-	// std::cout << YELLOW "New Server" << std::endl;
 	while (std::getline(file, line)) {
 		std::istringstream iss(line);
 		if (line.empty() || line == "\t\t")
@@ -392,7 +391,6 @@ void    ServerConf::initWServer(std::istream &file) {
 			break;
 		} else
 			throw ErrorConfFile("In conf file: server section");
-		// std::cout << GREEN "KW: " << kw << " | " << "Line: " << line << RESET << std::endl;
 	}
 }
 
