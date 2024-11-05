@@ -235,7 +235,7 @@ void	Response::buildGet(void) {
 			while ((fileRead = readdir(dir)) != NULL)
 				if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 					filesList.push_back(fileRead->d_name);
-			for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++) {
+			for (std::vector<std::string>::const_iterator it = filesList.begin(); it != filesList.end(); it++) {
 				if (*it == "." || *it == "..")
 					continue ;
 				std::string file = (*it);
@@ -248,7 +248,7 @@ void	Response::buildGet(void) {
 			closedir(dir);
 			throw ErrorResponse("Error in the request: URI is not a directory", ERR_CODE_NOT_FOUND);
 		} else if (!_indexPages.empty()) {
-			for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
+			for (std::vector<std::string>::const_iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
 				index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
 				path = _startUri + index;
 				if (isRepertory(_root, path) == 1) {

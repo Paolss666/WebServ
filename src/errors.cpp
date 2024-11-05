@@ -157,9 +157,12 @@ void	send_error_page(Host & host, int i, const T & e, std::string uri) {
 	oss << body;
 	response = oss.str();
 
+	int check_send = send(host._events[i].data.fd, response.c_str(), response.size(), 0);
 	// Send the response
-	if (send(host._events[i].data.fd, response.c_str(), response.size(), 0) < 0)
+	if (check_send < 0)
 		ft_perror(("In the send of error page: " + str_code.str()).c_str());
+	else if (check_send == 0)
+		ft_perror("Send 0 byte to client "); 
 
 	// Close the connection
 	ft_close(host._events[i].data.fd);

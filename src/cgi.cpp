@@ -25,7 +25,7 @@ std::vector<char *>	Response::MakeEnvCgi(std::string & cgi, std::vector<std::str
 	else
 		exportENV(storage, env, "CONTENT_TYPE", "text/html");
 	exportENV(storage, env, "GATEWAY_INTERFACE", "CGI/1.1");
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++) {
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); it++) {
 		keyWord = it->first;
 		i = 0;
 		while (keyWord[i]) {
