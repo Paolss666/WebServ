@@ -236,9 +236,7 @@ void	Response::buildGet(void) {
 				if (strcmp(fileRead->d_name, ".") != 0 || (strcmp(fileRead->d_name, "..") != 0 && _startUri != "/"))
 					filesList.push_back(fileRead->d_name);
 			for (std::vector<std::string>::iterator it = filesList.begin(); it != filesList.end(); it++) {
-				if (*it == ".")
-					continue ;
-				if (*it == "..")
+				if (*it == "." || *it == "..")
 					continue ;
 				std::string file = (*it);
 				if (isRepertory(_root, _startUri + "/"+ file) == 1 && file[file.size() - 5] == '.') {
@@ -252,12 +250,9 @@ void	Response::buildGet(void) {
 		} else if (!_indexPages.empty()) {
 			for (std::vector<std::string>::iterator it = _indexPages.begin(); it != _indexPages.end(); it++) {
 				index = (*it)[0] == '/' ? (*it).substr(1, std::string::npos) : (*it);
-				path = _root + "/" + index;
-				std::cout << "index: " << index << std::endl;
-				std::cout << "startUri: " << _startUri << std::endl;
-				std::cout << "path: " << path << std::endl;
-				if (isRepertory(_root, index) == 1 || isRepertory(_root + _startUri, index) == 3) {
-					_startUri = index;
+				path = _startUri + index;
+				if (isRepertory(_root, path) == 1) {
+					_startUri = path;
 					return buildPage();
 				}
 			}
