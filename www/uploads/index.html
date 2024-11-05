@@ -210,7 +210,7 @@
 						fileItem.className = 'file-item';
 						fileItem.innerHTML = `
                         <span>${file}</span>
-						<a href="www/uploads/${file}" target="_blank" class="link-button">Download</a>
+						<a href="/uploads/${file}" target="_blank" class="link-button">Download</a>
                         <button class="delete-button" onclick="deleteFile('${file}')">X</button>
                     `;
 						fileList.appendChild(fileItem);

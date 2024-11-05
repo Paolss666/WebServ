@@ -274,7 +274,7 @@ void	Response::buildPost(void) {
 	std::istringstream	iss;
 	std::string			line, path;
 	size_t 				pos, start = 0;
-	// Get the boundary 
+	// Get the boundary
 	iss.str(_headers["Content-Type"]);
 	if (!std::getline(iss, _boundary, '=') || !std::getline(iss, _boundary) || _boundary.empty())
 		throw ErrorResponse("In the response: content-type not well formatted", ERR_CODE_BAD_REQUEST);

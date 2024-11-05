@@ -138,7 +138,7 @@ void	Request::pnc_headers(std::istringstream & iss) {
 			_chunked = true;
 		if (_headers.find("Content-Type") == _headers.end() || _headers["Content-Type"].empty())
 			throw ErrorRequest("In the request: content-type not found", ERR_CODE_UNSUPPORTED_MEDIA);
-		if (_headers["Content-Type"].find("multipart/form-data") == std::string::npos)
+		if (_headers["Content-Type"].find("multipart/form-data") == std::string::npos && _headers["Content-Type"].find("application/x-www-form-urlencoded") == std::string::npos)
 			throw ErrorRequest("In the request: other than multipart data not supported", ERR_CODE_UNSUPPORTED_MEDIA);
 	}
 
@@ -209,6 +209,7 @@ void	Request::parse() {
 			throw ErrorRequest("In the request: request line too long", ERR_CODE_URI_TOO_LONG);
 
 		// Parse & Check the request line
+
 		pnc_request_line(iss);
 
 		// Mark the request line as done & store the end of the request line
